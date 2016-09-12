@@ -240,7 +240,7 @@ sglue_set_src()
   [ $RT -eq 0 ] || sglue_err int "SCRIPT \`/bin/sed' exited with \`$RT'"
   [ -n "$RS"  ] || sglue_err usr "invalid SCRIPT \`$1'"
 
-  echo -n "$RS" | /bin/grep '^[:alpha:]\+$' > /dev/null
+  echo -n "$RS" | /bin/grep '^[[:alpha:]]\+$' > /dev/null
   RT=$?
   [ $RT -eq 1 ] && sglue_err usr "invalid SCRIPT \`$1'"
   [ $RT -ne 0 ] && sglue_err int "SCRIPT \`/bin/grep' exited with \`$RT'"
@@ -265,12 +265,12 @@ sglue_set_dest()
   [ $RT -eq 1 ] && sglue_err dep "missing \`@dest DEST' in SRC \`$1'"
   [ $RT -ne 0 ] && sglue_err int "\`@dest' \`/bin/grep' exited with \`$RT'"
 
-  RS="$(echo -n "$RS" | /bin/sed -e 's|^[^/]\+||' -e 's|[:blank:]\+$||')"
+  RS="$(echo -n "$RS" | /bin/sed -e 's|^[^/]\+||' -e 's|[[:blank:]]\+$||')"
   RT=$?
   [ $RT -eq 0 ] || sglue_err int "DEST \`/bin/sed' exited with \`$RT'"
   [ -n "$RS"  ] || sglue_err usr "invalid \`@dest DEST' in SRC \`$1'"
 
-  echo -n "$RS" | /bin/grep '^\(/.\+\)\?/bin/[:alpha:]\+$' > /dev/null
+  echo -n "$RS" | /bin/grep '^\(/.\+\)\?/bin/[[:alpha:]]\+$' > /dev/null
   RT=$?
   [ $RT -eq 1 ] && sglue_err usr "invalid \`@dest $RS' in SRC \`$1'"
   [ $RT -ne 0 ] && sglue_err int "DEST \`/bin/grep' exited with \`$RT'"
