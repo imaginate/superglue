@@ -29,12 +29,12 @@ unset -f printf
 unset -f pwd
 unset -f unalias
 
-unalias cd
-unalias command
-unalias echo
-unalias printf
-unalias pwd
-unalias readonly
+unalias cd       2> /dev/null
+unalias command  2> /dev/null
+unalias echo     2> /dev/null
+unalias printf   2> /dev/null
+unalias pwd      2> /dev/null
+unalias readonly 2> /dev/null
 
 ################################################################################
 ## DEFINE HELPERS
