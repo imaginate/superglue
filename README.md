@@ -15,8 +15,7 @@ A comprehensive bash [library](#library), [wrapper](#wrapper), and [rc master](#
 
 ```sh
 git clone https://github.com/imaginate/superglue.git
-make -C superglue
-rm -rf superglue
+make -C superglue && rm -rf superglue
 ```
 
 **Note:** Packages for the following managers is on the to-do list. To help please message [Adam](adam@imaginate.life).
