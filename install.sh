@@ -19,29 +19,44 @@
 ################################################################################
 
 ################################################################################
-## CLEAN COMMANDS
+## CLEAN ENV
 ################################################################################
 
-unset -f cd
-unset -f command
-unset -f echo
-unset -f printf
-unset -f pwd
-unset -f unalias
+############################################################
+# @func
+# @use sglue_unalias ...CMD
+############################################################
+sglue_unalias()
+{
+  while [ $# -gt 0 ]; do
+    unalias "$1" 2> /dev/null || :
+    shift
+  done
+  return 0
+}
 
-unalias cd       2> /dev/null
-unalias command  2> /dev/null
-unalias echo     2> /dev/null
-unalias printf   2> /dev/null
-unalias pwd      2> /dev/null
-unalias readonly 2> /dev/null
+############################################################
+# @func
+# @use sglue_unset ...CMD
+############################################################
+sglue_unset()
+{
+  while [ $# -gt 0 ]; do
+    unset -f "$1" 2> /dev/null || :
+    shift
+  done
+  return 0
+}
+
+sglue_unset   cd command declare echo history printf pwd set unalias  return export umask
+sglue_unalias cd command declare echo history printf pwd set readonly return export umask
 
 ################################################################################
 ## DEFINE HELPERS
 ################################################################################
 
-readonly SGLUE_RED="$(printf '\033[0;31m')"
-readonly SGLUE_NC="$(printf '\033[0;0m')"
+readonly SGLUE_RED="`printf '%b' '\033[0;31m'`"
+readonly SGLUE_UNCOLOR="`printf '%b' '\033[0;0m'`"
 
 ############################################################
 # @func
@@ -62,26 +77,33 @@ sglue_err()
 {
   case "$1" in
     usr)
-      echo "${SGLUE_RED}ERROR${SGLUE_NC} $2" 1>&2
-      exit 1
+      SGLUE_TITLE='ERROR'
+      SGLUE_MSG="$2"
+      SGLUE_CODE=1
       ;;
     dep)
-      echo "${SGLUE_RED}DEPENDENCY ERROR${SGLUE_NC} $2" 1>&2
-      exit 2
+      SGLUE_TITLE='DEPENDENCY ERROR'
+      SGLUE_MSG="$2"
+      SGLUE_CODE=2
       ;;
     int)
-      echo "${SGLUE_RED}INTERNAL ERROR${SGLUE_NC} $2" 1>&2
-      exit 3
+      SGLUE_TITLE='INTERNAL ERROR'
+      SGLUE_MSG="$2"
+      SGLUE_CODE=3
       ;;
     scr)
-      echo "${SGLUE_RED}SCRIPT ERROR${SGLUE_NC} $2" 1>&2
-      exit 4
+      SGLUE_TITLE='SCRIPT ERROR'
+      SGLUE_MSG="$2"
+      SGLUE_CODE=4
       ;;
     *)
-      echo "${SGLUE_RED}SCRIPT ERROR${SGLUE_NC} invalid \`sglue_err' CODE \`$1'" 1>&2
-      exit 4
+      SGLUE_TITLE='SCRIPT ERROR'
+      SGLUE_MSG="invalid \`sglue_err' CODE \`$1'"
+      SGLUE_CODE=4
       ;;
   esac
+  printf "%s\n" "$SGLUE_RED$SGLUE_TITLE$SGLUE_UNCOLOR $SGLUE_MSG" 1>&2
+  exit $SGLUE_CODE
 }
 
 ############################################################
@@ -158,13 +180,13 @@ sglue_chk cmd /bin/sed
 ## CHECK PERMISSIONS
 ################################################################################
 
-[ $(/usr/bin/id --user) -eq 0 ] || sglue_err usr 'invalid user permissions'
+[ `/usr/bin/id --user` -eq 0 ] || sglue_err usr 'invalid user permissions'
 
 ################################################################################
 ## CHECK $0 VALUE
 ################################################################################
 
-echo -n "$0" | /bin/grep 'install\.sh$' > /dev/null
+printf '%s' "$0" | /bin/grep 'install\.sh$' > /dev/null
 RT=$?
 [ $RT -eq 1 ] && sglue_err int "invalid shell script param \$0 \`$0'"
 [ $RT -ne 0 ] && sglue_err int "\$0 \`/bin/grep' exited with \`$RT'"
@@ -175,7 +197,7 @@ RT=$?
 
 if [ "$0" != './install.sh' ] && [ "$0" != 'install.sh' ]; then
 
-  RS="$(echo -n "$0" | /bin/sed -e 's|/install\.sh$||')"
+  RS="`printf '%s' "$0" | /bin/sed -e 's/\/install\.sh$//'`"
   RT=$?
   [ $RT -eq 0 ] || sglue_err int "\$0 \`/bin/sed' exited with \`$RT'"
   [ -n "$RS"  ] || sglue_err int "\$0 \`/bin/sed' printed empty result"
@@ -190,9 +212,9 @@ fi
 ## SET SRC PATH
 ################################################################################
 
-readonly SGLUE_SRC_D="$(pwd -P)/src"
+readonly SGLUE_SRC_D="`pwd -P`/src"
 
-sglue_chk dir "${SGLUE_SRC_D}"
+sglue_chk dir "$SGLUE_SRC_D"
 
 ################################################################################
 ## PARSE OPTIONS
@@ -203,7 +225,7 @@ SGLUE_FORCE=0
 while [ $# -gt 0 ]; do
   case "$1" in
     -?|-h|--help)
-      sglue help
+      sglue_help
       exit 0
       ;;
     -f|--force)
@@ -211,7 +233,7 @@ while [ $# -gt 0 ]; do
       shift
       ;;
     *)
-      echo -n "$1" | /bin/grep '^-' > /dev/null
+      printf '%s' "$1" | /bin/grep '^-' > /dev/null
       RT=$?
       [ $RT -eq 0 ] && sglue_err usr "invalid OPTION \`$1'"
       [ $RT -ne 1 ] && sglue_err int "\`$1' \`/bin/grep' exited with \`$RT'"
@@ -235,17 +257,20 @@ sglue_set_src()
 {
   [ -n "$1" ] || sglue_err scr "empty \`sglue_set_src' SCRIPT"
 
-  RS="$(echo -n "$1" | /bin/sed -e 's|^.*/||' -e 's|\.sh$||')"
+  # same as `RS=$(basename "$1" .sh)'
+  RS="`printf '%s' "$1" | /bin/sed -e 's/^.*\///' -e 's/\.sh$//'`"
   RT=$?
   [ $RT -eq 0 ] || sglue_err int "SCRIPT \`/bin/sed' exited with \`$RT'"
   [ -n "$RS"  ] || sglue_err usr "invalid SCRIPT \`$1'"
 
-  echo -n "$RS" | /bin/grep '^[[:alpha:]]\+$' > /dev/null
+  # verify SCRIPT chars
+  printf '%s' "$RS" | /bin/grep '^[[:alpha:]]\+$' > /dev/null
   RT=$?
   [ $RT -eq 1 ] && sglue_err usr "invalid SCRIPT \`$1'"
   [ $RT -ne 0 ] && sglue_err int "SCRIPT \`/bin/grep' exited with \`$RT'"
 
-  RS="${SGLUE_SRC_D}/${RS}.sh"
+  # verify SRC path
+  RS="$SGLUE_SRC_D/$RS.sh"
   [ -f "$RS" ] || sglue_err usr "invalid SCRIPT \`$1' path \`$RS'"
 
   SGLUE_SRC="$RS"
@@ -260,17 +285,17 @@ sglue_set_dest()
   [ -n "$1" ] || sglue_err scr "empty \`sglue_set_dest' SRC"
   [ -f "$1" ] || sglue_err scr "invalid \`sglue_set_dest' SRC path \`$1'"
 
-  RS="$(/bin/grep --max-count=1 -F '@dest' "$1")"
+  RS="`/bin/grep -m 1 -F '@dest' "$1"`"
   RT=$?
   [ $RT -eq 1 ] && sglue_err dep "missing \`@dest DEST' in SRC \`$1'"
   [ $RT -ne 0 ] && sglue_err int "\`@dest' \`/bin/grep' exited with \`$RT'"
 
-  RS="$(echo -n "$RS" | /bin/sed -e 's|^[^/]\+||' -e 's|[[:blank:]]\+$||')"
+  RS="`printf '%s' "$RS" | /bin/sed -e 's/^[^\/]\+//' -e 's/[[:blank:]]\+$//'`"
   RT=$?
   [ $RT -eq 0 ] || sglue_err int "DEST \`/bin/sed' exited with \`$RT'"
   [ -n "$RS"  ] || sglue_err usr "invalid \`@dest DEST' in SRC \`$1'"
 
-  echo -n "$RS" | /bin/grep '^\(/.\+\)\?/bin/[[:alpha:]]\+$' > /dev/null
+  printf '%s' "$RS" | /bin/grep '^\(/.\+\)\?/bin/[[:alpha:]]\+$' > /dev/null
   RT=$?
   [ $RT -eq 1 ] && sglue_err usr "invalid \`@dest $RS' in SRC \`$1'"
   [ $RT -ne 0 ] && sglue_err int "DEST \`/bin/grep' exited with \`$RT'"
@@ -287,15 +312,15 @@ sglue_mk_cmd()
   [ -n "$1" ] || sglue_err usr 'empty SCRIPT'
 
   sglue_set_src "$1"
-  sglue_set_dest "${SGLUE_SRC}"
+  sglue_set_dest "$SGLUE_SRC"
 
-  if [ ${SGLUE_FORCE} -ne 1 ] && [ -f "${SGLUE_DEST}" ]; then
-    sglue_err usr "\`${SGLUE_DEST}' already exists (use \`--force' to overwrite)"
+  if [ $SGLUE_FORCE -ne 1 ] && [ -f "$SGLUE_DEST" ]; then
+    sglue_err usr "\`$SGLUE_DEST' already exists (use \`--force' to overwrite)"
   fi
 
-  /bin/cp "${SGLUE_SRC}" "${SGLUE_DEST}"
-  /bin/chown root:root "${SGLUE_DEST}"
-  /bin/chmod 0755 "${SGLUE_DEST}"
+  /bin/cp "$SGLUE_SRC" "$SGLUE_DEST"
+  /bin/chown root:root "$SGLUE_DEST"
+  /bin/chmod 0755 "$SGLUE_DEST"
 }
 
 ############################################################
