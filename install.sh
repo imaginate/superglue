@@ -278,33 +278,6 @@ sglue_set_src()
 
 ############################################################
 # @func
-# @use sglue_set_dest SRC
-############################################################
-sglue_set_dest()
-{
-  [ -n "$1" ] || sglue_err scr "empty \`sglue_set_dest' SRC"
-  [ -f "$1" ] || sglue_err scr "invalid \`sglue_set_dest' SRC path \`$1'"
-
-  RS="`/bin/grep -m 1 -F '@dest' "$1"`"
-  RT=$?
-  [ $RT -eq 1 ] && sglue_err dep "missing \`@dest DEST' in SRC \`$1'"
-  [ $RT -ne 0 ] && sglue_err int "\`@dest' \`/bin/grep' exited with \`$RT'"
-
-  RS="`printf '%s' "$RS" | /bin/sed -e 's/^[^\/]\+//' -e 's/[[:blank:]]\+$//'`"
-  RT=$?
-  [ $RT -eq 0 ] || sglue_err int "DEST \`/bin/sed' exited with \`$RT'"
-  [ -n "$RS"  ] || sglue_err usr "invalid \`@dest DEST' in SRC \`$1'"
-
-  printf '%s' "$RS" | /bin/grep '^\(/.\+\)\?/bin/[[:alpha:]]\+$' > /dev/null
-  RT=$?
-  [ $RT -eq 1 ] && sglue_err usr "invalid \`@dest $RS' in SRC \`$1'"
-  [ $RT -ne 0 ] && sglue_err int "DEST \`/bin/grep' exited with \`$RT'"
-
-  SGLUE_DEST="$RS"
-}
-
-############################################################
-# @func
 # @use sglue_mk_cmd SCRIPT
 ############################################################
 sglue_mk_cmd()
@@ -312,15 +285,48 @@ sglue_mk_cmd()
   [ -n "$1" ] || sglue_err usr 'empty SCRIPT'
 
   sglue_set_src "$1"
-  sglue_set_dest "$SGLUE_SRC"
 
-  if [ $SGLUE_FORCE -ne 1 ] && [ -f "$SGLUE_DEST" ]; then
-    sglue_err usr "\`$SGLUE_DEST' already exists (use \`--force' to overwrite)"
-  fi
+  # check SRC for DEST
+  /bin/grep '^#[[:blank:]]*@dest[[:blank:]]\+/' "$SGLUE_SRC" > /dev/null
+  RT=$?
+  [ $RT -eq 1 ] && sglue_err dep "missing \`@dest DEST' in SRC \`$1'"
+  [ $RT -ne 0 ] && sglue_err int "\`@dest' \`/bin/grep' exited with \`$RT'"
 
-  /bin/cp "$SGLUE_SRC" "$SGLUE_DEST"
-  /bin/chown root:root "$SGLUE_DEST"
-  /bin/chmod 0755 "$SGLUE_DEST"
+  # process each DEST
+  while IFS= read -r RS; do
+
+    # get DEST from LINE
+    RS="`printf '%s' "$RS" | /bin/sed -e 's/^[^\/]\+//' -e 's/[[:blank:]]\+$//'`"
+    RT=$?
+    [ $RT -eq 0 ] || sglue_err int "DEST \`/bin/sed' exited with \`$RT'"
+
+    # verify `*/bin/' in DEST path
+    printf '%s' "$RS" | /bin/grep '^\(/.\+\)\?/bin/[[:alpha:]]\+$' > /dev/null
+    RT=$?
+    [ $RT -eq 1 ] && sglue_err usr "invalid \`@dest $RS' in SRC \`$SGLUE_SRC'"
+    [ $RT -ne 0 ] && sglue_err int "DEST \`/bin/grep' exited with \`$RT'"
+
+    # verify `dirname DEST' exists
+    RD="`printf '%s' "$RS" | /bin/sed -e 's/^.\+\///'`"
+    RT=$?
+    [ $RT -eq 0 ] || sglue_err int "DEST \`/bin/sed' exited with \`$RT'"
+    [ -d "$RD"  ] || sglue_err usr "invalid DEST dir \`$RD' in SRC \`$SGLUE_SRC'"
+
+    # verify DEST overwrite
+    if [ $SGLUE_FORCE -ne 1 ] && [ -f "$RS" ]; then
+      sglue_err usr "\`$RS' already exists (use \`--force' to overwrite)"
+    fi
+
+    SGLUE_DEST="$RS"
+
+    # make DEST
+    /bin/cp "$SGLUE_SRC" "$SGLUE_DEST"
+    /bin/chown root:root "$SGLUE_DEST"
+    /bin/chmod 0755 "$SGLUE_DEST"
+
+  done < <<EOF
+`/bin/grep '^#[[:blank:]]*@dest[[:blank:]]\+/' "$SGLUE_SRC"`
+EOF
 }
 
 ############################################################
