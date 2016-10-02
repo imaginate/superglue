@@ -34,3 +34,4 @@ _sgl_source()
     shift
   done
 }
+readonly -f _sgl_source

@@ -37,3 +37,4 @@ _sgl_clean_builtin()
     hash help history let local logout printf pwd read source test times trap \
     type typeset ulimit umask
 }
+readonly -f _sgl_clean_builtin

@@ -25,3 +25,4 @@ _sgl_unset_func()
   done
   return 0
 }
+readonly -f _sgl_unset_func

@@ -30,3 +30,4 @@ _sgl_which()
   fi
   printf '%s' "${cmd}"
 }
+readonly -f _sgl_which

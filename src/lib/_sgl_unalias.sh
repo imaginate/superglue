@@ -25,3 +25,4 @@ _sgl_unalias()
   done
   return 0
 }
+readonly -f _sgl_unalias

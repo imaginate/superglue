@@ -27,3 +27,4 @@ _sgl_chk_cmd()
     shift
   done
 }
+readonly -f _sgl_chk_cmd
