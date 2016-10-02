@@ -262,7 +262,26 @@ for ((i=0; i<len; i++)); do
       set -x
       ;;
     *)
-      _sgl_err SGL "invalid \`$0' parsed OPTION \`${opt}'"
+      _sgl_err SGL "invalid parsed \`superglue' OPTION \`${opt}'"
       ;;
   esac
 done
+
+################################################################################
+## PARSE FUNC
+################################################################################
+
+[[ ${#_SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`superglue' FUNC|SCRIPT"
+
+if [[ "${SGL_FUNC}" =~ ^[a-z_]+$ ]]; then
+
+  SGL_FUNC="${_SGL_VALS[0]}"
+  [[ "${SGL_FUNC}" =~ ^sgl_ ]] || SGL_FUNC="sgl_${SGL_FUNC}"
+
+  if [[ -f "${SGL_LIB}/${SGL_FUNC}" ]]; then
+    _SGL_VALS[0]="${SGL_FUNC}"
+    sgl_source "${SGL_FUNC}"
+    "${_SGL_VALS[@]}"
+    exit 0
+  fi
+fi
