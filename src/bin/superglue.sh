@@ -103,7 +103,7 @@ _sgl_clean_builtin
 ## DEFINE COMMANDS
 ################################################################################
 
-_sgl_source which
+_sgl_source which chk_cmd
 
 readonly bash='/bin/bash'
 readonly cat="$(_sgl_which cat)"
@@ -117,3 +117,6 @@ readonly mkdir="$(_sgl_which mkdir)"
 readonly mv="$(_sgl_which mv)"
 readonly rm="$(_sgl_which rm)"
 readonly sed="$(_sgl_which sed)"
+
+_sgl_chk_cmd ${bash} ${cat} ${chmod} ${chown} ${cp} ${find} ${grep} ${make} \
+  ${mkdir} ${mv} ${rm} ${sed}
