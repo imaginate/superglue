@@ -120,3 +120,27 @@ readonly sed="$(_sgl_which sed)"
 
 _sgl_chk_cmd ${bash} ${cat} ${chmod} ${chown} ${cp} ${find} ${grep} ${make} \
   ${mkdir} ${mv} ${rm} ${sed}
+
+################################################################################
+## DEFINE COLORS
+################################################################################
+
+readonly _SGL_UNCOLOR="$(printf '%b' '\033[0;0m')"
+readonly _SGL_BLACK="$(printf '%b' '\033[0;30m')"
+readonly _SGL_RED="$(printf '%b' '\033[0;91m')"
+readonly _SGL_GREEN="$(printf '%b' '\033[0;32m')"
+readonly _SGL_YELLOW="$(printf '%b' '\033[0;33m')"
+readonly _SGL_BLUE="$(printf '%b' '\033[0;94m')"
+readonly _SGL_PURPLE="$(printf '%b' '\033[0;35m')"
+readonly _SGL_CYAN="$(printf '%b' '\033[0;36m')"
+readonly _SGL_WHITE="$(printf '%b' '\033[0;97m')"
+
+SGL_UNCOLOR="${_SGL_UNCOLOR}"
+SGL_BLACK="${_SGL_BLACK}"
+SGL_RED="${_SGL_RED}"
+SGL_GREEN="${_SGL_GREEN}"
+SGL_YELLOW="${_SGL_YELLOW}"
+SGL_BLUE="${_SGL_BLUE}"
+SGL_PURPLE="${_SGL_PURPLE}"
+SGL_CYAN="${_SGL_CYAN}"
+SGL_WHITE="${_SGL_WHITE}"
