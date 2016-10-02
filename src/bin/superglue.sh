@@ -17,6 +17,7 @@
 # @opt -c|--color           Enable ANSI output coloring for non-terminals.
 # @opt -D|--silent-child    Disable `stderr' and `stdout' outputs for child processes.
 # @opt -d|--quiet-child     Disable `stdout' output for child processes.
+# @opt -h|--help[=FUNC]     Print help info and exit.
 # @opt -P|--silent-parent   Disable `stderr' and `stdout' outputs for parent process.
 # @opt -p|--quiet-parent    Disable `stdout' output for parent process.
 # @opt -Q|--silent          Disable `stderr' and `stdout' outputs.
@@ -26,7 +27,6 @@
 # @opt -V|--verbose         Appends line number and context to errors.
 # @opt -v|--version[=FUNC]  Print version info and exit.
 # @opt -x|--xtrace          Enables bash `xtrace' option.
-# @opt -?|-h|--help[=FUNC]  Print help info and exit.
 # @opt -|--                 End the options.
 # @val FUNC    Must be a valid `superglue' function. The `sgl_' prefix is optional.
 # @val FUNCS   Must be a list of 1 or more FUNC using `,', `|', or ` ' to separate each.
@@ -148,3 +148,26 @@ SGL_WHITE="${_SGL_WHITE}"
 
 SGL_COLOR_OFF=0
 SGL_COLOR_ON=0
+
+################################################################################
+## PARSE ARGS
+################################################################################
+
+_sgl_source parse_args
+_sgl_parse_args "$0" \
+  '-a|--alias'     0 \
+  '-C|--no-color'  0 \
+  '-c|--color'     0 \
+  '-D|--silent-child' 0 \
+  '-d|--quiet-child' 0 \
+  '-h|--help'      2 \
+  '-P|--silent-parent' 0 \
+  '-p|--quiet-parent' 0 \
+  '-Q|--silent'    0 \
+  '-q|--quiet'     0 \
+  '-S|--source-all' 0 \
+  '-s|--source'    1 \
+  '-V|--verbose'   0 \
+  '-v|--version'   2 \
+  '-x|--xtrace'    0 \
+  -- "$@"
