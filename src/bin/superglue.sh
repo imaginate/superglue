@@ -1,4 +1,4 @@
-#!/bin/bash --
+#!/bin/bash --posix
 #
 # A bash superset that cleans the environment, defines helper references,
 # sources helper functions, and sources a user-defined SCRIPT.
@@ -41,3 +41,60 @@
 #   6  CHLD  A child process exited unsuccessfully.
 #   7  INTL  An internal script error.
 ################################################################################
+
+readonly SGL_VERSION='0.1.0.alpha'
+
+################################################################################
+## DEFINE NULL REF
+################################################################################
+
+readonly NIL='/dev/null'
+
+################################################################################
+## CLEAN BUILTINS
+################################################################################
+
+unalias exit    2> ${NIL} || :
+unalias local   2> ${NIL} || :
+unalias shift   2> ${NIL} || :
+unalias unset   2> ${NIL} || :
+unalias printf  2> ${NIL} || :
+unset -f local  2> ${NIL} || :
+unset -f printf 2> ${NIL} || :
+
+################################################################################
+## CHECK BASH VERSION
+################################################################################
+
+if [[ -z "${BASH_VERSINFO}" ]] || [[ ${BASH_VERSINFO[0]} -ne 4 ]]; then
+  printf "%s\n" "DEP ERROR bash version 4 required" 1>&2
+  exit 5
+fi
+
+################################################################################
+## CHECK CORE LIB
+################################################################################
+
+readonly SGL_LIB='/lib/superglue'
+
+if [[ ! -d ${SGL_LIB} ]]; then
+  printf "%s\n" "DEP ERROR missing core lib - reinstall \`superglue'" 1>&2
+  exit 5
+fi
+
+################################################################################
+## LOAD SOURCE HELPER
+################################################################################
+
+if [[ ! -f "${SGL_LIB}/_sgl_source" ]]; then
+  printf "%s\n" "DEP ERROR missing core func - reinstall \`superglue'" 1>&2
+  exit 5
+fi
+. "${SGL_LIB}/_sgl_source"
+
+################################################################################
+## CLEAN BUILTINS
+################################################################################
+
+_sgl_source clean_builtin unset_func unalias
+_sgl_clean_builtin
