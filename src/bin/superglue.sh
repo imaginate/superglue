@@ -282,7 +282,7 @@ if [[ "${SGL_FUNC}" =~ ^[a-z_]+$ ]]; then
     _SGL_VALS[0]="${SGL_FUNC}"
     sgl_source "${SGL_FUNC}"
     "${_SGL_VALS[@]}"
-    exit 0
+    exit
   fi
 fi
 
@@ -302,3 +302,6 @@ for ((i=1; i<len; i++)); do
   SGL_ARGS[${#SGL_ARGS[@]}]="${_SGL_VALS[${i}]}"
 done
 readonly -a SGL_ARGS
+
+. "${_SGL_VALS[@]}"
+exit
