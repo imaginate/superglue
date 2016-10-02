@@ -285,3 +285,20 @@ if [[ "${SGL_FUNC}" =~ ^[a-z_]+$ ]]; then
     exit 0
   fi
 fi
+
+################################################################################
+## PARSE SCRIPT
+################################################################################
+
+readonly SGL_SCRIPT="${_SGL_VALS[0]}"
+
+if [[ ! -f "${SGL_SCRIPT}" ]]; then
+  _sgl_err VAL "invalid \`superglue' SCRIPT path \`${SGL_SCRIPT}'"
+fi
+
+declare -a SGL_ARGS
+len=${#_SGL_VALS[@]}
+for ((i=1; i<len; i++)); do
+  SGL_ARGS[${#SGL_ARGS[@]}]="${_SGL_VALS[${i}]}"
+done
+readonly -a SGL_ARGS
