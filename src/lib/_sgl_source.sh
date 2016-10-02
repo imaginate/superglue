@@ -19,18 +19,12 @@
 ############################################################
 _sgl_source()
 {
-  local path
-
   while [[ $# -gt 0 ]]; do
-
-    path="${SGL_LIB}/_sgl_$1"
-
-    if [[ ! -f "${path}" ]]; then
-      printf "%s\n" "DEP ERROR missing core func - reinstall \`superglue'" 1>&2
-      exit 5
+    if [[ -f "${SGL_LIB}/_sgl_$1" ]]; then
+      . "${SGL_LIB}/_sgl_$1"
+    else
+      _sgl_err DPND "missing core func - reinstall \`superglue'"
     fi
-
-    . "${path}"
     shift
   done
 }

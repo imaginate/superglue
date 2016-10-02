@@ -37,9 +37,9 @@
 #   2  OPT   An invalid option.
 #   3  VAL   An invalid or missing value.
 #   4  AUTH  A permissions error.
-#   5  DEP   A dependency error.
+#   5  DPND  A dependency error.
 #   6  CHLD  A child process exited unsuccessfully.
-#   7  INTL  An internal script error.
+#   7  SGL   A `superglue' script error.
 ################################################################################
 
 readonly SGL_VERSION='0.1.0.alpha'
@@ -67,7 +67,7 @@ unset -f printf 2> ${NIL} || :
 ################################################################################
 
 if [[ -z "${BASH_VERSINFO}" ]] || [[ ${BASH_VERSINFO[0]} -ne 4 ]]; then
-  printf "%s\n" "DEP ERROR bash version 4 required" 1>&2
+  printf "%s\n" "DPND_ERR bash version 4 required" 1>&2
   exit 5
 fi
 
@@ -78,7 +78,7 @@ fi
 readonly SGL_LIB='/lib/superglue'
 
 if [[ ! -d ${SGL_LIB} ]]; then
-  printf "%s\n" "DEP ERROR missing core lib - reinstall \`superglue'" 1>&2
+  printf "%s\n" "DPND_ERR missing core lib - reinstall \`superglue'" 1>&2
   exit 5
 fi
 
@@ -86,10 +86,11 @@ fi
 ## LOAD SOURCE HELPER
 ################################################################################
 
-if [[ ! -f "${SGL_LIB}/_sgl_source" ]]; then
-  printf "%s\n" "DEP ERROR missing core func - reinstall \`superglue'" 1>&2
+if [[ ! -f "${SGL_LIB}/_sgl_err" ]] || [[ ! -f "${SGL_LIB}/_sgl_source" ]]; then
+  printf "%s\n" "DPND_ERR missing core func - reinstall \`superglue'" 1>&2
   exit 5
 fi
+. "${SGL_LIB}/_sgl_err"
 . "${SGL_LIB}/_sgl_source"
 
 ################################################################################
@@ -144,3 +145,6 @@ SGL_BLUE="${_SGL_BLUE}"
 SGL_PURPLE="${_SGL_PURPLE}"
 SGL_CYAN="${_SGL_CYAN}"
 SGL_WHITE="${_SGL_WHITE}"
+
+SGL_COLOR_OFF=0
+SGL_COLOR_ON=0

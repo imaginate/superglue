@@ -20,10 +20,7 @@
 _sgl_chk_cmd()
 {
   while [[ $# -gt 0 ]]; do
-    if [[ ! -x "$1" ]]; then
-      printf "%s\n" "DEP ERROR missing executable \`$1'" 1>&2
-      exit 5
-    fi
+    [[ -x "$1" ]] || _sgl_err DPND "missing executable \`$1'"
     shift
   done
 }
