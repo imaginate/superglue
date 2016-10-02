@@ -171,3 +171,98 @@ _sgl_parse_args "$0" \
   '-v|--version'   2 \
   '-x|--xtrace'    0 \
   -- "$@"
+
+################################################################################
+## LOAD SOURCE FUNCTION
+################################################################################
+
+if [[ -f "${SGL_LIB}/sgl_source" ]]; then
+  . "${SGL_LIB}/sgl_source"
+else
+  _sgl_err DPND "missing core func - reinstall \`superglue'"
+fi
+
+################################################################################
+## PARSE OPTS
+################################################################################
+
+SGL_ALIAS=0
+SGL_SILENT_CHILD=0
+SGL_QUIET_CHILD=0
+SGL_SILENT_PARENT=0
+SGL_QUIET_PARENT=0
+SGL_SILENT=0
+SGL_QUIET=0
+SGL_VERBOSE=0
+
+if [[ ${#_SGL_OPTS[@]} -eq 0 ]]; then
+  _sgl_source help
+  _sgl_help
+fi
+
+len=${#_SGL_OPTS[@]}
+for ((i=0; i<len; i++)); do
+  opt="${_SGL_OPTS[${i}]}"
+  case "${opt}" in
+    -a|--alias)
+      SGL_ALIAS=1
+      ;;
+    -C|--no-color)
+      SGL_COLOR_OFF=1
+      SGL_COLOR_ON=0
+      ;;
+    -c|--color)
+      SGL_COLOR_OFF=0
+      SGL_COLOR_ON=1
+      ;;
+    -D|--silent-child)
+      SGL_SILENT_CHILD=1
+      ;;
+    -d|--quiet-child)
+      SGL_QUIET_CHILD=1
+      ;;
+    -h|--help)
+      _sgl_source help
+      if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
+        _sgl_help "${_SGL_OPT_VALS[${i}]}"
+      else
+        _sgl_help
+      fi
+      ;;
+    -P|--silent-parent)
+      SGL_SILENT_PARENT=1
+      ;;
+    -p|--quiet-parent)
+      SGL_QUIET_PARENT=1
+      ;;
+    -Q|--silent)
+      SGL_SILENT=1
+      ;;
+    -q|--quiet)
+      SGL_QUIET=1
+      ;;
+    -S|--source-all)
+      sgl_source '*'
+      ;;
+    -s|--source)
+      sgl_source "${_SGL_OPT_VALS[${i}]}"
+      ;;
+    -V|--verbose)
+      SGL_VERBOSE=1
+      ;;
+    -v|--version)
+      _sgl_source version
+      if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
+        _sgl_version "${_SGL_OPT_VALS[${i}]}"
+      else
+        _sgl_version
+      fi
+      ;;
+    -x|--xtrace)
+      set -x
+      ;;
+    *)
+      _sgl_err SGL "invalid \`$0' parsed OPTION \`${opt}'"
+      ;;
+  esac
+done
