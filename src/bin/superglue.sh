@@ -98,3 +98,22 @@ fi
 
 _sgl_source clean_builtin unset_func unalias
 _sgl_clean_builtin
+
+################################################################################
+## DEFINE COMMANDS
+################################################################################
+
+_sgl_source which
+
+readonly bash='/bin/bash'
+readonly cat="$(_sgl_which cat)"
+readonly chmod="$(_sgl_which chmod)"
+readonly chown="$(_sgl_which chown)"
+readonly cp="$(_sgl_which cp)"
+readonly find="$(_sgl_which find)"
+readonly grep="$(_sgl_which grep)"
+readonly make="$(_sgl_which make)"
+readonly mkdir="$(_sgl_which mkdir)"
+readonly mv="$(_sgl_which mv)"
+readonly rm="$(_sgl_which rm)"
+readonly sed="$(_sgl_which sed)"
