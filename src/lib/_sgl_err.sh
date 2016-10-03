@@ -78,7 +78,14 @@ _sgl_err()
     [[ -n "${SGL_UNCOLOR}" ]] && title="${title}${SGL_UNCOLOR}"
   fi
 
-  printf "%s\n" "${title} $2" 1>&2
+  if [[ ${SGL_SILENT} -ne 1 ]] && [[ ${SGL_SILENT_PARENT} -ne 1 ]]; then
+    printf "%s\n" "${title} $2" 1>&2
+  fi
+  if [[ ${SGL_VERBOSE} -eq 1 ]]; then
+    local line="- LINE $(caller | ${sed} -e 's/ .\+$//')"
+    local file="- FILE $(caller | ${sed} -e 's/^[0-9]\+ //')"
+    printf "%s\n%s\n" "${line}" "${file}"
+  fi
   exit ${code}
 }
 readonly -f _sgl_err
