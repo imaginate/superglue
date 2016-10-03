@@ -12,9 +12,10 @@
 
 ############################################################
 # @func _sgl_err
-# @use _sgl_err TYPE MSG
-# @val MSG   Can be any string.
-# @val TYPE  Must be an error type from the below options.
+# @use _sgl_err ERR MSG
+# @val MSG  Can be any string.
+# @val ERR  Must be an error from the below options or any valid integer in the
+#           range of `1' to `126'.
 #   `MISC'  An unknown error.
 #   `OPT'   An invalid option.
 #   `VAL'   An invalid or missing value.
@@ -66,7 +67,11 @@ _sgl_err()
       code=7
       ;;
     *)
-      _sgl_err SGL "invalid \`_sgl_err' CODE \`$1' in \`superglue'"
+      if [[ ! "$1" =~ ^[1-9][0-9]?[0-9]?$ ]] || [[ $1 > 126 ]]; then
+        _sgl_err SGL "invalid \`_sgl_err' CODE \`$1' in \`superglue'"
+      fi
+      title='ERR'
+      code="$1"
       ;;
   esac
 
