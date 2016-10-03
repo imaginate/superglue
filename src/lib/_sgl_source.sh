@@ -21,7 +21,7 @@ _sgl_source()
 {
   while [[ $# -gt 0 ]]; do
     if [[ -f "${SGL_LIB}/_sgl_$1" ]]; then
-      . "${SGL_LIB}/_sgl_$1"
+      declare -F "_sgl_$1" > ${NIL} || . "${SGL_LIB}/_sgl_$1"
     else
       _sgl_err DPND "missing core func - reinstall \`superglue'"
     fi

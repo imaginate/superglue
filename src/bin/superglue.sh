@@ -54,13 +54,15 @@ readonly NIL='/dev/null'
 ## CLEAN BUILTINS
 ################################################################################
 
-unalias exit    2> ${NIL} || :
-unalias local   2> ${NIL} || :
-unalias shift   2> ${NIL} || :
-unalias unset   2> ${NIL} || :
-unalias printf  2> ${NIL} || :
-unset -f local  2> ${NIL} || :
-unset -f printf 2> ${NIL} || :
+unalias exit     2> ${NIL} || :
+unalias local    2> ${NIL} || :
+unalias shift    2> ${NIL} || :
+unalias unset    2> ${NIL} || :
+unalias printf   2> ${NIL} || :
+unalias declare  2> ${NIL} || :
+unset -f local   2> ${NIL} || :
+unset -f printf  2> ${NIL} || :
+unset -f declare 2> ${NIL} || :
 
 ################################################################################
 ## CHECK BASH VERSION
