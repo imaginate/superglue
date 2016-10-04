@@ -67,7 +67,7 @@ _sgl_err()
       code=7
       ;;
     *)
-      if [[ ! "$1" =~ ^[1-9][0-9]?[0-9]?$ ]] || [[ $1 > 126 ]]; then
+      if [[ ! "$1" =~ ^[1-9][0-9]?[0-9]?$ ]] || [[ $1 -gt 126 ]]; then
         _sgl_err SGL "invalid \`_sgl_err' CODE \`$1' in \`superglue'"
       fi
       title='ERR'
