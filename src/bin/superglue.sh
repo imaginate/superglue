@@ -249,7 +249,26 @@ for ((i=0; i<len; i++)); do
       sgl_source '*'
       ;;
     -s|--source)
-      sgl_source "${_SGL_OPT_VALS[${i}]}"
+      val="${_SGL_OPT_VALS[${i}]}"
+      val="$(printf '%s' "${val}" | ${sed} -e 's/[,\|]/ /g')"
+      [[ "${val}" =~ ^[a-z_ \*]+$ ]] || _sgl_err VAL "invalid \`${val}' FUNCS"
+      if [[ "${val}" =~ \  ]]; then
+        if [[ "${val}" =~ \* ]]; then
+          arr=()
+          while IFS= read -r -d ' ' func; do
+            arr[${#arr[@]}]="${func}"
+          done < <<EOF
+"${val}"
+EOF
+          sgl_source "${arr[@]}"
+          unset -v arr
+        else
+          sgl_source ${val}
+        fi
+      else
+        sgl_source "${val}"
+      fi
+      unset -v val
       ;;
     -V|--verbose)
       SGL_VERBOSE=1
@@ -265,6 +284,9 @@ for ((i=0; i<len; i++)); do
       ;;
   esac
 done
+unset -v opt
+unset -v len
+unset -v i
 
 ################################################################################
 ## PARSE FUNC
@@ -301,6 +323,8 @@ for ((i=1; i<len; i++)); do
   SGL_ARGS[${#SGL_ARGS[@]}]="${_SGL_VALS[${i}]}"
 done
 readonly -a SGL_ARGS
+unset -v len
+unset -v i
 
 . "${_SGL_VALS[@]}"
 exit

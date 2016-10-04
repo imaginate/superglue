@@ -19,23 +19,30 @@
 ############################################################
 sgl_source()
 {
+  local -r FN='sgl_source'
   local func
   local file
 
-  [[ $# -gt 0 ]] || _sgl_err VAL "missing \`sgl_source' FUNC"
+  [[ $# -gt 0 ]] || _sgl_err VAL "missing \`${FN}' FUNC"
 
   while [[ $# -gt 0 ]]; do
-    [[ -n "$1" ]] || _sgl_err VAL "empty \`sgl_source' FUNC"
+    [[ "$1" =~ ^[a-z_\*]+$ ]] || _sgl_err VAL "invalid \`${FN}' \`$1' FUNC"
 
     func="$1"
     [[ "${func}" =~ ^sgl_ ]] || func="sgl_${func}"
 
-    file="${SGL_LIB}/${func}"
-    [[ -f "${file}" ]] || _sgl_err DPND "missing \`${func}' - reinstall \`superglue'"
-
-    declare -F "${func}" > ${NIL} || . "${file}"
-
+    if [[ "${func}" =~ \* ]]; then
+      for file in ${SGL_LIB}/${func}; do
+        [[ -f "${file}" ]] || _sgl_err VAL "invalid \`${FN}' \`${func}' FUNC"
+        func=$(printf '%s' "${file}" | ${sed} -e "s|^${SGL_LIB}/||")
+        declare -F "${func}" > ${NIL} || . "${file}"
+      done
+    else
+      file="${SGL_LIB}/${func}"
+      [[ -f "${file}" ]] || _sgl_err VAL "invalid \`${FN}' \`${func}' FUNC"
+      declare -F "${func}" > ${NIL} || . "${file}"
+    fi
     shift
   done
 }
-readonly -f _sgl_source
+readonly -f sgl_source
