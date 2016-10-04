@@ -73,7 +73,7 @@ sgl_chk_cmd()
     opt="${_SGL_OPTS[${i}]}"
     case "${opt}" in
       -h|--help)
-        ${cat} <<EOF
+        ${cat} <<'EOF'
 
   sgl_chk_cmd [...OPTION] ...CMD
 
