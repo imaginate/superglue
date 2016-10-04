@@ -57,7 +57,7 @@ sgl_chk_cmd()
   local opt
 
   # parse each argument
-  _sgl_parse_args "sgl_chk_cmd" \
+  _sgl_parse_args "${FN}"  \
     '-h|--help'          0 \
     '-m|--msg|--message' 1 \
     '-p|--prg|--program' 1 \
@@ -166,4 +166,4 @@ EOF
   done
   return 0
 }
-readonly -f _sgl_chk_cmd
+readonly -f sgl_chk_cmd
