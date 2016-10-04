@@ -12,22 +12,22 @@
 #
 # @use sgl [...OPTION] FUNC [...FUNC_ARG]
 # @use sgl [...OPTION] SCRIPT [...SCRIPT_ARG]
-# @opt -a|--alias           Enable aliases without `sgl_' prefixes for each sourced FUNC.
-# @opt -C|--no-color        Disable ANSI output coloring for terminals.
-# @opt -c|--color           Enable ANSI output coloring for non-terminals.
-# @opt -D|--silent-child    Disable `stderr' and `stdout' outputs for child processes.
-# @opt -d|--quiet-child     Disable `stdout' output for child processes.
-# @opt -h|--help[=FUNC]     Print help info and exit.
-# @opt -P|--silent-parent   Disable `stderr' and `stdout' outputs for parent process.
-# @opt -p|--quiet-parent    Disable `stdout' output for parent process.
-# @opt -Q|--silent          Disable `stderr' and `stdout' outputs.
-# @opt -q|--quiet           Disable `stdout' output.
-# @opt -S|--source-all      Source every FUNC.
-# @opt -s|--source=FUNCS    Source each FUNC in FUNCS.
-# @opt -V|--verbose         Appends line number and context to errors.
-# @opt -v|--version[=FUNC]  Print version info and exit.
-# @opt -x|--xtrace          Enables bash `xtrace' option.
-# @opt -|--                 End the options.
+# @opt -a|--alias          Enable aliases without `sgl_' prefixes for each sourced FUNC.
+# @opt -C|--no-color       Disable ANSI output coloring for terminals.
+# @opt -c|--color          Enable ANSI output coloring for non-terminals.
+# @opt -D|--silent-child   Disable `stderr' and `stdout' outputs for child processes.
+# @opt -d|--quiet-child    Disable `stdout' output for child processes.
+# @opt -h|--help[=FUNC]    Print help info and exit.
+# @opt -P|--silent-parent  Disable `stderr' and `stdout' outputs for parent process.
+# @opt -p|--quiet-parent   Disable `stdout' output for parent process.
+# @opt -Q|--silent         Disable `stderr' and `stdout' outputs.
+# @opt -q|--quiet          Disable `stdout' output.
+# @opt -S|--source-all     Source every FUNC.
+# @opt -s|--source=FUNCS   Source each FUNC in FUNCS.
+# @opt -V|--verbose        Appends line number and context to errors.
+# @opt -v|--version        Print version info and exit.
+# @opt -x|--xtrace         Enables bash `xtrace' option.
+# @opt -|--                End the options.
 # @val FUNC    Must be a valid `superglue' function. The `sgl_' prefix is optional.
 # @val FUNCS   Must be a list of 1 or more FUNC using `,', `|', or ` ' to separate each.
 # @val SCRIPT  Must be a valid file path to a `superglue' script.
@@ -170,7 +170,7 @@ _sgl_parse_args "$0" \
   '-S|--source-all' 0 \
   '-s|--source'    1 \
   '-V|--verbose'   0 \
-  '-v|--version'   2 \
+  '-v|--version'   0 \
   '-x|--xtrace'    0 \
   -- "$@"
 
@@ -187,6 +187,8 @@ fi
 ################################################################################
 ## PARSE OPTS
 ################################################################################
+
+_sgl_source version
 
 SGL_ALIAS=0
 SGL_SILENT_CHILD=0
@@ -253,12 +255,7 @@ for ((i=0; i<len; i++)); do
       SGL_VERBOSE=1
       ;;
     -v|--version)
-      _sgl_source version
-      if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
-        _sgl_version "${_SGL_OPT_VALS[${i}]}"
-      else
-        _sgl_version
-      fi
+      _sgl_version
       ;;
     -x|--xtrace)
       set -x
