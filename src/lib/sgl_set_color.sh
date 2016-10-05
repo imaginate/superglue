@@ -191,6 +191,7 @@ EOF
         esac
       fi
     done
+
   # set all colors
   else
     if [[ ${disable} -eq 1 ]]; then

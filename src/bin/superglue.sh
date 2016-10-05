@@ -188,7 +188,7 @@ fi
 ## PARSE OPTS
 ################################################################################
 
-_sgl_source version err_code fail
+_sgl_source version err_code fail get_color
 
 SGL_ALIAS=0
 SGL_SILENT_CHILD=0
