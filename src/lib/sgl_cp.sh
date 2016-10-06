@@ -288,6 +288,7 @@ EOF
         mode="${val}"
         ;;
       -n|--no-clobber)
+        force=0
         opts[${#opts[@]}]='--no-clobber'
         ;;
       -o|--owner)
