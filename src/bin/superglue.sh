@@ -251,7 +251,8 @@ for ((i=0; i<len; i++)); do
     -s|--source)
       val="${_SGL_OPT_VALS[${i}]}"
       val="$(printf '%s' "${val}" | ${sed} -e 's/[,\|]/ /g')"
-      [[ "${val}" =~ ^[a-z_ \*]+$ ]] || _sgl_err VAL "invalid \`${val}' FUNCS"
+      re='^[a-z_ \*]+$'
+      [[ "${val}" =~ ${re} ]] || _sgl_err VAL "invalid \`${val}' FUNCS"
       if [[ "${val}" =~ \  ]]; then
         if [[ "${val}" =~ \* ]]; then
           arr=()
@@ -269,6 +270,7 @@ EOF
         sgl_source "${val}"
       fi
       unset -v val
+      unset -v re
       ;;
     -V|--verbose)
       SGL_VERBOSE=1
@@ -294,7 +296,8 @@ unset -v i
 
 [[ ${#_SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`superglue' FUNC|SCRIPT"
 
-if [[ "${SGL_FUNC}" =~ ^[a-z_]+$ ]]; then
+re='^[a-z_]+$'
+if [[ "${SGL_FUNC}" =~ ${re} ]]; then
 
   SGL_FUNC="${_SGL_VALS[0]}"
   [[ "${SGL_FUNC}" =~ ^sgl_ ]] || SGL_FUNC="sgl_${SGL_FUNC}"
@@ -306,6 +309,7 @@ if [[ "${SGL_FUNC}" =~ ^[a-z_]+$ ]]; then
     exit
   fi
 fi
+unset -v re
 
 ################################################################################
 ## PARSE SCRIPT
