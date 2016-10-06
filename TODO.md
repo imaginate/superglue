@@ -1,5 +1,3 @@
 
 - fix quiet implementation
 - add alias creation
-- add functions
-  -- sgl_mk_cmd

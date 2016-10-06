@@ -32,6 +32,7 @@ sgl_source sgl_cp
 # @opt -Q|--silent           Disable `stderr' and `stdout' outputs.
 # @opt -q|--quiet            Disable `stdout' output.
 # @opt -s|--symlink          Make symlinks instead of copying.
+# @opt -t|--test=REGEX       Test each DEST path against REGEX (uses bash `=~').
 # @opt -u|--update           Copy only when SRC is newer than DEST.
 # @opt -V|--verbose          Print exec status details.
 # @opt -v|--version          Print version info and exit.
@@ -55,6 +56,7 @@ sgl_source sgl_cp
 # @val EXT    An extension to append to the end of a backup file. The default is `~'.
 # @val MODE   Must be a valid file mode.
 # @val OWNER  Must be a valid USER[:GROUP].
+# @val REGEX  Can be any string. Refer to bash test `=~' operator for more details.
 # @val SRC    Must be a valid file path. File must also contain at least one
 #             destination tag: `# @dest DEST'.
 # @return
@@ -71,6 +73,7 @@ sgl_mk_dest()
   local -i silent=${SGL_SILENT}
   local -a opts
   local -a vals
+  local regex='/[^/]+/[^/]+$'
   local attr
   local opt
   local val
@@ -99,6 +102,7 @@ sgl_mk_dest()
     '-Q|--silent'       0 \
     '-q|--quiet'        0 \
     '-s|--symlink'      0 \
+    '-t|--test'         1 \
     '-u|--update'       0 \
     '-V|--verbose'      0 \
     '-v|--version'      0 \
@@ -170,6 +174,7 @@ sgl_mk_dest()
     -Q|--silent           Disable `stderr' and `stdout' outputs.
     -q|--quiet            Disable `stdout' output.
     -s|--symlink          Make symlinks instead of copying.
+    -t|--test=REGEX       Test each DEST path against REGEX (uses bash `=~').
     -u|--update           Copy only when SRC is newer than DEST.
     -V|--verbose          Print exec status details.
     -v|--version          Print version info and exit.
@@ -195,6 +200,7 @@ sgl_mk_dest()
     EXT    An extension to append to the end of a backup file. The default is `~'.
     MODE   Must be a valid file mode.
     OWNER  Must be a valid USER[:GROUP].
+    REGEX  Can be any string. Refer to bash test `=~' operator for more details.
     SRC    Must be a valid file path. File must also contain at least one
            destination tag: `# @dest DEST'.
 
@@ -290,6 +296,9 @@ EOF
       -s|--symlink)
         opts[${#opts[@]}]='--symlink'
         ;;
+      -t|--test)
+        regex="${_SGL_OPT_VALS[${i}]}"
+        ;;
       -u|--update)
         opts[${#opts[@]}]='--update'
         ;;
@@ -339,8 +348,11 @@ EOF
     while IFS= read -r dest; do
       dest="$(printf '%s' "${dest}" | ${sed} -e "s/${tag}//" -e "s/${space}//" \
         -e 's|\$HOME\|\${HOME}|'"${HOME}"'|')"
+      if [[ -n "${regex}" ]] && [[ ! "${dest}" =~ ${regex} ]]; then
+        _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST path \`${dest}'"
+      fi
       parent="$(printf '%s' "${dest}" | ${sed} -e 's|/[^/]\+$||')"
-      if [[ ! "${dest}" =~ /[^/]+/[^/]+$ ]] || [[ ! -d "${parent}" ]]; then
+      if [[ ! -d "${parent}" ]]; then
         _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST path \`${dest}'"
       fi
       if [[ -d "${dest}" ]]; then
