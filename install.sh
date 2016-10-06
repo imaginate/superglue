@@ -1,224 +1,243 @@
-#!/bin/sh
+#!/bin/bash --posix
 #
 # Install `superglue' scripts `./src/**/*.sh'.
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
 #
-# @use ./install.sh --help
-# @use ./install.sh [--force]
-# @opt -?|-h|--help  Print help info and exit.
-# @opt -f|--force    Overwrite existing script destinations.
+# @use ./install.sh [OPTION]
+# @opt -f|--force  If destination exists overwrite it.
+# @opt -h|--help   Print help info and exit.
 # @exit
-#   0  success
-#   1  user error
-#   2  dependency error
-#   3  internal error
-#   4  script error
+#   0  PASS  A successful exit.
+#   1  MISC  An unknown error.
+#   2  OPT   An invalid option.
+#   3  VAL   An invalid or missing value.
+#   4  AUTH  A permissions error.
+#   5  DPND  A dependency error.
+#   6  CHLD  A child process exited unsuccessfully.
+#   7  SGL   A `superglue' script error.
 ################################################################################
-
-################################################################################
-## CLEAN ENV
-################################################################################
-
-############################################################
-# @func
-# @use sglue_unalias ...CMD
-############################################################
-sglue_unalias()
-{
-  while [ $# -gt 0 ]; do
-    unalias "$1" 2> /dev/null || :
-    shift
-  done
-  return 0
-}
-
-############################################################
-# @func
-# @use sglue_unset ...CMD
-############################################################
-sglue_unset()
-{
-  while [ $# -gt 0 ]; do
-    unset -f "$1" 2> /dev/null || :
-    shift
-  done
-  return 0
-}
-
-sglue_unset   cd command declare echo history printf pwd set unalias  return export umask
-sglue_unalias cd command declare echo history printf pwd set readonly return export umask
 
 ################################################################################
 ## DEFINE HELPERS
 ################################################################################
 
-readonly SGLUE_RED="`printf '%b' '\033[0;31m'`"
-readonly SGLUE_UNCOLOR="`printf '%b' '\033[0;0m'`"
-
 ############################################################
 # @func
-# @use sglue_err CODE MSG
-# @val CODE  Must be one of the below options.
-#   `usr'
-#   `dep'
-#   `int'
-#   `scr'
-# @val MSG   Can be any valid string.
+# @use sglue_err ERR MSG
+# @val ERR  Must be one of the below errors.
+#   `MISC'  An unknown error (exit= `1').
+#   `OPT'   An invalid option (exit= `2').
+#   `VAL'   An invalid or missing value (exit= `3').
+#   `AUTH'  A permissions error (exit= `4').
+#   `DPND'  A dependency error (exit= `5').
+#   `CHLD'  A child process exited unsuccessfully (exit= `6').
+#   `SGL'   A `superglue' script error (exit= `7').
+# @val MSG  Can be any valid string.
 # @exit
-#   1  user error
-#   2  dependency error
-#   3  internal error
-#   4  script error
+#   1  MISC  An unknown error.
+#   2  OPT   An invalid option.
+#   3  VAL   An invalid or missing value.
+#   4  AUTH  A permissions error.
+#   5  DPND  A dependency error.
+#   6  CHLD  A child process exited unsuccessfully.
+#   7  SGL   A `superglue' script error.
 ############################################################
 sglue_err()
 {
+  local -r FN='sglue_err'
+  local title
+  local -i code
+
   case "$1" in
-    usr)
-      SGLUE_TITLE='ERROR'
-      SGLUE_MSG="$2"
-      SGLUE_CODE=1
+    MISC)
+      title='ERR'
+      code=1
       ;;
-    dep)
-      SGLUE_TITLE='DEPENDENCY ERROR'
-      SGLUE_MSG="$2"
-      SGLUE_CODE=2
+    OPT)
+      title='OPT_ERR'
+      code=2
       ;;
-    int)
-      SGLUE_TITLE='INTERNAL ERROR'
-      SGLUE_MSG="$2"
-      SGLUE_CODE=3
+    VAL)
+      title='VAL_ERR'
+      code=3
       ;;
-    scr)
-      SGLUE_TITLE='SCRIPT ERROR'
-      SGLUE_MSG="$2"
-      SGLUE_CODE=4
+    AUTH)
+      title='AUTH_ERR'
+      code=4
+      ;;
+    DPND)
+      title='DPND_ERR'
+      code=5
+      ;;
+    CHLD)
+      title='CHLD_ERR'
+      code=6
+      ;;
+    SGL)
+      title='SGL_ERR'
+      code=7
       ;;
     *)
-      SGLUE_TITLE='SCRIPT ERROR'
-      SGLUE_MSG="invalid \`sglue_err' CODE \`$1'"
-      SGLUE_CODE=4
+      sglue_err SGL "invalid \`${FN}' ERR \`$1'"
       ;;
   esac
-  printf "%s\n" "$SGLUE_RED$SGLUE_TITLE$SGLUE_UNCOLOR $SGLUE_MSG" 1>&2
-  exit $SGLUE_CODE
+  printf "%s\n" "${title} $2" 1>&2
+  exit ${code}
 }
+readonly -f sglue_err
+
+############################################################
+# @func
+# @use sglue_which CMD
+# @val CMD  Must be an executable.
+# @return
+#   0  PASS
+############################################################
+sglue_which()
+{
+  local cmd="$1"
+
+  if [[ -x "/bin/$1" ]]; then
+    cmd="/bin/$1"
+  elif [[ -x "/usr/bin/$1" ]]; then
+    cmd="/usr/bin/$1"
+  elif [[ -x "/usr/local/bin/$1" ]]; then
+    cmd="/usr/local/bin/$1"
+  fi
+  printf '%s' "${cmd}"
+}
+readonly -f sglue_which
 
 ############################################################
 # @func
 # @use sglue_chk TYPE PATH
 # @val PATH  Must be a valid file path.
 # @val TYPE  Must be one of the below options.
-#   `cmd'
-#   `dir'
-#   `file'
-# @note If the check fails this function does exit with `2'.
+#   `CMD'
+#   `DIR'
+#   `FILE'
+# @note If the check fails this function does exit.
+# @return
+#   0  PASS
 ############################################################
 sglue_chk()
 {
-  [ -n "$2" ] || sglue_err scr "missing \`sglue_chk' PATH"
+  local -r FN='sglue_chk'
+
+  [[ -n "$2" ]] || sglue_err SGL "missing \`${FN}' PATH"
 
   case "$1" in
-    cmd)
-      [ -x "$2" ] || sglue_err dep "invalid executable path \`$2'"
+    CMD)
+      [[ -x "$2" ]] || sglue_err DPND "invalid executable path \`$2'"
       ;;
-    dir)
-      [ -d "$2" ] || sglue_err dep "invalid directory path \`$2'"
+    DIR)
+      [[ -d "$2" ]] || sglue_err DPND "invalid directory path \`$2'"
       ;;
-    file)
-      [ -f "$2" ] || sglue_err dep "invalid file path \`$2'"
+    FILE)
+      [[ -f "$2" ]] || sglue_err DPND "invalid file path \`$2'"
       ;;
     *)
-      sglue_err scr "invalid \`sglue_chk' CODE \`$1'"
+      sglue_err SGL "invalid \`${FN}' TYPE \`$1'"
       ;;
   esac
 }
+readonly -f sglue_chk
 
 ############################################################
 # @func
 # @use sglue_help
+# @return
+#   0  PASS
 ############################################################
 sglue_help()
 {
-  /bin/cat <<'EOF'
+  ${cat} <<'EOF'
 
-  ./install.sh --help
-  ./install.sh [--force] [...SCRIPT]
+  ./install.sh [OPTION]
 
   Options:
-    -?|-h|--help  Print help info and exit.
-    -f|--force    Overwrite existing SCRIPT destinations.
-
-  Values:
-    SCRIPT  Must be the name or path of a file located in the `./src' tree.
+    -f|--force  If destination exists overwrite it.
+    -h|--help   Print help info and exit.
 
   Exit Codes:
-    0  success
-    1  user error
-    2  dependency error
-    3  internal error
-    4  script error
+    0  PASS  A successful exit.
+    1  MISC  An unknown error.
+    2  OPT   An invalid option.
+    3  VAL   An invalid or missing value.
+    4  AUTH  A permissions error.
+    5  DPND  A dependency error.
+    6  CHLD  A child process exited unsuccessfully.
+    7  SGL   A `superglue' script error.
 
 EOF
 }
-
-################################################################################
-## CHECK COMMAND PATHS
-################################################################################
-
-sglue_chk cmd /bin/cat
-sglue_chk cmd /bin/chmod
-sglue_chk cmd /bin/chown
-sglue_chk cmd /bin/cp
-sglue_chk cmd /bin/grep
-sglue_chk cmd /usr/bin/id
-sglue_chk cmd /bin/mkdir
-sglue_chk cmd /bin/sed
+readonly -f sglue_help
 
 ################################################################################
 ## CHECK PERMISSIONS
 ################################################################################
 
-[ `/usr/bin/id --user` -eq 0 ] || sglue_err usr 'invalid user permissions'
+[[ ${EUID} -eq 0 ]] || sglue_err AUTH 'invalid user permissions'
+
+################################################################################
+## DEFINE COMMANDS
+################################################################################
+
+cat=$(sglue_which cat)
+chmod=$(sglue_which chmod)
+chown=$(sglue_which chown)
+cp=$(sglue_which cp)
+grep=$(sglue_which grep)
+mkdir=$(sglue_which mkdir)
+sed=$(sglue_which sed)
+
+################################################################################
+## CHECK COMMANDS
+################################################################################
+
+sglue_chk CMD ${cat}
+sglue_chk CMD ${chmod}
+sglue_chk CMD ${chown}
+sglue_chk CMD ${cp}
+sglue_chk CMD ${grep}
+sglue_chk CMD ${mkdir}
+sglue_chk CMD ${sed}
 
 ################################################################################
 ## CHECK $0 VALUE
 ################################################################################
 
-printf '%s' "$0" | /bin/grep 'install\.sh$' > /dev/null
+printf '%s' "$0" | ${grep} 'install\.sh$' > /dev/null
 RT=$?
-[ $RT -eq 1 ] && sglue_err int "invalid shell script param \$0 \`$0'"
-[ $RT -ne 0 ] && sglue_err int "\$0 \`/bin/grep' exited with \`$RT'"
+[[ $RT -eq 1 ]] && sglue_err CHLD "invalid shell script param \$0 \`$0'"
+[[ $RT -ne 0 ]] && sglue_err CHLD "\$0 \`${grep}' exited with \`$RT'"
 
 ################################################################################
 ## CHANGE DIRECTORY
 ################################################################################
 
-if [ "$0" != './install.sh' ] && [ "$0" != 'install.sh' ]; then
-
-  RS="`printf '%s' "$0" | /bin/sed -e 's/\/install\.sh$//'`"
+if [[ ! "$0" =~ ^(\./)?install\.sh$ ]]; then
+  RS="$(printf '%s' "$0" | ${sed} -e 's|/install\.sh$||')"
   RT=$?
-  [ $RT -eq 0 ] || sglue_err int "\$0 \`/bin/sed' exited with \`$RT'"
-  [ -n "$RS"  ] || sglue_err int "\$0 \`/bin/sed' printed empty result"
-  [ -d "$RS"  ] || sglue_err int "\$0 \`/bin/sed' printed invalid path \`$RS'"
-
+  [[ $RT -eq 0 ]] || sglue_err CHLD "\$0 \`${sed}' exited with \`$RT'"
+  [[ -n "$RS"  ]] || sglue_err CHLD "\$0 \`${sed}' printed empty result"
+  [[ -d "$RS"  ]] || sglue_err CHLD "\$0 \`${sed}' printed invalid path \`$RS'"
   cd "$RS"
-  RT=$?
-  [ $RT -eq 0 ] || sglue_err int "\`cd $RS' exited with \`$RT'"
 fi
 
 ################################################################################
 ## SET SRC PATHS
 ################################################################################
 
-readonly SGLUE_SRC_D="`pwd -P`/src"
-readonly SGLUE_CMD_D="$SGLUE_SRC_D/bin"
-readonly SGLUE_LIB_D="$SGLUE_SRC_D/lib"
+readonly SGLUE_SRC_D="$(pwd -P)/src"
+readonly SGLUE_CMD_D="${SGLUE_SRC_D}/bin"
+readonly SGLUE_LIB_D="${SGLUE_SRC_D}/lib"
 
-sglue_chk dir "$SGLUE_SRC_D"
-sglue_chk dir "$SGLUE_CMD_D"
-sglue_chk dir "$SGLUE_LIB_D"
+sglue_chk DIR "${SGLUE_SRC_D}"
+sglue_chk DIR "${SGLUE_CMD_D}"
+sglue_chk DIR "${SGLUE_LIB_D}"
 
 ################################################################################
 ## PARSE OPTIONS
@@ -226,18 +245,18 @@ sglue_chk dir "$SGLUE_LIB_D"
 
 SGLUE_FORCE=0
 
-while [ $# -gt 0 ]; do
+while [[ $# -gt 0 ]]; do
   case "$1" in
-    -?|-h|--help)
-      sglue_help
-      exit 0
-      ;;
     -f|--force)
       SGLUE_FORCE=1
       shift
       ;;
+    -h|--help)
+      sglue_help
+      exit 0
+      ;;
     *)
-      sglue_err usr "invalid OPTION \`$1'"
+      sglue_err OPT "invalid OPTION \`$1'"
       ;;
   esac
 done
@@ -252,46 +271,40 @@ done
 ############################################################
 sglue_mk_cmd()
 {
+  local -r src="$1"
+  local dest
+  local parent
+  local -r tag='^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+'
+  local -r space='[[:blank:]]\+$'
+
   # check SRC for DEST
-  /bin/grep '^#[[:blank:]]*@dest[[:blank:]]\+/' "$SGLUE_SRC" > /dev/null
+  ${grep} "${tag}" "${src}" > /dev/null
   RT=$?
-  [ $RT -eq 1 ] && sglue_err dep "missing \`@dest DEST' in SRC \`$1'"
-  [ $RT -ne 0 ] && sglue_err int "\`@dest' \`/bin/grep' exited with \`$RT'"
+  [[ $RT -eq 1 ]] && sglue_err VAL "missing \`@dest DEST' in SRC \`$1'"
+  [[ $RT -ne 0 ]] && sglue_err CHLD "\`@dest' \`${grep}' exited with \`$RT'"
 
   # process each DEST
-  while IFS= read -r RS; do
-
-    # get DEST from LINE
-    RS="`printf '%s' "$RS" | /bin/sed -e 's/^[^\/]\+//' -e 's/[[:blank:]]\+$//'`"
-    RT=$?
-    [ $RT -eq 0 ] || sglue_err int "DEST \`/bin/sed' exited with \`$RT'"
-
-    # verify `*/bin/' in DEST path
-    printf '%s' "$RS" | /bin/grep '^\(/.\+\)\?/bin/[[:alpha:]]\+$' > /dev/null
-    RT=$?
-    [ $RT -eq 1 ] && sglue_err usr "invalid \`@dest $RS' in SRC \`$SGLUE_SRC'"
-    [ $RT -ne 0 ] && sglue_err int "DEST \`/bin/grep' exited with \`$RT'"
-
-    # verify `dirname DEST' exists
-    RD="`printf '%s' "$RS" | /bin/sed -e 's/^.\+\///'`"
-    RT=$?
-    [ $RT -eq 0 ] || sglue_err int "DEST \`/bin/sed' exited with \`$RT'"
-    [ -d "$RD"  ] || sglue_err usr "invalid DEST dir \`$RD' in SRC \`$SGLUE_SRC'"
-
-    # verify DEST overwrite
-    if [ $SGLUE_FORCE -ne 1 ] && [ -f "$RS" ]; then
-      sglue_err usr "\`$RS' already exists (use \`--force' to overwrite)"
+  while IFS= read -r dest; do
+    dest="$(printf '%s' "${dest}" | ${sed} -e "s/${tag}//" -e "s/${space}//")"
+    if [[ ! "${dest}" =~ ^(/.+)?/bin/[a-z]+$ ]]; then
+      sglue_err VAL "invalid DEST \`${dest}' in SRC \`${src}'"
     fi
-
-    SGLUE_DEST="$RS"
-
-    # make DEST
-    /bin/cp "$SGLUE_SRC" "$SGLUE_DEST"
-    /bin/chown root:root "$SGLUE_DEST"
-    /bin/chmod 0755 "$SGLUE_DEST"
+    parent="$(printf '%s' "${dest}" | ${sed} -e 's|/[^/]\+$||')"
+    if [[ ! -d "${parent}" ]]; then
+      sglue_err VAL "invalid DEST \`${dest}' in SRC \`${src}'"
+    fi
+    if [[ -d "${dest}" ]]; then
+      sglue_err VAL "a dir for DEST \`${dest}' already exists in SRC \`${src}'"
+    fi
+    if [[ -f "${dest}" ]] && [[ ${SGLUE_FORCE} -ne 1 ]]; then
+      sgl_err VAL "DEST \`${dest}' already exists (use \`--force' to overwrite)"
+    fi
+    ${cp} "${src}" "${dest}"
+    ${chown} root:root "${dest}"
+    ${chmod} 0755 "${dest}"
 
   done < <<EOF
-`/bin/grep '^#[[:blank:]]*@dest[[:blank:]]\+/' "$SGLUE_SRC"`
+$(/bin/grep '^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+/' "${src}")
 EOF
 }
 
@@ -301,40 +314,35 @@ EOF
 ############################################################
 sglue_mk_lib()
 {
+  local -r src="$1"
+  local dest
+  local -r tag='^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+'
+  local -r space='[[:blank:]]\+$'
+
   # check SRC for DEST
-  /bin/grep '^#[[:blank:]]*@dest[[:blank:]]\+/' "$SGLUE_SRC" > /dev/null
+  ${grep} "${tag}" "${src}" > /dev/null
   RT=$?
-  [ $RT -eq 1 ] && sglue_err dep "missing \`@dest DEST' in SRC \`$1'"
-  [ $RT -ne 0 ] && sglue_err int "\`@dest' \`/bin/grep' exited with \`$RT'"
+  [[ $RT -eq 1 ]] && sglue_err VAL "missing \`@dest DEST' in SRC \`$1'"
+  [[ $RT -ne 0 ]] && sglue_err CHLD "\`@dest' \`${grep}' exited with \`$RT'"
 
   # process each DEST
-  while IFS= read -r RS; do
-
-    # get DEST from LINE
-    RS="`printf '%s' "$RS" | /bin/sed -e 's/^[^\/]\+//' -e 's/[[:blank:]]\+$//'`"
-    RT=$?
-    [ $RT -eq 0 ] || sglue_err int "DEST \`/bin/sed' exited with \`$RT'"
-
-    # verify `/lib/superglue/*' DEST path
-    printf '%s' "$RS" | /bin/grep '^/lib/superglue/[^\/]\+$' > /dev/null
-    RT=$?
-    [ $RT -eq 1 ] && sglue_err usr "invalid \`@dest $RS' in SRC \`$SGLUE_SRC'"
-    [ $RT -ne 0 ] && sglue_err int "DEST \`/bin/grep' exited with \`$RT'"
-
-    # verify DEST overwrite
-    if [ $SGLUE_FORCE -ne 1 ] && [ -f "$RS" ]; then
-      sglue_err usr "\`$RS' already exists (use \`--force' to overwrite)"
+  while IFS= read -r dest; do
+    dest="$(printf '%s' "${dest}" | ${sed} -e "s/${tag}//" -e "s/${space}//")"
+    if [[ ! "${dest}" =~ ^/lib/superglue/[a-z_]+$ ]]; then
+      sglue_err VAL "invalid DEST \`${dest}' in SRC \`${src}'"
     fi
-
-    SGLUE_DEST="$RS"
-
-    # make DEST
-    /bin/cp "$SGLUE_SRC" "$SGLUE_DEST"
-    /bin/chown root:root "$SGLUE_DEST"
-    /bin/chmod 0644 "$SGLUE_DEST"
+    if [[ -d "${dest}" ]]; then
+      sglue_err VAL "a dir for DEST \`${dest}' already exists in SRC \`${src}'"
+    fi
+    if [[ -f "${dest}" ]] && [[ ${SGLUE_FORCE} -ne 1 ]]; then
+      sgl_err VAL "DEST \`${dest}' already exists (use \`--force' to overwrite)"
+    fi
+    ${cp} "${src}" "${dest}"
+    ${chown} root:root "${dest}"
+    ${chmod} 0644 "${dest}"
 
   done < <<EOF
-`/bin/grep '^#[[:blank:]]*@dest[[:blank:]]\+/' "$SGLUE_SRC"`
+$(/bin/grep '^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+/' "${src}")
 EOF
 }
 
@@ -342,14 +350,14 @@ EOF
 ## INSTALL SUPERGLUE
 ################################################################################
 
-for SGLUE_SRC in "$SGLUE_CMD_D"/*.sh ; do
-  sglue_mk_cmd
+for SGLUE_SRC in "${SGLUE_CMD_D}"/*.sh ; do
+  sglue_mk_cmd "${SGLUE_SRC}"
 done
 
-[ -d /lib/superglue ] || /bin/mkdir -m 0755 -p /lib/superglue
+[[ -d /lib/superglue ]] || ${mkdir} -m 0755 -p /lib/superglue
 
-for SGLUE_SRC in "$SGLUE_LIB_D"/*.sh ; do
-  sglue_mk_lib
+for SGLUE_SRC in "${SGLUE_LIB_D}"/*.sh ; do
+  sglue_mk_lib "${SGLUE_SRC}"
 done
 
 ################################################################################
