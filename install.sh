@@ -297,7 +297,7 @@ sglue_mk_cmd()
       sglue_err VAL "a dir for DEST \`${dest}' already exists in SRC \`${src}'"
     fi
     if [[ -f "${dest}" ]] && [[ ${SGLUE_FORCE} -ne 1 ]]; then
-      sgl_err VAL "DEST \`${dest}' already exists (use \`--force' to overwrite)"
+      sglue_err VAL "DEST \`${dest}' already exists (use \`--force' to overwrite)"
     fi
     ${cp} "${src}" "${dest}"
     ${chown} root:root "${dest}"
@@ -335,7 +335,7 @@ sglue_mk_lib()
       sglue_err VAL "a dir for DEST \`${dest}' already exists in SRC \`${src}'"
     fi
     if [[ -f "${dest}" ]] && [[ ${SGLUE_FORCE} -ne 1 ]]; then
-      sgl_err VAL "DEST \`${dest}' already exists (use \`--force' to overwrite)"
+      sglue_err VAL "DEST \`${dest}' already exists (use \`--force' to overwrite)"
     fi
     ${cp} "${src}" "${dest}"
     ${chown} root:root "${dest}"
