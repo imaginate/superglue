@@ -199,11 +199,6 @@ SGL_SILENT=0
 SGL_QUIET=0
 SGL_VERBOSE=0
 
-if [[ ${#_SGL_OPTS[@]} -eq 0 ]]; then
-  _sgl_source help
-  _sgl_help
-fi
-
 len=${#_SGL_OPTS[@]}
 for ((i=0; i<len; i++)); do
   opt="${_SGL_OPTS[${i}]}"
