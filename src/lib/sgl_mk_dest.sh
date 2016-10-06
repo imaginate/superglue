@@ -322,7 +322,7 @@ EOF
   done
 
   # append target option
-  opts[${#opts[@]}]='--no-target-directory'
+  opts[${#opts[@]}]='--no-dest-dir'
 
   # catch missing SRC
   [[ ${#_SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`${FN}' SRC"
