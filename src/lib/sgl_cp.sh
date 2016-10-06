@@ -320,6 +320,7 @@ EOF
         _sgl_version
         ;;
       -w|--warn)
+        force=1
         opts[${#opts[@]}]='--interactive'
         ;;
       -x|--one-file-system)
