@@ -242,7 +242,7 @@ EOF
               _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
               ;;
           esac
-        done < <<EOF
+        done <<EOF
 "${val},"
 EOF
         opts[${#opts[@]}]="--no-preserve=${val}"
@@ -266,7 +266,7 @@ EOF
                 _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
                 ;;
             esac
-          done < <<EOF
+          done <<EOF
 "${val},"
 EOF
           opts[${#opts[@]}]="--preserve=${val}"

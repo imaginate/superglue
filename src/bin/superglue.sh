@@ -257,8 +257,8 @@ for ((i=0; i<len; i++)); do
           arr=()
           while IFS= read -r -d ' ' func; do
             arr[${#arr[@]}]="${func}"
-          done < <<EOF
-"${val}"
+          done <<EOF
+"${val} "
 EOF
           sgl_source "${arr[@]}"
           unset -v arr

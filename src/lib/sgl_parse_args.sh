@@ -157,7 +157,7 @@ EOF
       else
         _sgl_err VAL "invalid \`${FN}' OPT \`${opt}'"
       fi
-    done < <<EOF
+    done <<EOF
 "$1|"
 EOF
     # next OPT/VAL

@@ -303,7 +303,7 @@ sglue_mk_cmd()
     ${chown} root:root "${dest}"
     ${chmod} 0755 "${dest}"
 
-  done < <<EOF
+  done <<EOF
 $(/bin/grep '^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+/' "${src}")
 EOF
 }
@@ -341,7 +341,7 @@ sglue_mk_lib()
     ${chown} root:root "${dest}"
     ${chmod} 0644 "${dest}"
 
-  done < <<EOF
+  done <<EOF
 $(/bin/grep '^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+/' "${src}")
 EOF
 }
