@@ -145,7 +145,7 @@ EOF
             fi
             ;;
           x)
-            _sgl_err OPT "invalid \`$P' OPTION \`${opt}'"
+            _sgl_err OPT "invalid \`$P' OPTION \`$1'"
             ;;
         esac
       fi
