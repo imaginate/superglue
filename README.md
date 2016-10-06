@@ -18,14 +18,12 @@ git clone https://github.com/imaginate/superglue.git
 make -C superglue && rm -rf superglue
 ```
 
-**Note:** Packages for the following managers is on the to-do list. To help please message [Adam](adam@imaginate.life).
-
-- [apt-get](https://wiki.debian.org/Apt)
-- [dnf](https://fedoraproject.org/wiki/Dnf)
-- [yum](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/System_Administrators_Guide/ch-yum.html)
-- [pacman](https://wiki.archlinux.org/index.php/pacman)
-- [emerge](https://wiki.gentoo.org/wiki/Portage)
-- [installpkg](http://www.slackware.com/config/packages.php)
+**Note**: The following Linux packages are on the to-do list. To help please message [Adam](adam@imaginate.life).
+- [deb](https://wiki.debian.org/HowToPackageForDebian)
+- [rpm](https://fedoraproject.org/wiki/How_to_create_an_RPM_package)
+- [pkg](https://wiki.archlinux.org/index.php/creating_packages)
+- [buildpkg](https://wiki.archlinux.org/index.php/creating_packages)
+- [makepkg](http://docs.slackware.com/howtos:slackware_admin:building_a_package)
 
 
 ## Library
