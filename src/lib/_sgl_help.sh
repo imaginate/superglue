@@ -57,7 +57,6 @@ _sgl_help()
     sgl_color
     sgl_cp
     sgl_err
-    sgl_mk_cmd
     sgl_mk_dest
     sgl_parse_args
     sgl_print
