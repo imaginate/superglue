@@ -57,6 +57,7 @@
 # @val DEST   Must be a valid path.
 # @val DIR    Must be a valid directory path.
 # @val EXT    An extension to append to the end of a backup file. The default is `~'.
+# @val MODE   Must be a valid file mode.
 # @val OWNER  Must be a valid USER[:GROUP].
 # @val SRC    Must be a valid file path.
 # @return
@@ -216,6 +217,7 @@ sgl_cp()
     DEST   Must be a valid path.
     DIR    Must be a valid directory path.
     EXT    An extension to append to the end of a backup file. The default is `~'.
+    MODE   Must be a valid file mode.
     OWNER  Must be a valid USER[:GROUP].
     SRC    Must be a valid file path.
 
