@@ -33,7 +33,7 @@
 ############################################################
 _sgl_parse_args()
 {
-  local -r I='_sgl_parse_args'
+  local -r FN='_sgl_parse_args'
   local -r P="$1"
   local -i i=0
   local -i u=0
@@ -45,7 +45,7 @@ _sgl_parse_args()
   local -A short
 
   # parse PRG
-  [[ -n "$P" ]] || _sgl_err SGL "missing \`$I' PRG"
+  [[ -n "$P" ]] || _sgl_err SGL "missing \`${FN}' PRG"
   shift
 
   # parse each OPT/VAL
@@ -59,10 +59,10 @@ _sgl_parse_args()
     fi
 
     # catch invalid OPT chars
-    [[ "$1" =~ ^-[a-zA-Z0-9|-]+$ ]] || _sgl_err SGL "invalid \`$I' OPT \`$1'"
+    [[ "$1" =~ ^-[a-zA-Z0-9|-]+$ ]] || _sgl_err SGL "invalid \`${FN}' OPT \`$1'"
 
     # parse VAL
-    [[ "$2" =~ ^[0-2]$ ]] || _sgl_err SGL "invalid \`$I' \`$1' VAL \`$2'"
+    [[ "$2" =~ ^[0-2]$ ]] || _sgl_err SGL "invalid \`${FN}' \`$1' VAL \`$2'"
     val="$2"
 
     # parse OPT
@@ -72,10 +72,10 @@ _sgl_parse_args()
       elif [[ "${opt}" =~ ^-[a-zA-Z0-9]$ ]]; then
         short[${opt}]=${val}
       else
-        _sgl_err SGL "invalid \`$I' OPT \`${opt}'"
+        _sgl_err SGL "invalid \`${FN}' OPT \`${opt}'"
       fi
     done < <<EOF
-$(printf '%s' "$1|")
+"$1|"
 EOF
     # next OPT/VAL
     shift 2
