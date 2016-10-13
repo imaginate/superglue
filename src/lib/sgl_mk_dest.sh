@@ -10,8 +10,6 @@
 #   0  PASS
 ################################################################################
 
-sgl_source sgl_cp
-
 ############################################################
 # @func sgl_mk_dest
 # @use sgl_mk_dest [...OPTION] ...SRC
@@ -75,6 +73,8 @@ sgl_mk_dest()
   local -a vals
   local regex='/[^/]+/[^/]+$'
   local attr
+  local mode
+  local own
   local opt
   local val
   local src
@@ -121,7 +121,7 @@ sgl_mk_dest()
         if [[ -z "${val}" ]] || [[ "${val}" =~ [[:space:]] ]]; then
           _sgl_err VAL "invalid \`${FN}' \`${opt}' EXT \`${val}'"
         fi
-        opts[${#opts[@]}]="--backup-ext=${val}"
+        opts[${#opts[@]}]="--suffix=${val}"
         ;;
       -b|--backup)
         if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
@@ -142,7 +142,7 @@ sgl_mk_dest()
         ;;
       -F|--no-force)
         force=0
-        opts[${#opts[@]}]='--no-force'
+        opts[${#opts[@]}]='--no-clobber'
         ;;
       -f|--force)
         force=1
@@ -228,7 +228,7 @@ EOF
         done <<EOF
 "${val},"
 EOF
-        opts[${#opts[@]}]="--no-keep=${val}"
+        opts[${#opts[@]}]="--no-preserve=${val}"
         ;;
       -k|--keep)
         if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
@@ -252,9 +252,9 @@ EOF
           done <<EOF
 "${val},"
 EOF
-          opts[${#opts[@]}]="--keep=${val}"
+          opts[${#opts[@]}]="--preserve=${val}"
         else
-          opts[${#opts[@]}]='--keep'
+          opts[${#opts[@]}]='--preserve'
         fi
         ;;
       -L|--dereference)
@@ -268,7 +268,7 @@ EOF
         if [[ -z "${val}" ]] || [[ "${val}" =~ [[:space:]] ]]; then
           _sgl_err VAL "invalid \`${FN}' \`${opt}' MODE \`${val}'"
         fi
-        opts[${#opts[@]}]="--mode=${val}"
+        mode="${val}"
         ;;
       -n|--no-clobber)
         force=0
@@ -279,7 +279,7 @@ EOF
         if [[ -z "${val}" ]] || [[ "${val}" =~ [[:space:]] ]]; then
           _sgl_err VAL "invalid \`${FN}' \`${opt}' OWNER \`${val}'"
         fi
-        opts[${#opts[@]}]="--owner=${val}"
+        own="${val}"
         ;;
       -P|--no-dereference)
         opts[${#opts[@]}]='-P'
@@ -290,11 +290,8 @@ EOF
       -q|--quiet)
         quiet=1
         ;;
-      -r|--recursive)
-        opts[${#opts[@]}]='--recursive'
-        ;;
       -s|--symlink)
-        opts[${#opts[@]}]='--symlink'
+        opts[${#opts[@]}]='--symbolic-link'
         ;;
       -t|--test)
         regex="${_SGL_OPT_VALS[${i}]}"
@@ -310,7 +307,7 @@ EOF
         ;;
       -w|--warn)
         force=1
-        opts[${#opts[@]}]='--warn'
+        opts[${#opts[@]}]='--interactive'
         ;;
       -x|--one-file-system)
         opts[${#opts[@]}]='--one-file-system'
@@ -322,7 +319,7 @@ EOF
   done
 
   # append target option
-  opts[${#opts[@]}]='--no-dest-dir'
+  opts[${#opts[@]}]='--no-target-directory'
 
   # catch missing SRC
   [[ ${#_SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`${FN}' SRC"
@@ -376,7 +373,31 @@ EOF
     src="${vals[${i}]}"
     i=$(( ++i ))
     dest="${vals[${i}]}"
-    sgl_cp "${opts[@]}" -- "${src}" "${dest}"
+
+    # copy SRC
+    ${cp} "${opts[@]}" "${src}" "${dest}"
+    RT=$?
+    if [[ ${RT} -ne 0 ]]; then
+      _sgl_err CHLD "\`${cp}' in \`${FN}' exited with \`${RT}'"
+    fi
+
+    # set DEST file mode
+    if [[ -n "${mode}" ]]; then
+      ${chmod} "${mode}" "${dest}"
+      RT=$?
+      if [[ ${RT} -ne 0 ]]; then
+        _sgl_err CHLD "\`${chmod}' in \`${FN}' exited with \`${RT}'"
+      fi
+    fi
+
+    # set DEST file owner
+    if [[ -n "${own}" ]]; then
+      ${chown} "${own}" "${dest}"
+      RT=$?
+      if [[ ${RT} -ne 0 ]]; then
+        _sgl_err CHLD "\`${chown}' in \`${FN}' exited with \`${RT}'"
+      fi
+    fi
   done
 }
 readonly -f sgl_mk_dest
