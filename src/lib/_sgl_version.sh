@@ -13,11 +13,12 @@
 ############################################################
 # @func _sgl_version
 # @use _sgl_version
-# @return
+# @exit
 #   0  PASS
 ############################################################
 _sgl_version()
 {
-  printf "%s\n" "\`superglue' v${SGL_VERSION}"
+  printf "%s\n" "superglue v${SGL_VERSION}"
+  exit 0
 }
 readonly -f _sgl_version
