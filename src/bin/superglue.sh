@@ -292,7 +292,7 @@ unset -v i
 [[ ${#_SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`superglue' FUNC|SCRIPT"
 
 re='^[a-z_]+$'
-if [[ "${SGL_FUNC}" =~ ${re} ]]; then
+if [[ "${_SGL_VALS[0]}" =~ ${re} ]]; then
 
   SGL_FUNC="${_SGL_VALS[0]}"
   [[ "${SGL_FUNC}" =~ ^sgl_ ]] || SGL_FUNC="sgl_${SGL_FUNC}"
