@@ -291,8 +291,7 @@ unset -v i
 
 [[ ${#_SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`superglue' FUNC|SCRIPT"
 
-re='^[a-z_]+$'
-if [[ "${_SGL_VALS[0]}" =~ ${re} ]]; then
+if [[ "${_SGL_VALS[0]}" =~ ^[a-z_]+$ ]]; then
 
   SGL_FUNC="${_SGL_VALS[0]}"
   [[ "${SGL_FUNC}" =~ ^sgl_ ]] || SGL_FUNC="sgl_${SGL_FUNC}"
@@ -304,7 +303,6 @@ if [[ "${_SGL_VALS[0]}" =~ ${re} ]]; then
     exit
   fi
 fi
-unset -v re
 
 ################################################################################
 ## PARSE SCRIPT
