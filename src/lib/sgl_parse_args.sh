@@ -134,7 +134,7 @@ EOF
     fi
 
     # catch invalid OPT chars
-    if [[ ! "${opt}" =~ ^-[a-zA-Z0-9|-]+$ ]]; then
+    if [[ ! "${opt}" =~ ^-[a-zA-Z0-9|?-]+$ ]]; then
       _sgl_err VAL "invalid \`${FN}' OPT \`${opt}'"
     fi
 
@@ -160,7 +160,7 @@ EOF
     while IFS= read -r -d '|' opt; do
       if [[ "${opt}" =~ ^--[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$ ]]; then
         long[${opt}]=${val}
-      elif [[ "${opt}" =~ ^-[a-zA-Z0-9]$ ]]; then
+      elif [[ "${opt}" =~ ^-[a-zA-Z0-9?]$ ]]; then
         short[${opt}]=${val}
       else
         _sgl_err VAL "invalid \`${FN}' OPT \`${opt}'"
