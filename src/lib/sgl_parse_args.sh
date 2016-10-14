@@ -11,30 +11,37 @@
 ################################################################################
 
 ############################################################
-# This function parses each ARG and saves the resulting option/values
-# to the following zero-based indexed arrays:
+# This function parses each argument in SGL_ARGS and saves the resulting
+# option/values to the following zero-based indexed arrays:
 #   SGL_OPTS      Each parsed option (e.g. `-s' or `--long').
 #   SGL_OPT_BOOL  Whether each option has a value (`0' or `1').
 #   SGL_OPT_VALS  The parsed option value.
 #   SGL_VALS      The remaining (non-option) parsed values.
-# Note that the OPT `-|--' is automatically assumed.
 #
 # @func sgl_parse_args
-# @use sgl_parse_args [...OPTION] [...OPT VAL] -- [...ARG]
-# @opt -h|-?|--help            Print help info and exit.
-# @opt -p|--prg|--program=PRG  Include the PRG in the error messages.
-# @opt -Q|--silent             Disable `stderr' and `stdout' outputs.
-# @opt -q|--quiet              Disable `stdout' output.
-# @opt -v|--version            Print version info and exit.
-# @opt -|--                    End the options.
-# @val ARG  Each original passed argument (i.e. `"$@"').
-# @val OPT  Each OPT pattern must begin with a dash (e.g. `-<short>|--<long>').
-#           Use a pipe to separate multiple OPT patterns.
-# @val PRG  Can be any string.
-# @val VAL  Defines whether an OPT has a value. Must be an option from below.
-#   0|N|NO     The OPT has no value.
-#   1|Y|YES    The OPT requires a value.
-#   2|M|MAYBE  The OPT can have a value.
+# @use sgl_parse_args [...OPTION]
+# @opt -a|--args|--arguments [...ARG]
+#   Override the args to parse (default uses `"${SGL_ARGS[@]}"'). Must be the
+#   last OPTION used. Do not use `=' between this OPTION and any ARG.
+# @opt -o|--opts|--options [...OPTS[=VAL]] [-|--]
+#   Define each acceptable OPT and VAL (default= `0'). If this OPTION is not
+#   the last one used, it must use `-' or `--' to indicate the end of OPTS.
+#   Do not use `=' between this OPTION and any OPTS. Note that the OPTS
+#   `-|-- NO' is automatically assumed.
+# @opt -p|--prg|--program=PRG
+#   Define a program name to include in any error messages.
+# @opt -Q|--silent   Disable `stderr' and `stdout' outputs.
+# @opt -q|--quiet    Disable `stdout' output.
+# @opt -v|--version  Print version info and exit.
+# @opt -?|-h|--help  Print help info and exit.
+# @val ARG   Each original argument. Can be any string.
+# @val OPT   A short (e.g. `-o') or long (e.g. `--opt') option pattern.
+# @val OPTS  One or more OPT. Use `|' to separate each OPT (e.g. `-o|--opt').
+# @val PRG   A program name. Can be any string.
+# @val VAL   Indicates whether each OPT accepts a value. Must be a value from below.
+#   `0|N|NO'     The OPT has no value.
+#   `1|Y|YES'    The OPT requires a value.
+#   `2|M|MAYBE'  The OPT can have a value.
 # @return
 #   0  PASS
 ############################################################
