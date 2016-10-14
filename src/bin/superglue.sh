@@ -295,10 +295,12 @@ if [[ "${_SGL_VALS[0]}" =~ ^[a-z_]+$ ]]; then
 
   SGL_FUNC="${_SGL_VALS[0]}"
   [[ "${SGL_FUNC}" =~ ^sgl_ ]] || SGL_FUNC="sgl_${SGL_FUNC}"
+  [[ -f "${SGL_LIB}/${SGL_FUNC}" ]] || SGL_FUNC=''
+  readonly SGL_FUNC
 
-  if [[ -f "${SGL_LIB}/${SGL_FUNC}" ]]; then
+  if [[ -n "${SGL_FUNC}" ]]; then
     _SGL_VALS[0]="${SGL_FUNC}"
-    sgl_source "${SGL_FUNC}"
+    sgl_source ${SGL_FUNC}
     "${_SGL_VALS[@]}"
     exit
   fi
