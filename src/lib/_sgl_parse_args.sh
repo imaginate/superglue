@@ -59,7 +59,9 @@ _sgl_parse_args()
     fi
 
     # catch invalid OPT chars
-    [[ "$1" =~ ^-[a-zA-Z0-9|-]+$ ]] || _sgl_err SGL "invalid \`${FN}' OPT \`$1'"
+    if [[ ! "$1" =~ ^-[a-zA-Z0-9|?-]+$ ]]; then
+      _sgl_err SGL "invalid \`${FN}' OPT \`$1'"
+    fi
 
     # parse VAL
     [[ "$2" =~ ^[0-2]$ ]] || _sgl_err SGL "invalid \`${FN}' \`$1' VAL \`$2'"
@@ -69,7 +71,7 @@ _sgl_parse_args()
     while IFS= read -r -d '|' opt; do
       if [[ "${opt}" =~ ^--[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$ ]]; then
         long[${opt}]=${val}
-      elif [[ "${opt}" =~ ^-[a-zA-Z0-9]$ ]]; then
+      elif [[ "${opt}" =~ ^-[a-zA-Z0-9?]$ ]]; then
         short[${opt}]=${val}
       else
         _sgl_err SGL "invalid \`${FN}' OPT \`${opt}'"
