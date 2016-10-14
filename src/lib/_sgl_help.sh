@@ -14,7 +14,7 @@
 # @func _sgl_help
 # @use _sgl_help [FUNC]
 # @val FUNC  Must be a valid `superglue' function. The `sgl_' prefix is optional.
-# @return
+# @exit
 #   0  PASS
 ############################################################
 _sgl_help()
@@ -26,22 +26,22 @@ _sgl_help()
   sgl [...OPTION] SCRIPT [...SCRIPT_ARG]
 
   Options:
-    -a|--alias          Enable aliases without `sgl_' prefixes for each sourced FUNC.
-    -C|--no-color       Disable ANSI output coloring for terminals.
-    -c|--color          Enable ANSI output coloring for non-terminals.
-    -D|--silent-child   Disable `stderr' and `stdout' outputs for child processes.
-    -d|--quiet-child    Disable `stdout' output for child processes.
-    -h|--help[=FUNC]    Print help info and exit.
-    -P|--silent-parent  Disable `stderr' and `stdout' outputs for parent process.
-    -p|--quiet-parent   Disable `stdout' output for parent process.
-    -Q|--silent         Disable `stderr' and `stdout' outputs.
-    -q|--quiet          Disable `stdout' output.
-    -S|--source-all     Source every FUNC.
-    -s|--source=FUNCS   Source each FUNC in FUNCS.
-    -V|--verbose        Appends line number and context to errors.
-    -v|--version        Print version info and exit.
-    -x|--xtrace         Enables bash `xtrace' option.
-    -|--                End the options.
+    -a|--alias           Enable aliases without `sgl_' prefixes for each sourced FUNC.
+    -C|--no-color        Disable ANSI output coloring for terminals.
+    -c|--color           Enable ANSI output coloring for non-terminals.
+    -D|--silent-child    Disable `stderr' and `stdout' outputs for child processes.
+    -d|--quiet-child     Disable `stdout' output for child processes.
+    -h|-?|--help[=FUNC]  Print help info and exit.
+    -P|--silent-parent   Disable `stderr' and `stdout' outputs for parent process.
+    -p|--quiet-parent    Disable `stdout' output for parent process.
+    -Q|--silent          Disable `stderr' and `stdout' outputs.
+    -q|--quiet           Disable `stdout' output.
+    -S|--source-all      Source every FUNC.
+    -s|--source=FUNCS    Source each FUNC in FUNCS.
+    -V|--verbose         Appends line number and context to errors.
+    -v|--version         Print version info and exit.
+    -x|--xtrace          Enables bash `xtrace' option.
+    -|--                 End the options.
 
   Values:
     FUNC    Must be a valid `superglue' function. The `sgl_' prefix is optional.

@@ -18,7 +18,7 @@
 # @opt -D|--delim-title=DELIM  Deliminate TITLE and MSG with DELIM.
 # @opt -d|--delim[-msg]=DELIM  Deliminate each MSG with DELIM.
 # @opt -e|--escape             Evaluate escapes.
-# @opt -h|--help               Print help info and exit.
+# @opt -h|-?|--help            Print help info and exit.
 # @opt -n|--no-newline         Do not print a trailing newline.
 # @opt -Q|--silent             Disable `stderr' and `stdout' outputs.
 # @opt -q|--quiet              Disable `stdout' output.
@@ -65,7 +65,7 @@ sgl_print()
     '-D|--delim-title'  1 \
     '-d|--delim|--delim-msg' 1 \
     '-e|--escape'       0 \
-    '-h|--help'         0 \
+    '-h|-?|--help'      0 \
     '-n|--no-newline'   0 \
     '-Q|--silent'       0 \
     '-q|--quiet'        0 \
@@ -99,7 +99,7 @@ sgl_print()
       -e|--escape)
         escape=1
         ;;
-      -h|--help)
+      -h|-\?|--help)
         ${cat} <<'EOF'
 
   sgl_print [...OPTION] ...MSG
@@ -110,7 +110,7 @@ sgl_print()
     -D|--delim-title=DELIM  Deliminate TITLE and MSG with DELIM.
     -d|--delim[-msg]=DELIM  Deliminate each MSG with DELIM.
     -e|--escape             Evaluate escapes.
-    -h|--help               Print help info and exit.
+    -h|-?|--help            Print help info and exit.
     -n|--no-newline         Do not print a trailing newline.
     -Q|--silent             Disable `stderr' and `stdout' outputs.
     -q|--quiet              Disable `stdout' output.

@@ -15,7 +15,7 @@
 # @use sgl_set_color [...OPTION] [...COLOR[=ANSI]]
 # @opt -d|--disable  Disable each COLOR or all colors if no COLOR is defined.
 # @opt -e|--enable   Enable each COLOR or all colors if no COLOR is defined.
-# @opt -h|--help     Print help info and exit.
+# @opt -h|-?|--help  Print help info and exit.
 # @opt -Q|--silent   Disable `stderr' and `stdout' outputs.
 # @opt -q|--quiet    Disable `stdout' output.
 # @opt -r|--reset    Reset each COLOR or all colors if no COLOR is defined.
@@ -54,7 +54,7 @@ sgl_set_color()
   _sgl_parse_args "${FN}" \
     '-d|--disable' 0 \
     '-e|--enable'  0 \
-    '-h|--help'    0 \
+    '-h|-?|--help' 0 \
     '-Q|--silent'  0 \
     '-q|--quiet'   0 \
     '-r|--reset'   0 \
@@ -74,7 +74,7 @@ sgl_set_color()
         disable=0
         reset=1
         ;;
-      -h|--help)
+      -h|-\?|--help)
         ${cat} <<'EOF'
 
   sgl_set_color [...OPTION] [...COLOR[=ANSI]]
@@ -82,7 +82,7 @@ sgl_set_color()
   Options:
     -d|--disable  Disable a COLOR or all colors.
     -e|--enable   Enable a COLOR or all colors.
-    -h|--help     Print help info and exit.
+    -h|-?|--help  Print help info and exit.
     -Q|--silent   Disable `stderr' and `stdout' outputs.
     -q|--quiet    Disable `stdout' output.
     -r|--reset    Reset a COLOR or all colors.

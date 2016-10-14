@@ -21,7 +21,7 @@
 #
 # @func sgl_parse_args
 # @use sgl_parse_args [...OPTION] [...OPT VAL] -- [...ARG]
-# @opt -h|--help               Print help info and exit.
+# @opt -h|-?|--help            Print help info and exit.
 # @opt -p|--prg|--program=PRG  Include the PRG in the error messages.
 # @opt -Q|--silent             Disable `stderr' and `stdout' outputs.
 # @opt -q|--quiet              Disable `stdout' output.
@@ -57,7 +57,7 @@ sgl_parse_args()
 
   # parse each argument
   _sgl_parse_args "${FN}"  \
-    '-h|--help'          0 \
+    '-h|-?|--help'       0 \
     '-p|--prg|--program' 1 \
     '-Q|--silent'        0 \
     '-q|--quiet'         0 \
@@ -69,7 +69,7 @@ sgl_parse_args()
   for ((i=0; i<len; i++)); do
     opt="${_SGL_OPTS[${i}]}"
     case "${opt}" in
-      -h|--help)
+      -h|-\?|--help)
         ${cat} <<'EOF'
 
   sgl_parse_args [...OPTION] [...OPT VAL] -- [...ARG]
@@ -83,7 +83,7 @@ sgl_parse_args()
   Note that the OPT `-|--' is automatically assumed.
 
   Options:
-    -h|--help               Print help info and exit.
+    -h|-?|--help            Print help info and exit.
     -p|--prg|--program=PRG  Include the PRG in the error messages.
     -Q|--silent             Disable `stderr' and `stdout' outputs.
     -q|--quiet              Disable `stdout' output.

@@ -17,7 +17,7 @@
 # @func sgl_color
 # @use sgl_color [...OPTION] COLOR ...MSG
 # @opt -d|--delim=DELIM  Use DELIM to deliminate each MSG.
-# @opt -h|--help         Print help info and exit.
+# @opt -h|-?|--help      Print help info and exit.
 # @opt -v|--version      Print version info and exit.
 # @opt -|--              End the options.
 # @val COLOR  Must be a color from the below options.
@@ -47,7 +47,7 @@ sgl_color()
   # parse each argument
   _sgl_parse_args "${FN}" \
     '-d|--delim'   1 \
-    '-h|--help'    0 \
+    '-h|-?|--help' 0 \
     '-v|--version' 0 \
     -- "$@"
 
@@ -59,14 +59,14 @@ sgl_color()
       -d|--delim)
         delim="${_SGL_OPT_VALS[${i}]}"
         ;;
-      -h|--help)
+      -h|-\?|--help)
         ${cat} <<'EOF'
 
   sgl_color [...OPTION] COLOR ...MSG
 
   Options:
     -d|--delim=DELIM  Use DELIM to deliminate each MSG.
-    -h|--help         Print help info and exit.
+    -h|-?|--help      Print help info and exit.
     -Q|--silent       Disable `stderr' and `stdout' outputs.
     -q|--quiet        Disable `stdout' output.
     -v|--version      Print version info and exit.

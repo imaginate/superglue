@@ -13,7 +13,7 @@
 ############################################################
 # @func sgl_chk_exit
 # @use sgl_chk_exit [...OPTION] CODE
-# @opt -h|--help               Print help info and exit.
+# @opt -h|-?|--help            Print help info and exit.
 # @opt -c|--cmd|--command=CMD  Include the CMD string in the fail message.
 # @opt -m|--msg|--message=MSG  Override the default fail message.
 # @opt -p|--prg|--program=PRG  Include the parent PRG in the fail message.
@@ -58,7 +58,7 @@ sgl_chk_exit()
 
   # parse each argument
   _sgl_parse_args "${FN}"  \
-    '-h|--help'          0 \
+    '-h|-?|--help'       0 \
     '-c|--cmd|--command' 1 \
     '-m|--msg|--message' 1 \
     '-p|--prg|--program' 1 \
@@ -73,13 +73,13 @@ sgl_chk_exit()
   for ((i=0; i<len; i++)); do
     opt="${_SGL_OPTS[${i}]}"
     case "${opt}" in
-      -h|--help)
+      -h|-\?|--help)
         ${cat} <<'EOF'
 
   sgl_chk_exit [...OPTION] ...CODE
 
   Options:
-    -h|--help               Print help info and exit.
+    -h|-?|--help            Print help info and exit.
     -c|--cmd|--command=CMD  Include the CMD string in the fail message.
     -m|--msg|--message=MSG  Override the default fail message.
     -p|--prg|--program=PRG  Include the parent PRG in the fail message.

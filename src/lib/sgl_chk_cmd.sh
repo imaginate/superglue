@@ -13,7 +13,7 @@
 ############################################################
 # @func sgl_chk_cmd
 # @use sgl_chk_cmd [...OPTION] ...CMD
-# @opt -h|--help               Print help info and exit.
+# @opt -h|-?|--help            Print help info and exit.
 # @opt -m|--msg|--message=MSG  Override the default fail message.
 # @opt -p|--prg|--program=PRG  Include the parent PRG in the fail message.
 # @opt -Q|--silent             Disable `stderr' and `stdout' outputs.
@@ -55,7 +55,7 @@ sgl_chk_cmd()
 
   # parse each argument
   _sgl_parse_args "${FN}"  \
-    '-h|--help'          0 \
+    '-h|-?|--help'       0 \
     '-m|--msg|--message' 1 \
     '-p|--prg|--program' 1 \
     '-Q|--silent'        0 \
@@ -69,13 +69,13 @@ sgl_chk_cmd()
   for ((i=0; i<len; i++)); do
     opt="${_SGL_OPTS[${i}]}"
     case "${opt}" in
-      -h|--help)
+      -h|-\?|--help)
         ${cat} <<'EOF'
 
   sgl_chk_cmd [...OPTION] ...CMD
 
   Options:
-    -h|--help               Print help info and exit.
+    -h|-?|--help            Print help info and exit.
     -m|--msg|--message=MSG  Override the default fail message.
     -p|--prg|--program=PRG  Include the parent PRG in the fail message.
     -Q|--silent             Disable `stderr' and `stdout' outputs.

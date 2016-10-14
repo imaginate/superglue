@@ -15,7 +15,7 @@
 # @use sgl_err [...OPTION] ERR ...MSG
 # @opt -d|--delim=DELIM  Deliminate each MSG with DELIM.
 # @opt -e|--escape       Interpret escapes.
-# @opt -h|--help         Print help info and exit.
+# @opt -h|-?|--help      Print help info and exit.
 # @opt -Q|--silent       Disable `stderr' and `stdout' outputs.
 # @opt -q|--quiet        Disable `stdout' output.
 # @opt -r|--return       Return instead of exiting.
@@ -62,7 +62,7 @@ sgl_err()
   _sgl_parse_args "${FN}" \
     '-d|--delim'   1 \
     '-e|--escape'  0 \
-    '-h|--help'    0 \
+    '-h|-?|--help' 0 \
     '-Q|--silent'  0 \
     '-q|--quiet'   0 \
     '-r|--return'  0 \
@@ -80,14 +80,14 @@ sgl_err()
       -e|--escape)
         escape=1
         ;;
-      -h|--help)
+      -h|-\?|--help)
         ${cat} <<'EOF'
 
   sgl_err [...OPTION] ERR ...MSG
 
   Options:
     -d|--delim=DELIM  Deliminate each MSG with DELIM.
-    -h|--help         Print help info and exit.
+    -h|-?|--help      Print help info and exit.
     -Q|--silent       Disable `stderr' and `stdout' outputs.
     -q|--quiet        Disable `stdout' output.
     -r|--return       Return instead of exiting.

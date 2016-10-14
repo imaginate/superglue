@@ -13,7 +13,7 @@
 ############################################################
 # @func sgl_set_args
 # @use sgl_set_args [...OPTION]
-# @opt -h|--help     Print help info and exit.
+# @opt -h|-?|--help  Print help info and exit.
 # @opt -v|--version  Print version info and exit.
 # @opt -|--          End the options.
 # @return
@@ -28,7 +28,7 @@ sgl_set_args()
 
   # parse each argument
   _sgl_parse_args "${FN}" \
-    '-h|--help'    0 \
+    '-h|-?|--help' 0 \
     '-v|--version' 0 \
     -- "$@"
 
@@ -37,13 +37,13 @@ sgl_set_args()
   for ((i=0; i<len; i++)); do
     opt="${_SGL_OPTS[${i}]}"
     case "${opt}" in
-      -h|--help)
+      -h|-\?|--help)
         ${cat} <<'EOF'
 
   sgl_set_args [...OPTION]
 
   Options:
-    -h|--help     Print help info and exit.
+    -h|-?|--help  Print help info and exit.
     -v|--version  Print version info and exit.
     -|--          End the options.
 

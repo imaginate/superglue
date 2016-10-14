@@ -18,7 +18,7 @@
 # @opt -F|--no-force         If destination exists do not overwrite it.
 # @opt -f|--force            If a destination exists overwrite it.
 # @opt -H|--cmd-dereference  Follow command-line SRC symlinks.
-# @opt -h|--help             Print help info and exit.
+# @opt -h|-?|--help          Print help info and exit.
 # @opt -K|--no-keep=ATTRS    Do not preserve the ATTRS.
 # @opt -k|--keep[=ATTRS]     Keep the ATTRS (default= `mode,ownership,timestamps').
 # @opt -L|--dereference      Always follow SRC symlinks.
@@ -90,7 +90,7 @@ sgl_mk_dest()
     '-F|--no-force'     0 \
     '-f|--force'        0 \
     '-H|--cmd-dereference' 0 \
-    '-h|--help'         0 \
+    '-h|-?|--help'      0 \
     '-K|--no-keep'      1 \
     '-k|--keep'         2 \
     '-L|--dereference'  0 \
@@ -151,7 +151,7 @@ sgl_mk_dest()
       -H|--cmd-dereference)
         opts[${#opts[@]}]='-H'
         ;;
-      -h|--help)
+      -h|-\?|--help)
         ${cat} <<'EOF'
 
   sgl_mk_dest [...OPTION] ...SRC
@@ -162,7 +162,7 @@ sgl_mk_dest()
     -F|--no-force         If destination exists do not overwrite it.
     -f|--force            If destination exists overwrite it.
     -H|--cmd-dereference  Follow command-line SRC symlinks.
-    -h|--help             Print help info and exit.
+    -h|-?|--help          Print help info and exit.
     -K|--no-keep=ATTRS    Do not preserve the ATTRS.
     -k|--keep[=ATTRS]     Keep the ATTRS (default= `mode,ownership,timestamps').
     -L|--dereference      Always follow SRC symlinks.

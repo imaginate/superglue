@@ -13,7 +13,7 @@
 ############################################################
 # @func sgl_chk_uid
 # @use sgl_chk_uid [...OPTION] ...UID
-# @opt -h|--help               Print help info and exit.
+# @opt -h|-?|--help            Print help info and exit.
 # @opt -i|--invert             Invert the check to fail if a UID matches.
 # @opt -m|--msg|--message=MSG  Override the default fail message.
 # @opt -p|--prg|--program=PRG  Include the parent PRG in the fail message.
@@ -58,7 +58,7 @@ sgl_chk_uid()
 
   # parse each argument
   _sgl_parse_args "${FN}"  \
-    '-h|--help'          0 \
+    '-h|-?|--help'       0 \
     '-i|--invert'        0 \
     '-m|--msg|--message' 1 \
     '-p|--prg|--program' 1 \
@@ -73,13 +73,13 @@ sgl_chk_uid()
   for ((i=0; i<len; i++)); do
     opt="${_SGL_OPTS[${i}]}"
     case "${opt}" in
-      -h|--help)
+      -h|-\?|--help)
         ${cat} <<'EOF'
 
   sgl_chk_uid [...OPTION] ...UID
 
   Options:
-    -h|--help               Print help info and exit.
+    -h|-?|--help            Print help info and exit.
     -i|--invert             Invert the check to fail if a UID matches.
     -m|--msg|--message=MSG  Override the default fail message.
     -p|--prg|--program=PRG  Include the parent PRG in the fail message.
