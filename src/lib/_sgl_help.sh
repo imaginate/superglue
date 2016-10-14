@@ -60,7 +60,6 @@ _sgl_help()
     sgl_mk_dest
     sgl_parse_args
     sgl_print
-    sgl_set_args
     sgl_set_color
 
   Exit Codes:

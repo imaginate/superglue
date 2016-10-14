@@ -38,7 +38,6 @@ make -C superglue && rm -rf superglue
 - [sgl_mk_dest](#sgl_mk_dest)
 - [sgl_parse_args](#sgl_parse_args)
 - [sgl_print](#sgl_print)
-- [sgl_set_args](#sgl_set_args)
 - [sgl_set_color](#sgl_set_color)
 
 ### sgl_chk_cmd
@@ -62,8 +61,6 @@ make -C superglue && rm -rf superglue
 ### sgl_parse_args
 
 ### sgl_print
-
-### sgl_set_args
 
 ### sgl_set_color
 
