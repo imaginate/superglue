@@ -48,6 +48,7 @@
 sgl_parse_args()
 {
   local -r FN='sgl_parse_args'
+  local -i a
   local -i i
   local -i u
   local -i len
@@ -338,8 +339,11 @@ EOF
     fi
   done
 
+  # format PRG
+  [[ -n "${prg}" ]] && prg="\`${prg}' "
+
   # set args to SGL_ARGS
-  if [[ ${override} -ne 1 ]]; then
+  if [[ ${override} -eq 0 ]]; then
     args=()
     if [[ ${#SGL_ARGS[@]} -gt 0 ]]; then
       for arg in "${SGL_ARGS[@]}"; do
@@ -355,24 +359,20 @@ EOF
   SGL_VALS=()
 
   # parse each ARG option
-  for ((i; i<len; i++)); do
-    opt="${_SGL_VALS[${i}]}"
-
+  len=${#args[@]}
+  for ((i=0; i<len; i++)); do
+    opt="${args[${i}]}"
     # start ARG values
     [[ "${opt}" =~ ^- ]] || break
-
     # end ARG options
     if [[ "${opt}" =~ ^--?$ ]]; then
       i=$(( ++i ))
       break
     fi
-
     # parse long ARG option
     if [[ "${opt}" =~ ^-- ]]; then
-
       # save current index
       a=${#SGL_OPTS[@]}
-
       # parse long ARG option with `='
       if [[ "${opt}" =~ = ]]; then
         val="$(printf '%s' "${opt}" | ${sed} -e 's/^[^=]\+=//')"
@@ -388,7 +388,6 @@ EOF
         SGL_OPTS[${a}]="${opt}"
         SGL_OPT_BOOL[${a}]=1
         SGL_OPT_VALS[${a}]="${val}"
-
       # parse long ARG option without `='
       else
         SGL_OPTS[${a}]="${opt}"
@@ -399,7 +398,7 @@ EOF
             ;;
           1)
             i=$(( ++i ))
-            val="${_SGL_VALS[${i}]}"
+            val="${args[${i}]}"
             if [[ ${i} -eq ${len} ]] || [[ "${val}" =~ ^- ]]; then
               _sgl_err VAL "missing ${prg}\`${opt}' VALUE"
             fi
@@ -408,7 +407,7 @@ EOF
             ;;
           2)
             i=$(( ++i ))
-            val="${_SGL_VALS[${i}]}"
+            val="${args[${i}]}"
             if [[ ${i} -eq ${len} ]] || [[ "${val}" =~ ^- ]]; then
               i=$(( --i ))
               SGL_OPT_BOOL[${a}]=0
@@ -423,12 +422,11 @@ EOF
             ;;
         esac
       fi
-
     # parse short ARG option
     else
       arg="${opt}"
-      slen="${#arg}"
-      for ((u=1; u<slen; u++)); do
+      ulen="${#arg}"
+      for ((u=1; u<ulen; u++)); do
         opt="-${arg:${u}:1}"
         a=${#SGL_OPTS[@]}
         SGL_OPTS[${a}]="${opt}"
@@ -439,12 +437,12 @@ EOF
             ;;
           1)
             SGL_OPT_BOOL[${a}]=1
-            if ((++u < slen)); then
+            if ((++u < ulen)); then
               SGL_OPT_VALS[${a}]="${arg:${u}}"
-              break # end for loop
+              break
             fi
             i=$(( ++i ))
-            val="${_SGL_VALS[${i}]}"
+            val="${args[${i}]}"
             if [[ ${i} -eq ${len} ]] || [[ "${val}" =~ ^- ]]; then
               _sgl_err VAL "missing ${prg}\`${opt}' VALUE"
             else
@@ -452,13 +450,13 @@ EOF
             fi
             ;;
           2)
-            if ((++u < slen)); then
+            if ((++u < ulen)); then
               SGL_OPT_BOOL[${a}]=1
               SGL_OPT_VALS[${a}]="${arg:${u}}"
-              break # end for loop
+              break
             fi
             i=$(( ++i ))
-            val="${_SGL_VALS[${i}]}"
+            val="${args[${i}]}"
             if [[ ${i} -eq ${len} ]] || [[ "${val}" =~ ^- ]]; then
               i=$(( --i ))
               SGL_OPT_BOOL[${a}]=0
@@ -476,9 +474,9 @@ EOF
     fi
   done
 
-  # parse ARG values
+  # parse each ARG value
   for ((i; i<len; i++)); do
-    SGL_VALS[${#SGL_VALS[@]}]="${_SGL_VALS[${i}]}"
+    SGL_VALS[${#SGL_VALS[@]}]="${args[${i}]}"
   done
 }
 readonly -f sgl_parse_args
