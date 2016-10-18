@@ -15,11 +15,89 @@ Superglue is a comprehensive bash library and wrapper.
   - [Posix Grep](https://www.gnu.org/software/grep/grep.html)
   - [Posix Sed](https://www.gnu.org/software/sed/sed.html)
 
+--
+
 **NOTE**<br>
 The following work is still left before releasing the alpha version. To help please message [Adam](adam@imaginate.life).
 - Add the complete implementation of `--quiet*` and `--silent*`.
 - Add the automatic `--alias` creation.
 - Add proper unit tests and setup [TravisCI](https://travis-ci.com/).
+
+--
+
+- [Example](#example)
+- [Install](#install)
+- [Reference](#reference)
+- [Everything Else](#everything-else)
+
+
+## Example
+```bash
+# Copies the source to each destination found in the source.
+# Destinations are defined using `@dest /path/to/dest'.
+sgl mk_dest -f -m 0644 -o user -u ./source.file
+```
+```bash
+#!/bin/superglue
+
+# Load only the needed functions.
+sgl_source 'chk_*' err parse_args print
+
+# Verify the user is root or exit the process.
+sgl_chk_uid --exit --prg='Example' 0
+
+# Parse the arguments easily.
+sgl_parse_args --prg 'Example' --options \
+  '-a|--ask' Y \
+  '-b|--bounce' \
+  '-c|--coast' \
+  '-t|--tell' M \
+  '-?|--help'
+
+# Handle the parsed options.
+len=${#SGL_OPTS[@]}
+for ((i=0; i<len; i++)); do
+  opt="${SGL_OPTS[i]}"
+  case "${opt}" in
+    -a|--ask)
+      DEMO_ASK="${SGL_OPT_VALS[i]}"
+      # If empty throw an error and exit the process.
+      [[ -n "${DEMO_ASK}" ]] || sgl_err VAL "invalid empty value for \`${opt}'"
+      ;;
+    -b|--bounce)
+      DEMO_BOUNCE=1
+      DEMO_COAST=0
+      ;;
+    -c|--coast)
+      DEMO_BOUNCE=0
+      DEMO_COAST=1
+      ;;
+    -t|--tell)
+      if [[ ${SGL_OPT_BOOL[i]} -eq 1 ]]; then
+        DEMO_TELL="${SGL_OPT_VALS[i]}"
+      else
+        DEMO_TELL="${DEMO_ASK}"
+      fi
+      ;;
+    -\?|--help)
+      echo 'some helpful info'
+      exit 0
+      ;;
+  esac
+done
+
+# Print to stdout with easy disabling or prettifying.
+sgl_print -C blue -t 'Your Choice' -D ' - ' -- 'Ask or tell?'
+#  => "<blue>Your Choice</blue> - Ask or tell?"
+
+# If grep fails exit the process.
+${grep} 'a mighty pattern' random.txt > ${NIL}
+sgl_chk_exit --exit --prg='Example' --cmd='grep' $?
+
+sgl_print --title=VALUES --delim-msg=',' "${SGL_VALS[@]}"
+sgl_print --color-msg green 'EXAMPLE PASSED'
+exit 0
+```
 
 ## Install
 
@@ -631,8 +709,8 @@ Note that `sgl_source` is automatically available within `superglue`.
   sgl_source ...FUNC
 
   Values:
-    FUNC  Must be one of the below `superglue' functions.
-          Note the `sgl_' prefix is optional.
+    FUNC  Must be one of the below `superglue' functions. The `sgl_' prefix is
+          optional and `*' may be used.
       sgl_chk_cmd
       sgl_chk_dir
       sgl_chk_exit
