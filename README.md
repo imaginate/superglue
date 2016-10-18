@@ -625,6 +625,7 @@ This function parses each argument in `SGL_ARGS` and saves the resulting option/
 ```
 
 #### sgl_source
+Note that `sgl_source` is automatically available within `superglue`.
 ```text
 
   sgl_source ...FUNC
