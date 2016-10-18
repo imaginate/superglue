@@ -15,6 +15,11 @@ Superglue is a comprehensive bash library and wrapper.
   - [Posix Grep](https://www.gnu.org/software/grep/grep.html)
   - [Posix Sed](https://www.gnu.org/software/sed/sed.html)
 
+**NOTE**<br>
+The following work is still left before releasing the alpha version. To help please message [Adam](adam@imaginate.life).
+- Add the complete implementation of `--quiet*` and `--silent*`.
+- Add the automatic `--alias` creation.
+- Add proper unit tests and setup [TravisCI](https://travis-ci.com/).
 
 ## Install
 
@@ -23,7 +28,8 @@ git clone https://github.com/imaginate/superglue.git
 make -C superglue && rm -rf superglue
 ```
 
-**Note**: The following Linux packages are on the to-do list. To help please message [Adam](adam@imaginate.life).
+**NOTE**<br>
+The following Linux packages are on the to-do list. To help please message [Adam](adam@imaginate.life).
 - [deb](https://wiki.debian.org/HowToPackageForDebian)
 - [rpm](https://fedoraproject.org/wiki/How_to_create_an_RPM_package)
 - [pkg](https://wiki.archlinux.org/index.php/creating_packages)
