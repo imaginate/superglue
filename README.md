@@ -2,13 +2,18 @@
 
 ### Eat Bash Steroids
 
-A comprehensive bash [library](#library), [wrapper](#wrapper), and [rc master](#bashrc).
-- Quick, clean, & reliable scripts.
-- Thorough documentation.
-- Instant interactive love.
-- Clear error reporting.
-- Portable commands.
-- Smile. Work is done.
+A comprehensive bash [library](#library) and [wrapper](#wrapper).
+- Write quick and clean scripts with helper functions and references.
+- Enjoy automatic environment stabilization and dependency checks.
+- Discover documentation delight with thorough references and help guides.
+- Embrace instant interactive love with automatic executable functions.
+- Understand clear and verbose error reports and avoid uncaught errors.
+- Master outputs with automatic switches and prettify your terminal with ease.
+- Trust in less while getting more by only relying on four dependencies:
+  - [Posix Bash v4](http://tiswww.case.edu/php/chet/bash/bashtop.html)
+  - [GNU Coreutils](https://www.gnu.org/software/coreutils/coreutils.html)
+  - [Posix Grep](https://www.gnu.org/software/grep/grep.html)
+  - [Posix Sed](https://www.gnu.org/software/sed/sed.html)
 
 
 ## Install
