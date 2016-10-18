@@ -35,7 +35,8 @@ The following work is still left before releasing the alpha version. To help ple
 ```bash
 # Copies the source to each destination found in the source.
 # Destinations are defined using `@dest /path/to/dest'.
-sgl mk_dest -f -m 0644 -o user -u ./source.file
+# Also sets each destinations file mode and owner.
+sgl mk_dest -m 0644 -o user -u ./source.file
 ```
 ```bash
 #!/bin/superglue
