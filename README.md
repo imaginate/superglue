@@ -27,8 +27,8 @@ make -C superglue && rm -rf superglue
 - [deb](https://wiki.debian.org/HowToPackageForDebian)
 - [rpm](https://fedoraproject.org/wiki/How_to_create_an_RPM_package)
 - [pkg](https://wiki.archlinux.org/index.php/creating_packages)
-- [buildpkg](https://wiki.archlinux.org/index.php/creating_packages)
-- [makepkg](http://docs.slackware.com/howtos:slackware_admin:building_a_package)
+- [apk](https://wiki.alpinelinux.org/wiki/Creating_an_Alpine_package)
+- [portage](https://wiki.gentoo.org/wiki/Portage)
 
 
 ## Library
