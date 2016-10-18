@@ -113,16 +113,14 @@ readonly cat="$(_sgl_which cat)"
 readonly chmod="$(_sgl_which chmod)"
 readonly chown="$(_sgl_which chown)"
 readonly cp="$(_sgl_which cp)"
-readonly find="$(_sgl_which find)"
 readonly grep="$(_sgl_which grep)"
-readonly make="$(_sgl_which make)"
 readonly mkdir="$(_sgl_which mkdir)"
 readonly mv="$(_sgl_which mv)"
 readonly rm="$(_sgl_which rm)"
 readonly sed="$(_sgl_which sed)"
 
-_sgl_chk_cmd ${bash} ${cat} ${chmod} ${chown} ${cp} ${find} ${grep} ${make} \
-  ${mkdir} ${mv} ${rm} ${sed}
+_sgl_chk_cmd ${bash} ${cat} ${chmod} ${chown} ${cp} ${grep} ${mkdir} ${mv} \
+  ${rm} ${sed}
 
 ################################################################################
 ## DEFINE COLORS
