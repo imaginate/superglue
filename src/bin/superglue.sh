@@ -71,6 +71,7 @@ readonly NIL='/dev/null'
 # @incl ../lib/_sgl_get_func.sh
 # @incl ../lib/_sgl_help.sh
 # @incl ../lib/_sgl_parse_args.sh
+# @incl ../lib/_sgl_parse_init.sh
 # @incl ../lib/_sgl_unalias.sh
 # @incl ../lib/_sgl_unalias_each.sh
 # @incl ../lib/_sgl_unset_func.sh
@@ -152,7 +153,7 @@ SGL_COLOR_ON=0
 ## PARSE ARGS
 ################################################################################
 
-_sgl_parse_args "${SGL}" \
+_sgl_parse_init          \
   '-a|--alias'         0 \
   '-C|--no-color'      0 \
   '-c|--color'         0 \
@@ -193,9 +194,9 @@ SGL_SILENT=0
 SGL_QUIET=0
 SGL_VERBOSE=0
 
-len=${#_SGL_OPTS[@]}
+len=${#__SGL_OPTS[@]}
 for ((i=0; i<len; i++)); do
-  opt="${_SGL_OPTS[${i}]}"
+  opt="${__SGL_OPTS[${i}]}"
   case "${opt}" in
     -a|--alias)
       SGL_ALIAS=1
@@ -215,8 +216,8 @@ for ((i=0; i<len; i++)); do
       SGL_QUIET_CHILD=1
       ;;
     -h|-\?|--help)
-      if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
-        func="$(_sgl_get_func "${_SGL_OPT_VALS[${i}]}")"
+      if [[ ${__SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
+        func="$(_sgl_get_func "${__SGL_OPT_VALS[${i}]}")"
         [[ $? -eq 0 ]] || _sgl_err VAL "invalid \`${SGL}' FUNC \`${func}'"
         _sgl_help "${func}"
       else
@@ -239,7 +240,7 @@ for ((i=0; i<len; i++)); do
       sgl_source '*'
       ;;
     -s|--source)
-      val="${_SGL_OPT_VALS[${i}]}"
+      val="${__SGL_OPT_VALS[${i}]}"
       val="$(printf '%s' "${val}" | ${sed} -e 's/[,\|]/ /g')"
       re='^[a-z_ \*]+$'
       [[ "${val}" =~ ${re} ]] || _sgl_err VAL "invalid \`${val}' FUNCS"
@@ -284,16 +285,16 @@ unset -v i
 ## PARSE FUNC
 ################################################################################
 
-[[ ${#_SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`${SGL}' FUNC|SCRIPT"
+[[ ${#__SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`${SGL}' FUNC|SCRIPT"
 
-SGL_FUNC="$(_sgl_get_func "${_SGL_VALS[0]}")"
+SGL_FUNC="$(_sgl_get_func "${__SGL_VALS[0]}")"
 [[ $? -eq 0 ]] || SGL_FUNC=''
 readonly SGL_FUNC
 
 if [[ -n "${SGL_FUNC}" ]]; then
-  _SGL_VALS[0]="${SGL_FUNC}"
+  __SGL_VALS[0]="${SGL_FUNC}"
   sgl_source ${SGL_FUNC}
-  "${_SGL_VALS[@]}"
+  "${__SGL_VALS[@]}"
   exit $?
 fi
 
@@ -301,20 +302,20 @@ fi
 ## PARSE SCRIPT
 ################################################################################
 
-readonly SGL_SCRIPT="${_SGL_VALS[0]}"
+readonly SGL_SCRIPT="${__SGL_VALS[0]}"
 
 if [[ ! -f "${SGL_SCRIPT}" ]]; then
   _sgl_err VAL "invalid \`${SGL}' SCRIPT path \`${SGL_SCRIPT}'"
 fi
 
 declare -a SGL_ARGS
-len=${#_SGL_VALS[@]}
+len=${#__SGL_VALS[@]}
 for ((i=1; i<len; i++)); do
-  SGL_ARGS[${#SGL_ARGS[@]}]="${_SGL_VALS[${i}]}"
+  SGL_ARGS[${#SGL_ARGS[@]}]="${__SGL_VALS[${i}]}"
 done
 readonly -a SGL_ARGS
 unset -v len
 unset -v i
 
-. "${_SGL_VALS[@]}"
+. "${__SGL_VALS[@]}"
 exit $?
