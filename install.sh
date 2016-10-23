@@ -191,6 +191,7 @@ chown=$(sglue_which chown)
 cp=$(sglue_which cp)
 grep=$(sglue_which grep)
 mkdir=$(sglue_which mkdir)
+rm=$(sglue_which rm)
 sed=$(sglue_which sed)
 
 ################################################################################
@@ -203,6 +204,7 @@ sglue_chk CMD ${chown}
 sglue_chk CMD ${cp}
 sglue_chk CMD ${grep}
 sglue_chk CMD ${mkdir}
+sglue_chk CMD ${rm}
 sglue_chk CMD ${sed}
 
 ################################################################################
@@ -234,10 +236,37 @@ fi
 readonly SGLUE_SRC_D="$(pwd -P)/src"
 readonly SGLUE_CMD_D="${SGLUE_SRC_D}/bin"
 readonly SGLUE_LIB_D="${SGLUE_SRC_D}/lib"
+readonly SGLUE_HELP_D="${SGLUE_SRC_D}/help"
+
+################################################################################
+## CHECK SRC PATHS
+################################################################################
 
 sglue_chk DIR "${SGLUE_SRC_D}"
 sglue_chk DIR "${SGLUE_CMD_D}"
 sglue_chk DIR "${SGLUE_LIB_D}"
+sglue_chk DIR "${SGLUE_HELP_D}"
+
+################################################################################
+## SET DEST PATHS
+################################################################################
+
+readonly SGLUE_LIB_DEST='/lib/superglue'
+readonly SGLUE_HELP_DEST='/usr/share/superglue/help'
+
+################################################################################
+## MAKE DEST PATHS
+################################################################################
+
+[[ -d ${SGLUE_LIB_DEST}  ]] || ${mkdir} -m 0755 -p ${SGLUE_LIB_DEST}
+[[ -d ${SGLUE_HELP_DEST} ]] || ${mkdir} -m 0755 -p ${SGLUE_HELP_DEST}
+
+################################################################################
+## CLEAN DEST PATHS
+################################################################################
+
+${rm} -rf ${SGLUE_LIB_DEST}/*
+${rm} -rf ${SGLUE_HELP_DEST}/*
 
 ################################################################################
 ## PARSE OPTIONS
@@ -266,8 +295,55 @@ done
 ################################################################################
 
 ############################################################
-# @func
-# @use sglue_mk_cmd
+# @func sglue_add_incl
+# @use sglue_add_incl SRC DEST
+# @val SRC   Must be a valid file path.
+# @val DEST  Must be a valid file path.
+# @return
+#   0  PASS
+############################################################
+sglue_add_incl()
+{
+  local -r src="$1"
+  local -r dest="$2"
+  local -r cwd="${src%/*}"
+  local incl
+  local line
+  local content
+  local subline
+  local -r tag='^[[:blank:]]*#[[:blank:]]*@incl[[:blank:]]\+'
+  local -r space='[[:blank:]]\+$'
+
+  # check SRC for INCL
+  ${grep} "${tag}" "${src}" > /dev/null
+  RT=$?
+  [[ $RT -eq 1 ]] && return 0
+  [[ $RT -ne 0 ]] && sglue_err CHLD "\`@incl' \`${grep}' exited with \`$RT'"
+
+  # process each INCL
+  while IFS= read -r line; do
+    incl="$(printf '%s' "${line}" | ${sed} -e "s/${tag}//" -e "s/${space}//")"
+    [[ "${incl}" =~ ^/ ]] || incl="${cwd}/${incl}"
+    [[ -f "${incl}" ]] || sglue_err VAL "invalid INCL \`${incl}' in SRC \`${src}'"
+    line="$(printf '%s' "${line}" | ${sed} -e 's/[]\/$*.^|[]/\\&/g')"
+    content=''
+    while IFS= read -r subline; do
+      content="${content}${subline}\\n"
+    done <<EOF
+$(${sed} -e '1,6 d' -e 's/[\/&]/\\&/g' "${incl}")
+EOF
+    ${sed} -i -e "s/${line}/${content}/" "${dest}"
+  done <<EOF
+$(/bin/grep "${tag}" "${src}")
+EOF
+}
+
+############################################################
+# @func sglue_mk_cmd
+# @use sglue_mk_cmd SRC
+# @val SRC  Must be a valid file path.
+# @return
+#   0  PASS
 ############################################################
 sglue_mk_cmd()
 {
@@ -302,15 +378,18 @@ sglue_mk_cmd()
     ${cp} "${src}" "${dest}"
     ${chown} root:root "${dest}"
     ${chmod} 0755 "${dest}"
-
+    sglue_add_incl "${src}" "${dest}"
   done <<EOF
-$(/bin/grep '^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+/' "${src}")
+$(/bin/grep "${tag}" "${src}")
 EOF
 }
 
 ############################################################
-# @func
-# @use sglue_mk_lib
+# @func sglue_mk_lib
+# @use sglue_mk_lib SRC
+# @val SRC  Must be a valid file path.
+# @return
+#   0  PASS
 ############################################################
 sglue_mk_lib()
 {
@@ -340,10 +419,26 @@ sglue_mk_lib()
     ${cp} "${src}" "${dest}"
     ${chown} root:root "${dest}"
     ${chmod} 0644 "${dest}"
-
   done <<EOF
-$(/bin/grep '^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+/' "${src}")
+$(/bin/grep "${tag}" "${src}")
 EOF
+}
+
+############################################################
+# @func sglue_mk_help
+# @use sglue_mk_help SRC
+# @val SRC  Must be a valid file path.
+# @return
+#   0  PASS
+############################################################
+sglue_mk_help()
+{
+  local -r src="$1"
+  local -r dest="${SGLUE_HELP_DEST}/${src##*/}"
+
+  ${cp} "${src}" "${dest}"
+  ${chown} root:root "${dest}"
+  ${chmod} 0644 "${dest}"
 }
 
 ################################################################################
@@ -354,10 +449,12 @@ for SGLUE_SRC in "${SGLUE_CMD_D}"/*.sh ; do
   sglue_mk_cmd "${SGLUE_SRC}"
 done
 
-[[ -d /lib/superglue ]] || ${mkdir} -m 0755 -p /lib/superglue
-
-for SGLUE_SRC in "${SGLUE_LIB_D}"/*.sh ; do
+for SGLUE_SRC in "${SGLUE_LIB_D}"/sgl_*.sh ; do
   sglue_mk_lib "${SGLUE_SRC}"
+done
+
+for SGLUE_SRC in "${SGLUE_HELP_D}"/* ; do
+  sglue_mk_help "${SGLUE_SRC}"
 done
 
 ################################################################################
