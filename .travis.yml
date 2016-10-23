@@ -6,10 +6,10 @@ sudo: required
 dist: trusty
 osx_image: xcode8
 install:
-  - [[ "$TRAVIS_OS_NAME" == "linux" ]] && sudo apt-get -qq update
-  - [[ "$TRAVIS_OS_NAME" == "linux" ]] && sudo apt-get -qq install make bash coreutils grep sed
-  - [[ "$TRAVIS_OS_NAME" == "osx" ]] && sudo brew update > /dev/null
-  - [[ "$TRAVIS_OS_NAME" == "osx" ]] && sudo brew install make bash coreutils grep sed > /dev/null
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -qq update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -qq install make bash coreutils grep sed; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then sudo brew update > /dev/null; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then sudo brew install make bash coreutils grep sed > /dev/null; fi
 script:
   - make
   - make test
