@@ -3,7 +3,7 @@
 ### Eat Bash Steroids
 
 Superglue is a comprehensive bash library and wrapper designed for minimal kernel environments.
-- Write quick and clean scripts with helper functions and references.
+- Write quick and clean scripts with helper functions and variables.
 - Enjoy automatic environment stabilization and dependency checks.
 - Discover documentation delight with thorough references and help guides.
 - Embrace instant interactive love with automatic executable functions.
