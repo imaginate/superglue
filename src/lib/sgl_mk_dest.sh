@@ -82,6 +82,7 @@ sgl_mk_dest()
   local parent
   local tag
   local space
+  local home
 
   # parse each argument
   _sgl_parse_args "${FN}" \
@@ -271,9 +272,10 @@ EOF
   # catch missing SRC
   [[ ${#_SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`${FN}' SRC"
 
-  # set grep and sed regexps
+  # set grep/sed regexps and home replace
   tag='^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+'
   space='[[:blank:]]\+$'
+  home="$(printf '%s' ${HOME} | ${sed} -e 's/[\/&]/\\&/g')"
 
   # build values
   vals=()
@@ -291,7 +293,7 @@ EOF
     # parse each DEST
     while IFS= read -r dest; do
       dest="$(printf '%s' "${dest}" | ${sed} -e "s/${tag}//" -e "s/${space}//" \
-        -e 's|\$HOME\|\${HOME}|'"${HOME}"'|')"
+        -e 's/\$HOME\|\${HOME}/'"${home}/")"
       if [[ -n "${regex}" ]] && [[ ! "${dest}" =~ ${regex} ]]; then
         _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST path \`${dest}'"
       fi
