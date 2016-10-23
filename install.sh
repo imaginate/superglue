@@ -262,13 +262,6 @@ readonly SGLUE_HELP_DEST='/usr/share/superglue/help'
 [[ -d ${SGLUE_HELP_DEST} ]] || ${mkdir} -m 0755 -p ${SGLUE_HELP_DEST}
 
 ################################################################################
-## CLEAN DEST PATHS
-################################################################################
-
-${rm} -rf ${SGLUE_LIB_DEST}/*
-${rm} -rf ${SGLUE_HELP_DEST}/*
-
-################################################################################
 ## PARSE OPTIONS
 ################################################################################
 
@@ -449,9 +442,13 @@ for SGLUE_SRC in "${SGLUE_CMD_D}"/*.sh ; do
   sglue_mk_cmd "${SGLUE_SRC}"
 done
 
+${rm} -rf ${SGLUE_LIB_DEST}/*
+
 for SGLUE_SRC in "${SGLUE_LIB_D}"/sgl_*.sh ; do
   sglue_mk_lib "${SGLUE_SRC}"
 done
+
+${rm} -rf ${SGLUE_HELP_DEST}/*
 
 for SGLUE_SRC in "${SGLUE_HELP_D}"/* ; do
   sglue_mk_help "${SGLUE_SRC}"
