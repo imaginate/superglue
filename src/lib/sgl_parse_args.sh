@@ -162,38 +162,7 @@ EOF
           _sgl_version
           ;;
         --help)
-          ${cat} <<'EOF'
-
-  sgl_parse_args [...OPTION]
-
-  Options:
-    -a|--args|--arguments [...ARG]
-      Override the args to parse (default uses `"${SGL_ARGS[@]}"'). Must be the
-      last OPTION used. Do not use `=' between this OPTION and any ARG.
-    -o|--opts|--options [...OPTS[=VAL]] [-|--]
-      Define each acceptable OPT and VAL (default= `0'). If this OPTION is not
-      the last one used, it must use `-' or `--' to indicate the end of OPTS.
-      Do not use `=' between this OPTION and any OPTS. Note that the OPTS
-      `"-|--" NO' is automatically assumed.
-    -p|--prg|--program=PRG
-      Define a program name to include in any error messages.
-    -Q|--silent   Disable `stderr' and `stdout' outputs.
-    -q|--quiet    Disable `stdout' output.
-    -v|--version  Print version info and exit.
-    -?|-h|--help  Print help info and exit.
-
-  Values:
-    ARG   Each original argument. Can be any string.
-    OPT   A short (e.g. `-o') or long (e.g. `--opt') option pattern.
-    OPTS  One or more OPT. Use `|' to separate each OPT (e.g. `-o|--opt').
-    PRG   A program name. Can be any string.
-    VAL   Indicates whether each OPT accepts a value. Must be a choice from below.
-      `0|N|NO'     The OPT has no value.
-      `1|Y|YES'    The OPT requires a value.
-      `2|M|MAYBE'  The OPT can have a value.
-
-EOF
-          exit 0
+          _sgl_help sgl_parse_args
           ;;
         *)
           _sgl_err OPT "invalid \`${FN}' OPTION \`$1'"
@@ -297,38 +266,7 @@ EOF
             _sgl_version
             ;;
           -\?|-h)
-            ${cat} <<'EOF'
-
-  sgl_parse_args [...OPTION]
-
-  Options:
-    -a|--args|--arguments [...ARG]
-      Override the args to parse (default uses `"${SGL_ARGS[@]}"'). Must be the
-      last OPTION used. Do not use `=' between this OPTION and any ARG.
-    -o|--opts|--options [...OPTS[=VAL]] [-|--]
-      Define each acceptable OPT and VAL (default= `0'). If this OPTION is not
-      the last one used, it must use `-' or `--' to indicate the end of OPTS.
-      Do not use `=' between this OPTION and any OPTS. Note that the OPTS
-      `"-|--" NO' is automatically assumed.
-    -p|--prg|--program=PRG
-      Define a program name to include in any error messages.
-    -Q|--silent   Disable `stderr' and `stdout' outputs.
-    -q|--quiet    Disable `stdout' output.
-    -v|--version  Print version info and exit.
-    -?|-h|--help  Print help info and exit.
-
-  Values:
-    ARG   Each original argument. Can be any string.
-    OPT   A short (e.g. `-o') or long (e.g. `--opt') option pattern.
-    OPTS  One or more OPT. Use `|' to separate each OPT (e.g. `-o|--opt').
-    PRG   A program name. Can be any string.
-    VAL   Indicates whether each OPT accepts a value. Must be a choice from below.
-      `0|N|NO'     The OPT has no value.
-      `1|Y|YES'    The OPT requires a value.
-      `2|M|MAYBE'  The OPT can have a value.
-
-EOF
-            exit 0
+            _sgl_help sgl_parse_args
             ;;
           *)
             _sgl_err OPT "invalid \`${FN}' OPTION \`${arg}'"

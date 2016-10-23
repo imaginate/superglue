@@ -60,33 +60,7 @@ sgl_color()
         delim="${_SGL_OPT_VALS[${i}]}"
         ;;
       -h|-\?|--help)
-        ${cat} <<'EOF'
-
-  sgl_color [...OPTION] COLOR ...MSG
-
-  Options:
-    -d|--delim=DELIM  Use DELIM to deliminate each MSG.
-    -h|-?|--help      Print help info and exit.
-    -Q|--silent       Disable `stderr' and `stdout' outputs.
-    -q|--quiet        Disable `stdout' output.
-    -v|--version      Print version info and exit.
-    -|--              End the options.
-
-  Values:
-    COLOR  Must be a color from the below options.
-      `black'
-      `red'
-      `green'
-      `yellow'
-      `blue'
-      `purple'
-      `cyan'
-      `white'
-    DELIM  Can be any string. By default DELIM is ` '.
-    MSG    Can be any string.
-
-EOF
-        exit 0
+        _sgl_help sgl_color
         ;;
       -v|--version)
         _sgl_version

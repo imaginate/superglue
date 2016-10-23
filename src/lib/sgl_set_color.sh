@@ -75,36 +75,7 @@ sgl_set_color()
         reset=1
         ;;
       -h|-\?|--help)
-        ${cat} <<'EOF'
-
-  sgl_set_color [...OPTION] [...COLOR[=ANSI]]
-
-  Options:
-    -d|--disable  Disable a COLOR or all colors.
-    -e|--enable   Enable a COLOR or all colors.
-    -h|-?|--help  Print help info and exit.
-    -Q|--silent   Disable `stderr' and `stdout' outputs.
-    -q|--quiet    Disable `stdout' output.
-    -r|--reset    Reset a COLOR or all colors.
-    -v|--version  Print version info and exit.
-    -|--          End the options.
-
-  Values:
-    ANSI   Must be an ANSI color code with or without evaluated escapes and
-           form (e.g. `36', `0;36m', `\e[0;36m', or `\033[0;36m').
-    COLOR  Must be a color from the below options. If a COLOR is defined
-           without any OPTION or ANSI then the COLOR is reset.
-      `black'
-      `red'
-      `green'
-      `yellow'
-      `blue'
-      `purple'
-      `cyan'
-      `white'
-
-EOF
-        exit 0
+        _sgl_help sgl_set_color
         ;;
       -Q|--silent)
         silent=1

@@ -70,42 +70,7 @@ sgl_chk_file()
     opt="${_SGL_OPTS[${i}]}"
     case "${opt}" in
       -h|-\?|--help)
-        ${cat} <<'EOF'
-
-  sgl_chk_file [...OPTION] ...FILE
-
-  Options:
-    -h|-?|--help            Print help info and exit.
-    -m|--msg|--message=MSG  Override the default fail message.
-    -p|--prg|--program=PRG  Include the parent PRG in the fail message.
-    -Q|--silent             Disable `stderr' and `stdout' outputs.
-    -q|--quiet              Disable `stdout' output.
-    -v|--version            Print version info and exit.
-    -x|--exit[=ERR]         Exit on check fail (default= `DPND').
-    -|--                    End the options.
-
-  Values:
-    ERR   Must be an error from the below options or any valid integer in the
-          range of `1' to `126'.
-      `MISC'  An unknown error (exit= `1').
-      `OPT'   An invalid option (exit= `2').
-      `VAL'   An invalid or missing value (exit= `3').
-      `AUTH'  A permissions error (exit= `4').
-      `DPND'  A dependency error (exit= `5').
-      `CHLD'  A child process exited unsuccessfully (exit= `6').
-      `SGL'   A `superglue' script error (exit= `7').
-    FILE  A valid file path.
-    MSG   Can be any string. The patterns, `FILE' and `PRG', are substituted
-          with the proper values. The default MSG is:
-            `invalid [`PRG' ]file path `FILE''
-    PRG   Can be any string.
-
-  Returns:
-    0  PASS
-    1  FAIL
-
-EOF
-        exit 0
+        _sgl_help sgl_chk_file
         ;;
       -m|--msg|--message)
         msg="${_SGL_OPT_VALS[${i}]}"

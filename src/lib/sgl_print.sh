@@ -100,40 +100,7 @@ sgl_print()
         escape=1
         ;;
       -h|-\?|--help)
-        ${cat} <<'EOF'
-
-  sgl_print [...OPTION] ...MSG
-
-  Options:
-    -C|--color-title=COLOR  Color TITLE with COLOR.
-    -c|--color[-msg]=COLOR  Color MSG with COLOR.
-    -D|--delim-title=DELIM  Deliminate TITLE and MSG with DELIM.
-    -d|--delim[-msg]=DELIM  Deliminate each MSG with DELIM.
-    -e|--escape             Evaluate escapes.
-    -h|-?|--help            Print help info and exit.
-    -n|--no-newline         Do not print a trailing newline.
-    -Q|--silent             Disable `stderr' and `stdout' outputs.
-    -q|--quiet              Disable `stdout' output.
-    -t|--title=TITLE        Print TITLE before MSG.
-    -v|--version            Print version info and exit.
-    -|--                    End the options.
-
-  Values:
-    COLOR  Must be a color from the below options.
-      `black'
-      `red'
-      `green'
-      `yellow'
-      `blue'
-      `purple'
-      `cyan'
-      `white'
-    DELIM  Can be any string. By default DELIM is ` '.
-    MSG    Can be any string.
-    TITLE  Can be any string.
-
-EOF
-        exit 0
+        _sgl_help sgl_print
         ;;
       -n|--no-newline)
         newline=0

@@ -81,43 +81,7 @@ sgl_err()
         escape=1
         ;;
       -h|-\?|--help)
-        ${cat} <<'EOF'
-
-  sgl_err [...OPTION] ERR ...MSG
-
-  Options:
-    -d|--delim=DELIM  Deliminate each MSG with DELIM.
-    -h|-?|--help      Print help info and exit.
-    -Q|--silent       Disable `stderr' and `stdout' outputs.
-    -q|--quiet        Disable `stdout' output.
-    -r|--return       Return instead of exiting.
-    -v|--version      Print version info and exit.
-    -|--              End the options.
-
-  Values:
-    DELIM  Can be any string. The default is ` '.
-    ERR    Must be an error from the below options or any valid integer
-           in the range of `1' to `126'.
-      `MISC'  An unknown error (exit= `1').
-      `OPT'   An invalid option (exit= `2').
-      `VAL'   An invalid or missing value (exit= `3').
-      `AUTH'  A permissions error (exit= `4').
-      `DPND'  A dependency error (exit= `5').
-      `CHLD'  A child process exited unsuccessfully (exit= `6').
-      `SGL'   A `superglue' script error (exit= `7').
-    MSG    Can be any string.
-
-  Exit Codes:
-    1  MISC  An unknown error.
-    2  OPT   An invalid option.
-    3  VAL   An invalid or missing value.
-    4  AUTH  A permissions error.
-    5  DPND  A dependency error.
-    6  CHLD  A child process exited unsuccessfully.
-    7  SGL   A `superglue' script error.
-
-EOF
-        exit 0
+        _sgl_help sgl_err
         ;;
       -Q|--silent)
         silent=1
