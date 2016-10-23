@@ -1,0 +1,9 @@
+language: bash
+sudo: required
+dist: trusty
+install:
+  - sudo apt-get -qq update
+  - sudo apt-get -qq install make bash coreutils grep sed
+script:
+  - make
+  - make test
