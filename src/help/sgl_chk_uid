@@ -1,0 +1,33 @@
+
+  sgl_chk_uid [...OPTION] ...UID
+
+  Options:
+    -h|-?|--help            Print help info and exit.
+    -i|--invert             Invert the check to fail if a UID matches.
+    -m|--msg|--message=MSG  Override the default fail message.
+    -p|--prg|--program=PRG  Include the parent PRG in the fail message.
+    -Q|--silent             Disable `stderr' and `stdout' outputs.
+    -q|--quiet              Disable `stdout' output.
+    -v|--version            Print version info and exit.
+    -x|--exit[=ERR]         Exit on check fail (default= `AUTH').
+    -|--                    End the options.
+
+  Values:
+    ERR  Must be an error from the below options or any valid integer in the
+         range of `1' to `126'.
+      `MISC'  An unknown error (exit= `1').
+      `OPT'   An invalid option (exit= `2').
+      `VAL'   An invalid or missing value (exit= `3').
+      `AUTH'  A permissions error (exit= `4').
+      `DPND'  A dependency error (exit= `5').
+      `CHLD'  A child process exited unsuccessfully (exit= `6').
+      `SGL'   A `superglue' script error (exit= `7').
+    MSG  Can be any string. The patterns, `UID' and `PRG', are substituted
+         with the proper values. The default MSG is:
+           `invalid user permissions[ for `PRG']'
+    PRG  Can be any string.
+    UID  Must be an integer in the range of `0' to `60000'.
+
+  Returns:
+    0  PASS  Current effective user matches a UID.
+    1  FAIL  Current effective user does not match a UID.

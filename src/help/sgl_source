@@ -1,0 +1,21 @@
+
+  sgl_source ...FUNC
+
+  Values:
+    FUNC  Must be one of the below `superglue' functions. The `sgl_' prefix is
+          optional and `*' may be used.
+      sgl_chk_cmd
+      sgl_chk_dir
+      sgl_chk_exit
+      sgl_chk_file
+      sgl_chk_uid
+      sgl_color
+      sgl_cp
+      sgl_err
+      sgl_mk_dest
+      sgl_parse_args
+      sgl_print
+      sgl_set_color
+
+  Returns:
+    0  PASS

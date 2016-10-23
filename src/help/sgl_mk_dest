@@ -1,0 +1,53 @@
+
+  sgl_mk_dest [...OPTION] ...SRC
+
+  Options:
+    -B|--backup-ext=EXT   Override the usual backup file extension.
+    -b|--backup[=CTRL]    Make a backup of each existing destination file.
+    -F|--no-force         If destination exists do not overwrite it.
+    -f|--force            If destination exists overwrite it.
+    -H|--cmd-dereference  Follow command-line SRC symlinks.
+    -h|-?|--help          Print help info and exit.
+    -K|--no-keep=ATTRS    Do not preserve the ATTRS.
+    -k|--keep[=ATTRS]     Keep the ATTRS (default= `mode,ownership,timestamps').
+    -L|--dereference      Always follow SRC symlinks.
+    -l|--link             Hard link files instead of copying.
+    -m|--mode=MODE        Set the file mode for each destination.
+    -n|--no-clobber       If destination exists do not overwrite.
+    -o|--owner=OWNER      Set the file owner for each destination.
+    -P|--no-dereference   Never follow SRC symlinks.
+    -Q|--silent           Disable `stderr' and `stdout' outputs.
+    -q|--quiet            Disable `stdout' output.
+    -s|--symlink          Make symlinks instead of copying.
+    -t|--test=REGEX       Test each DEST path against REGEX (uses bash `=~').
+    -u|--update           Copy only when SRC is newer than DEST.
+    -V|--verbose          Print exec status details.
+    -v|--version          Print version info and exit.
+    -w|--warn             If destination exists prompt before overwrite.
+    -x|--one-file-system  Stay on this file system.
+    -|--                  End the options.
+
+  Values:
+    ATTRS  A comma-separated list of file attributes from below options.
+      `mode'
+      `ownership'
+      `timestamps'
+      `context'
+      `links'
+      `xattr'
+      `all'
+    CTRL   A version control method to use for backups from below options.
+      `none|off'      Never make backups (even if `--backup' is given).
+      `numbered|t'    Make numbered backups.
+      `existing|nil'  If numbered backups exist make numbered. Otherwise make simple.
+      `simple|never'  Always make simple backups.
+    DEST   Must be a valid path.
+    EXT    An extension to append to the end of a backup file. The default is `~'.
+    MODE   Must be a valid file mode.
+    OWNER  Must be a valid USER[:GROUP].
+    REGEX  Can be any string. Refer to bash test `=~' operator for more details.
+    SRC    Must be a valid file path. File must also contain at least one
+           destination tag: `# @dest DEST'.
+
+  Returns:
+    0  PASS
