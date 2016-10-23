@@ -15,15 +15,7 @@ Superglue is a comprehensive bash library and wrapper designed for minimal kerne
   - [Posix Grep](https://www.gnu.org/software/grep/grep.html)
   - [Posix Sed](https://www.gnu.org/software/sed/sed.html)
 
---
-
-**NOTE**<br>
-The following work is still left before releasing the alpha version. To help please message [Adam](adam@imaginate.life).
-- Add the complete implementation of `--quiet*` and `--silent*`.
-- Add proper unit tests and setup [TravisCI](https://travis-ci.com/).
-
---
-
+## Contents
 - [Example](#example)
 - [Install](#install)
 - [Reference](#reference)
