@@ -1,0 +1,214 @@
+#!/bin/bash
+#
+# A couple of quick tests to verify installation and basic functionality.
+#
+# @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
+# @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
+################################################################################
+
+readonly UNCOLOR="$(printf '%b' '\033[0;0m')"
+readonly RED="$(printf '%b' '\033[0;91m')"
+readonly GREEN="$(printf '%b' '\033[0;32m')"
+
+declare -a ERRORS
+declare -a SGLFUNCS
+declare -i SUCCESS=1
+
+SGLFUNCS=()
+for func in      \
+  sgl_chk_cmd    \
+  sgl_chk_dir    \
+  sgl_chk_exit   \
+  sgl_chk_file   \
+  sgl_chk_uid    \
+  sgl_color      \
+  sgl_cp         \
+  sgl_err        \
+  sgl_mk_dest    \
+  sgl_parse_args \
+  sgl_print      \
+  sgl_set_color  \
+  sgl_source
+do
+  SGLFUNCS[${#SGLFUNCS[@]}]=${func}
+done
+
+################################################################################
+## DEFINE HELPER FUNCTIONS
+################################################################################
+
+############################################################
+# @func print_result
+# @use print_result SECTION
+# @return
+#   0  PASS
+############################################################
+print_result()
+{
+  if [[ ${#ERRORS[@]} -eq 0 ]]; then
+    printf "%16s | %s\n" "$1" "${GREEN}PASS${UNCOLOR}"
+  else
+    printf "%16s | %s\n" "$1" "${RED}FAIL${UNCOLOR}"
+    local error
+    for error in "${ERRORS[@]}"; do
+      printf "- %s %s\n" "${RED}STDERR${UNCOLOR}" "${error}" 1>&2
+    done
+    ERRORS=()
+    SUCCESS=0
+  fi
+}
+
+############################################################
+# @func add_error
+# @use add_error ...MSG
+# @return
+#   0  PASS
+############################################################
+add_error()
+{
+  ERRORS[${#ERRORS[@]}]="$*"
+}
+
+################################################################################
+## PRINT TABLE HEADER
+################################################################################
+
+printf "%s\n" '-------------------------'
+printf '%16s | %s' 'Section' 'Result'
+
+################################################################################
+## TEST INSTALL
+################################################################################
+
+for cmd in sgl sglue superglue; do
+  file=/bin/${cmd}
+  [[ -x ${file} ]] || add_error "missing executable \`${file}'"
+done
+
+for func in "${SGLFUNCS[@]}"; do
+  file=/lib/superglue/${func}
+  [[ -f ${file} ]] || add_error "missing function \`${file}'"
+  file=/usr/share/superglue/help/${func}
+  [[ -f ${file} ]] || add_error "missing help info \`${file}'"
+done
+
+file=/usr/share/superglue/help/superglue
+[[ -f ${file} ]] || add_error "missing help info \`${file}'"
+
+print_result Installation
+
+################################################################################
+## TEST COMMAND
+################################################################################
+
+src="${HOME}/source.sgl.file"
+dest1='$HOME/dest.sgl.file'
+dest2='/tmp/dest.sgl.file'
+cp <<EOF ${src}
+# SOURCE
+# @dest ${dest1}
+# @dest ${dest2}
+# ...
+EOF
+
+sgl mk_dest -m 0644 ${src} || add_error "\`sgl mk_dest' exited with \`$?'"
+
+[[ -f "${dest1}" ]] || add_error "missing dest file \`${dest1}'"
+[[ -f "${dest2}" ]] || add_error "missing dest file \`${dest2}'"
+
+if [[ "$(cat "${src}")" != "$(cat "${dest1}")" ]]; then
+  add_error "invalid dest file \`${dest1}'"
+fi
+if [[ "$(cat "${src}")" != "$(cat "${dest2}")" ]]; then
+  add_error "invalid dest file \`${dest2}'"
+fi
+
+print_result Command
+
+################################################################################
+## TEST WRAPPER
+################################################################################
+
+cmd="${HOME}/fake.sgl.cmd"
+cp <<'EOF' "${cmd}"
+#!/bin/superglue -C
+
+# Load only the needed functions.
+sgl_source 'chk_*' err parse_args print
+
+# Verify the user is root or exit the process.
+sgl_chk_uid --exit --prg='Example' 1000
+
+# Parse the arguments easily.
+sgl_parse_args --prg 'Example' --options \
+  '-a|--ask' Y \
+  '-b|--bounce' \
+  '-c|--coast' \
+  '-t|--tell' M \
+  '-?|--help'
+
+# Handle the parsed options.
+len=${#SGL_OPTS[@]}
+for ((i=0; i<len; i++)); do
+  opt="${SGL_OPTS[i]}"
+  case "${opt}" in
+    -a|--ask)
+      DEMO_ASK="${SGL_OPT_VALS[i]}"
+      # If empty throw an error and exit the process.
+      [[ -n "${DEMO_ASK}" ]] || sgl_err VAL "invalid empty value for \`${opt}'"
+      ;;
+    -b|--bounce)
+      DEMO_BOUNCE=1
+      DEMO_COAST=0
+      ;;
+    -c|--coast)
+      DEMO_BOUNCE=0
+      DEMO_COAST=1
+      ;;
+    -t|--tell)
+      if [[ ${SGL_OPT_BOOL[i]} -eq 1 ]]; then
+        DEMO_TELL="${SGL_OPT_VALS[i]}"
+      else
+        DEMO_TELL="${DEMO_ASK}"
+      fi
+      ;;
+    -\?|--help)
+      echo 'some helpful info'
+      exit 0
+      ;;
+  esac
+done
+
+# If grep fails exit the process.
+${grep} 'a mighty pattern' random.txt > ${NIL}
+sgl_chk_exit --exit --prg='Example' --cmd='grep' $?
+
+exit 0
+EOF
+chmod 0755 "${cmd}"
+
+while IFS= read -r line; do
+  [[ -n "${line}" ]] && add_error "${line}"
+done <<EOF
+$("${cmd}" --ask='Something?' -ct 2>&1)
+EOF
+
+print_result Wrapper
+
+################################################################################
+## PRINT TABLE FOOTER
+################################################################################
+
+printf "%s\n" '-------------------------'
+
+################################################################################
+## PRINT FINAL
+################################################################################
+
+if [[ ${SUCCESS} -eq 1 ]]; then
+  printf "%s %s\n" 'Final:' "${GREEN}PASS${UNCOLOR}"
+  exit 0
+fi
+
+printf "%s %s\n" 'Final:' "${RED}FAIL${UNCOLOR}"
+exit 1
