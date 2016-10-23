@@ -8,8 +8,8 @@ osx_image: xcode8
 install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -qq update; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -qq install make bash coreutils grep sed; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then sudo brew update > /dev/null; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then sudo brew install make bash coreutils grep sed > /dev/null; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update > /dev/null; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install make bash coreutils grep sed > /dev/null; fi
 script:
   - make
   - make test
