@@ -1,5 +1,5 @@
 
-.PHONY: install i force f
+.PHONY: install i force f test t
 
 all: install
 
@@ -12,3 +12,8 @@ force:
 	/usr/bin/sudo ./install.sh --force
 
 f: force
+
+test:
+	./test/quick.test
+
+t: test
