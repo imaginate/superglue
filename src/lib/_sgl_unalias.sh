@@ -12,17 +12,17 @@
 
 ############################################################
 # @func _sgl_unalias
-# @use _sgl_unalias ...BUILTIN
+# @use _sgl_unalias BUILTIN
 # @val BUILTIN  Must be a built-in command.
 # @return
 #   0  PASS
 ############################################################
 _sgl_unalias()
 {
-  while [[ $# -gt 0 ]]; do
-    unalias "$1" 2> ${NIL} || true
-    shift
-  done
-  return 0
+  if unalias $1 2> ${NIL} ; then
+    return 0
+  else
+    return 0
+  fi
 }
 readonly -f _sgl_unalias

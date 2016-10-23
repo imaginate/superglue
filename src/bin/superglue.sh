@@ -99,7 +99,7 @@ fi
 ## CLEAN BUILTINS
 ################################################################################
 
-_sgl_source clean_builtin unset_func unalias
+_sgl_source clean_builtin unset_func unset_funcs unalias unalias_each
 _sgl_clean_builtin
 
 ################################################################################
