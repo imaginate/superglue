@@ -46,69 +46,62 @@ readonly SGL_VERSION='0.1.0-alpha'
 readonly SGL='superglue'
 
 ################################################################################
+## DEFINE LIB DIRS
+################################################################################
+
+readonly SGL_LIB='/lib/superglue'
+readonly SGL_HELP='/usr/share/superglue/help'
+
+################################################################################
 ## DEFINE NULL REF
 ################################################################################
 
 readonly NIL='/dev/null'
 
 ################################################################################
+## DEFINE PRIVATE FUNCS
+################################################################################
+
+# @incl ../lib/_sgl_chk_cmd.sh
+# @incl ../lib/_sgl_clean_builtin.sh
+# @incl ../lib/_sgl_err.sh
+# @incl ../lib/_sgl_err_code.sh
+# @incl ../lib/_sgl_fail.sh
+# @incl ../lib/_sgl_get_color.sh
+# @incl ../lib/_sgl_get_func.sh
+# @incl ../lib/_sgl_help.sh
+# @incl ../lib/_sgl_parse_args.sh
+# @incl ../lib/_sgl_unalias.sh
+# @incl ../lib/_sgl_unalias_each.sh
+# @incl ../lib/_sgl_unset_func.sh
+# @incl ../lib/_sgl_unset_funcs.sh
+# @incl ../lib/_sgl_version.sh
+# @incl ../lib/_sgl_which.sh
+
+################################################################################
 ## CLEAN BUILTINS
 ################################################################################
 
-unalias exit     2> ${NIL} || :
-unalias local    2> ${NIL} || :
-unalias shift    2> ${NIL} || :
-unalias unset    2> ${NIL} || :
-unalias printf   2> ${NIL} || :
-unalias declare  2> ${NIL} || :
-unset -f local   2> ${NIL} || :
-unset -f printf  2> ${NIL} || :
-unset -f declare 2> ${NIL} || :
+_sgl_clean_builtin
 
 ################################################################################
 ## CHECK BASH VERSION
 ################################################################################
 
 if [[ -z "${BASH_VERSINFO}" ]] || [[ ${BASH_VERSINFO[0]} -ne 4 ]]; then
-  printf "%s\n" "DPND_ERR bash version 4 required" 1>&2
-  exit 5
+  _sgl_err DPND "bash version 4 required"
 fi
 
 ################################################################################
 ## CHECK CORE LIB DIRS
 ################################################################################
 
-readonly SGL_LIB='/lib/superglue'
-readonly SGL_HELP='/usr/share/superglue/help'
-
-if [[ ! -d ${SGL_LIB} ]] || [[ ! -d ${SGL_HELP} ]]; then
-  printf "%s\n" "DPND_ERR missing core lib dir - reinstall \`${SGL}'" 1>&2
-  exit 5
-fi
-
-################################################################################
-## LOAD SOURCE HELPER
-################################################################################
-
-if [[ ! -f "${SGL_LIB}/_sgl_err" ]] || [[ ! -f "${SGL_LIB}/_sgl_source" ]]; then
-  printf "%s\n" "DPND_ERR missing core func - reinstall \`${SGL}'" 1>&2
-  exit 5
-fi
-. "${SGL_LIB}/_sgl_err"
-. "${SGL_LIB}/_sgl_source"
-
-################################################################################
-## CLEAN BUILTINS
-################################################################################
-
-_sgl_source clean_builtin unset_func unset_funcs unalias unalias_each
-_sgl_clean_builtin
+[[ -d ${SGL_LIB}  ]] || _sgl_err DPND "missing lib dir - reinstall \`${SGL}'"
+[[ -d ${SGL_HELP} ]] || _sgl_err DPND "missing help dir - reinstall \`${SGL}'"
 
 ################################################################################
 ## DEFINE COMMANDS
 ################################################################################
-
-_sgl_source which chk_cmd
 
 readonly bash='/bin/bash'
 readonly cat="$(_sgl_which cat)"
@@ -120,6 +113,10 @@ readonly mkdir="$(_sgl_which mkdir)"
 readonly mv="$(_sgl_which mv)"
 readonly rm="$(_sgl_which rm)"
 readonly sed="$(_sgl_which sed)"
+
+################################################################################
+## CHECK COMMANDS
+################################################################################
 
 _sgl_chk_cmd ${bash} ${cat} ${chmod} ${chown} ${cp} ${grep} ${mkdir} ${mv} \
   ${rm} ${sed}
@@ -155,23 +152,22 @@ SGL_COLOR_ON=0
 ## PARSE ARGS
 ################################################################################
 
-_sgl_source parse_args
-_sgl_parse_args "$0" \
-  '-a|--alias'     0 \
-  '-C|--no-color'  0 \
-  '-c|--color'     0 \
-  '-D|--silent-child' 0 \
-  '-d|--quiet-child' 0 \
-  '-h|-?|--help'   2 \
+_sgl_parse_args "${SGL}" \
+  '-a|--alias'         0 \
+  '-C|--no-color'      0 \
+  '-c|--color'         0 \
+  '-D|--silent-child'  0 \
+  '-d|--quiet-child'   0 \
+  '-h|-?|--help'       2 \
   '-P|--silent-parent' 0 \
-  '-p|--quiet-parent' 0 \
-  '-Q|--silent'    0 \
-  '-q|--quiet'     0 \
-  '-S|--source-all' 0 \
-  '-s|--source'    1 \
-  '-V|--verbose'   0 \
-  '-v|--version'   0 \
-  '-x|--xtrace'    0 \
+  '-p|--quiet-parent'  0 \
+  '-Q|--silent'        0 \
+  '-q|--quiet'         0 \
+  '-S|--source-all'    0 \
+  '-s|--source'        1 \
+  '-V|--verbose'       0 \
+  '-v|--version'       0 \
+  '-x|--xtrace'        0 \
   -- "$@"
 
 ################################################################################
@@ -181,14 +177,12 @@ _sgl_parse_args "$0" \
 if [[ -f "${SGL_LIB}/sgl_source" ]]; then
   . "${SGL_LIB}/sgl_source"
 else
-  _sgl_err DPND "missing core func - reinstall \`${SGL}'"
+  _sgl_err DPND "missing core func \`sgl_source' - reinstall \`${SGL}'"
 fi
 
 ################################################################################
 ## PARSE OPTS
 ################################################################################
-
-_sgl_source help version err_code fail get_color get_func
 
 SGL_ALIAS=0
 SGL_SILENT_CHILD=0
@@ -300,7 +294,7 @@ if [[ -n "${SGL_FUNC}" ]]; then
   _SGL_VALS[0]="${SGL_FUNC}"
   sgl_source ${SGL_FUNC}
   "${_SGL_VALS[@]}"
-  exit
+  exit $?
 fi
 
 ################################################################################
@@ -323,4 +317,4 @@ unset -v len
 unset -v i
 
 . "${_SGL_VALS[@]}"
-exit
+exit $?

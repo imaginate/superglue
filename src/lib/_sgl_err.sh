@@ -1,13 +1,7 @@
-#!/bin/bash
-#
-# @dest /lib/superglue/_sgl_err
+#!/bin/bash --posix
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
-#
-# @use _sgl_source err
-# @return
-#   0  PASS
 ################################################################################
 
 ############################################################

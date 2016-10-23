@@ -1,19 +1,12 @@
-#!/bin/bash
-#
-# @dest /lib/superglue/_sgl_clean_builtin
+#!/bin/bash --posix
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
-#
-# @use _sgl_source clean_builtin
-# @return
-#   0  PASS
 ################################################################################
 
 ############################################################
 # @func _sgl_clean_builtin
-# @use _sgl_clean_builtin ...BUILTIN
-# @val BUILTIN  Must be a builtin command.
+# @use _sgl_clean_builtin
 # @return
 #   0  PASS
 ############################################################

@@ -1,13 +1,7 @@
-#!/bin/bash
-#
-# @dest /lib/superglue/_sgl_get_func
+#!/bin/bash --posix
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
-#
-# @use _sgl_source get_func
-# @return
-#   0  PASS
 ################################################################################
 
 ############################################################
