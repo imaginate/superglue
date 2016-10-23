@@ -707,11 +707,18 @@ This function parses each argument in `SGL_ARGS` and saves the resulting option/
 Note that `sgl_source` is automatically available within `superglue`.
 ```text
 
-  sgl_source ...FUNC
+  sgl_source [...OPTION] ...FUNC
+
+  Options:
+    -h|-?|--help  Print help info and exit.
+    -Q|--silent   Disable `stderr' and `stdout' outputs.
+    -q|--quiet    Disable `stdout' output.
+    -v|--version  Print version info and exit.
+    -|--          End the options.
 
   Values:
-    FUNC  Must be one of the below `superglue' functions. The `sgl_' prefix is
-          optional and `*' may be used.
+    FUNC  Must be one of the below `superglue' functions. The `sgl_' prefix
+          is optional, and the globstar, `*', may be used.
       sgl_chk_cmd
       sgl_chk_dir
       sgl_chk_exit
