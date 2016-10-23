@@ -1,4 +1,4 @@
-# Superglue [![version](https://img.shields.io/badge/version-0.1.0--alpha-yellow.svg?style=flat)](http://superglue.tech)
+# Superglue [![version](https://img.shields.io/badge/version-0.1.0--alpha-brightgreen.svg?style=flat)](http://superglue.tech)
 
 ### Eat Bash Steroids
 
