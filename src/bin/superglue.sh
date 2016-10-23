@@ -43,6 +43,7 @@
 ################################################################################
 
 readonly SGL_VERSION='0.1.0-alpha'
+readonly SGL='superglue'
 
 ################################################################################
 ## DEFINE NULL REF
@@ -74,13 +75,14 @@ if [[ -z "${BASH_VERSINFO}" ]] || [[ ${BASH_VERSINFO[0]} -ne 4 ]]; then
 fi
 
 ################################################################################
-## CHECK CORE LIB
+## CHECK CORE LIB DIRS
 ################################################################################
 
 readonly SGL_LIB='/lib/superglue'
+readonly SGL_HELP='/usr/share/superglue/help'
 
-if [[ ! -d ${SGL_LIB} ]]; then
-  printf "%s\n" "DPND_ERR missing core lib - reinstall \`superglue'" 1>&2
+if [[ ! -d ${SGL_LIB} ]] || [[ ! -d ${SGL_HELP} ]]; then
+  printf "%s\n" "DPND_ERR missing core lib dir - reinstall \`${SGL}'" 1>&2
   exit 5
 fi
 
@@ -89,7 +91,7 @@ fi
 ################################################################################
 
 if [[ ! -f "${SGL_LIB}/_sgl_err" ]] || [[ ! -f "${SGL_LIB}/_sgl_source" ]]; then
-  printf "%s\n" "DPND_ERR missing core func - reinstall \`superglue'" 1>&2
+  printf "%s\n" "DPND_ERR missing core func - reinstall \`${SGL}'" 1>&2
   exit 5
 fi
 . "${SGL_LIB}/_sgl_err"
@@ -179,14 +181,14 @@ _sgl_parse_args "$0" \
 if [[ -f "${SGL_LIB}/sgl_source" ]]; then
   . "${SGL_LIB}/sgl_source"
 else
-  _sgl_err DPND "missing core func - reinstall \`superglue'"
+  _sgl_err DPND "missing core func - reinstall \`${SGL}'"
 fi
 
 ################################################################################
 ## PARSE OPTS
 ################################################################################
 
-_sgl_source version err_code fail get_color
+_sgl_source help version err_code fail get_color get_func
 
 SGL_ALIAS=0
 SGL_SILENT_CHILD=0
@@ -219,11 +221,12 @@ for ((i=0; i<len; i++)); do
       SGL_QUIET_CHILD=1
       ;;
     -h|-\?|--help)
-      _sgl_source help
       if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
-        _sgl_help "${_SGL_OPT_VALS[${i}]}"
+        func="$(_sgl_get_func "${_SGL_OPT_VALS[${i}]}")"
+        [[ $? -eq 0 ]] || _sgl_err VAL "invalid \`${SGL}' FUNC \`${func}'"
+        _sgl_help "${func}"
       else
-        _sgl_help
+        _sgl_help superglue
       fi
       ;;
     -P|--silent-parent)
@@ -275,7 +278,7 @@ EOF
       set -x
       ;;
     *)
-      _sgl_err SGL "invalid parsed \`superglue' OPTION \`${opt}'"
+      _sgl_err SGL "invalid parsed \`${SGL}' OPTION \`${opt}'"
       ;;
   esac
 done
@@ -287,21 +290,17 @@ unset -v i
 ## PARSE FUNC
 ################################################################################
 
-[[ ${#_SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`superglue' FUNC|SCRIPT"
+[[ ${#_SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`${SGL}' FUNC|SCRIPT"
 
-if [[ "${_SGL_VALS[0]}" =~ ^[a-z_]+$ ]]; then
+SGL_FUNC="$(_sgl_get_func "${_SGL_VALS[0]}")"
+[[ $? -eq 0 ]] || SGL_FUNC=''
+readonly SGL_FUNC
 
-  SGL_FUNC="${_SGL_VALS[0]}"
-  [[ "${SGL_FUNC}" =~ ^sgl_ ]] || SGL_FUNC="sgl_${SGL_FUNC}"
-  [[ -f "${SGL_LIB}/${SGL_FUNC}" ]] || SGL_FUNC=''
-  readonly SGL_FUNC
-
-  if [[ -n "${SGL_FUNC}" ]]; then
-    _SGL_VALS[0]="${SGL_FUNC}"
-    sgl_source ${SGL_FUNC}
-    "${_SGL_VALS[@]}"
-    exit
-  fi
+if [[ -n "${SGL_FUNC}" ]]; then
+  _SGL_VALS[0]="${SGL_FUNC}"
+  sgl_source ${SGL_FUNC}
+  "${_SGL_VALS[@]}"
+  exit
 fi
 
 ################################################################################
@@ -311,7 +310,7 @@ fi
 readonly SGL_SCRIPT="${_SGL_VALS[0]}"
 
 if [[ ! -f "${SGL_SCRIPT}" ]]; then
-  _sgl_err VAL "invalid \`superglue' SCRIPT path \`${SGL_SCRIPT}'"
+  _sgl_err VAL "invalid \`${SGL}' SCRIPT path \`${SGL_SCRIPT}'"
 fi
 
 declare -a SGL_ARGS
