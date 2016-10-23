@@ -34,6 +34,7 @@
 #   sgl_parse_args
 #   sgl_print
 #   sgl_set_color
+#   sgl_source
 # @return
 #   0  PASS
 ############################################################
@@ -47,6 +48,7 @@ sgl_source()
   local file
   local func
   local opt
+  local -a funcs
 
   # parse each argument
   _sgl_parse_args "${FN}" \
@@ -83,34 +85,117 @@ sgl_source()
   [[ ${#_SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`${FN}' FUNC"
 
   # parse each FUNC
+  # build the funcs array
+  funcs=()
   for func in "${_SGL_VALS[@]}"; do
     if [[ ! "${func}" =~ ^[a-z_\*]+$ ]]; then
       _sgl_err VAL "invalid \`${FN}' \`${func}' FUNC"
     fi
     [[ "${func}" =~ ^sgl_ ]] || func="sgl_${func}"
-
-    # handle FUNC pattern
+    # parse FUNC pattern
     if [[ "${func}" =~ \* ]]; then
       for file in ${SGL_LIB}/${func}; do
         [[ -f "${file}" ]] || _sgl_err VAL "invalid \`${FN}' \`${func}' FUNC"
         func=$(printf '%s' "${file}" | ${sed} -e "s|^${SGL_LIB}/||")
-        if declare -F ${func} > ${NIL}; then
-          :
-        else
-          . ${file}
-        fi
+        funcs[${#funcs[@]}]=${func}
       done
-    # handle FUNC function
+    # parse FUNC function
     else
       file="${SGL_LIB}/${func}"
       [[ -f "${file}" ]] || _sgl_err VAL "invalid \`${FN}' \`${func}' FUNC"
-      if declare -F ${func} > ${NIL}; then
-        :
-      else
-        . ${file}
-      fi
+      funcs[${#funcs[@]}]=${func}
     fi
-    shift
+  done
+
+  # source each FUNC
+  for func in "${funcs[@]}"; do
+    if declare -F ${func} > ${NIL}; then
+      :
+    else
+      . ${SGL_LIB}/${func}
+    fi
+    if [[ ${SGL_ALIAS} -eq 1 ]]; then
+      case ${func} in
+        sgl_chk_cmd)
+          chk_cmd()
+          {
+            sgl_chk_cmd "$@"
+          }
+          ;;
+        sgl_chk_dir)
+          chk_dir()
+          {
+            sgl_chk_dir "$@"
+          }
+          ;;
+        sgl_chk_exit)
+          chk_exit()
+          {
+            sgl_chk_exit "$@"
+          }
+          ;;
+        sgl_chk_file)
+          chk_file()
+          {
+            sgl_chk_file "$@"
+          }
+          ;;
+        sgl_chk_uid)
+          chk_uid()
+          {
+            sgl_chk_uid "$@"
+          }
+          ;;
+        sgl_color)
+          color()
+          {
+            sgl_color "$@"
+          }
+          ;;
+        sgl_cp)
+          cp()
+          {
+            sgl_cp "$@"
+          }
+          ;;
+        sgl_err)
+          err()
+          {
+            sgl_err "$@"
+          }
+          ;;
+        sgl_mk_dest)
+          mk_dest()
+          {
+            sgl_mk_dest "$@"
+          }
+          ;;
+        sgl_parse_args)
+          parse_args()
+          {
+            sgl_parse_args "$@"
+          }
+          ;;
+        sgl_print)
+          print()
+          {
+            sgl_print "$@"
+          }
+          ;;
+        sgl_set_color)
+          set_color()
+          {
+            sgl_set_color "$@"
+          }
+          ;;
+        sgl_source)
+          source()
+          {
+            sgl_source "$@"
+          }
+          ;;
+      esac
+    fi
   done
 }
 readonly -f sgl_source

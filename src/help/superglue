@@ -3,7 +3,7 @@
   sgl|sglue|superglue [...OPTION] SCRIPT [...SCRIPT_ARG]
 
   Options:
-    -a|--alias           Enable aliases without `sgl_' prefixes for each sourced FUNC.
+    -a|--alias           Enable function names without `sgl_' prefixes for each sourced FUNC.
     -C|--no-color        Disable ANSI output coloring for terminals.
     -c|--color           Enable ANSI output coloring for non-terminals.
     -D|--silent-child    Disable `stderr' and `stdout' outputs for child processes.
@@ -38,6 +38,7 @@
     sgl_parse_args
     sgl_print
     sgl_set_color
+    sgl_source
 
   Exit Codes:
     0  PASS  A successful exit.

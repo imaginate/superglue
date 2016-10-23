@@ -10,9 +10,9 @@
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
 #
-# @use sgl [...OPTION] FUNC [...FUNC_ARG]
-# @use sgl [...OPTION] SCRIPT [...SCRIPT_ARG]
-# @opt -a|--alias           Enable aliases without `sgl_' prefixes for each sourced FUNC.
+# @use sgl|sglue|superglue [...OPTION] FUNC [...FUNC_ARG]
+# @use sgl|sglue|superglue [...OPTION] SCRIPT [...SCRIPT_ARG]
+# @opt -a|--alias           Enable function names without `sgl_' prefixes for each sourced FUNC.
 # @opt -C|--no-color        Disable ANSI output coloring for terminals.
 # @opt -c|--color           Enable ANSI output coloring for non-terminals.
 # @opt -D|--silent-child    Disable `stderr' and `stdout' outputs for child processes.

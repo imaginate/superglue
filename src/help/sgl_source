@@ -23,6 +23,7 @@
       sgl_parse_args
       sgl_print
       sgl_set_color
+      sgl_source
 
   Returns:
     0  PASS

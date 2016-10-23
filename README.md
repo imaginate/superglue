@@ -20,7 +20,6 @@ Superglue is a comprehensive bash library and wrapper designed for minimal kerne
 **NOTE**<br>
 The following work is still left before releasing the alpha version. To help please message [Adam](adam@imaginate.life).
 - Add the complete implementation of `--quiet*` and `--silent*`.
-- Add the automatic `--alias` creation.
 - Add proper unit tests and setup [TravisCI](https://travis-ci.com/).
 
 --
@@ -144,7 +143,7 @@ The following Linux packages are on the to-do list. To help please message [Adam
   sgl|sglue|superglue [...OPTION] SCRIPT [...SCRIPT_ARG]
 
   Options:
-    -a|--alias           Enable aliases without `sgl_' prefixes for each sourced FUNC.
+    -a|--alias           Enable function names without `sgl_' prefixes for each sourced FUNC.
     -C|--no-color        Disable ANSI output coloring for terminals.
     -c|--color           Enable ANSI output coloring for non-terminals.
     -D|--silent-child    Disable `stderr' and `stdout' outputs for child processes.
@@ -731,6 +730,7 @@ Note that `sgl_source` is automatically available within `superglue`.
       sgl_parse_args
       sgl_print
       sgl_set_color
+      sgl_source
 
   Returns:
     0  PASS
