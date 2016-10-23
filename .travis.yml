@@ -1,14 +1,10 @@
 language: bash
-os:
-  - linux
-  - osx
 sudo: required
 dist: trusty
+os: linux
 install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -qq update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -qq install make bash coreutils grep sed; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update > /dev/null; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cmake bash coreutils cgrep gnu-sed > /dev/null; fi
+  - sudo apt-get -qq update
+  - sudo apt-get -qq install make bash coreutils grep sed
 script:
   - make
   - make test
