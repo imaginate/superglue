@@ -313,7 +313,7 @@ EOF
       for src in "${_SGL_VALS[@]:0:${len}}"; do
         [[ -f "${src}" ]] || _sgl_err VAL "invalid \`${FN}' SRC \`${src}'"
         opts[${#opts[@]}]="${src}"
-        val="${dest}/$(printf '%s' "${src}" | ${sed} -e 's|^.*/||')"
+        val="${dest}/${src##*/}"
         if [[ -f "${val}" ]] && [[ ${force} -ne 1 ]]; then
           _sgl_err VAL "DEST \`${val}' already exists (use \`--force' to overwrite)"
         fi

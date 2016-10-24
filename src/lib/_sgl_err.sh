@@ -81,9 +81,9 @@ _sgl_err()
     printf "%s\n" "${title} $2" 1>&2
   fi
   if [[ ${SGL_VERBOSE} -eq 1 ]]; then
-    local line="- LINE $(caller | ${sed} -e 's/ .\+$//')"
-    local file="- FILE $(caller | ${sed} -e 's/^[0-9]\+ //')"
-    printf "%s\n%s\n" "${line}" "${file}"
+    local details="$(caller)"
+    printf "%s %s %s\n" '-' 'LINE' "${details%% *}"
+    printf "%s %s %s\n" '-' 'FILE' "${details##* }"
   fi
   exit ${code}
 }
