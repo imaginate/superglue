@@ -65,7 +65,6 @@ print_result()
       printf " %s %s %s\n" '-' "${RED}STDERR${UNCOLOR}" "${error}" 1>&2
     done
     ERRORS=()
-    (( ++FAILED ))
   fi
 }
 
@@ -78,6 +77,7 @@ print_result()
 add_error()
 {
   ERRORS[${#ERRORS[@]}]="$*"
+  (( ++FAILED ))
 }
 
 ################################################################################
