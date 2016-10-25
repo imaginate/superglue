@@ -50,6 +50,9 @@ sgl_set_color()
   local ansi
   local opt
 
+  [[ ${SGL_SILENT_PARENT} -eq 1 ]] && silent=1
+  [[ ${SGL_QUIET_PARENT}  -eq 1 ]] && quiet=1
+
   # parse each argument
   _sgl_parse_args "${FN}" \
     '-d|--disable' 0 \
@@ -90,9 +93,6 @@ sgl_set_color()
       -v|--version)
         _sgl_version
         ;;
-      *)
-        _sgl_err SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
-        ;;
     esac
   done
 
@@ -100,9 +100,9 @@ sgl_set_color()
   if [[ ${#_SGL_VALS[@]} -gt 0 ]]; then
     for color in "${_SGL_VALS[@]}"; do
       if [[ "${color}" =~ = ]]; then
-        ansi="$(printf '%s' "${color}" | ${sed} -e 's/^[^=]*=//' \
-          -e 's/^\('"$E"'\|\\e\|\\033\)//' -e 's/^\[//' -e 's/m$//')"
-        color="$(printf '%s' "${color}" | ${sed} -e 's/=.*$//')"
+        ansi="$(printf '%s' "${color#*=}" | ${sed} -e 's/^\[//' -e 's/m$//' \
+          -e 's/^\('"$E"'\|\\e\|\\033\)//')"
+        color="${color%%=*}"
       fi
       case "${color}" in
         uncolor|Uncolor|UNCOLOR) ;;
@@ -115,11 +115,13 @@ sgl_set_color()
         white|White|WHITE)       ;;
         yellow|Yellow|YELLOW)    ;;
         *)
+          [[ ${silent} -eq 1 ]] && _sgl_err VAL
           _sgl_err VAL "invalid \`${FN}' COLOR \`${color}'"
           ;;
       esac
       if [[ -n "${ansi}" ]]; then
         if [[ ! "${ansi}" =~ ^[0-9]{1,3}(;[0-9]{1,3})*$ ]]; then
+          [[ ${silent} -eq 1 ]] && _sgl_err VAL
           _sgl_err VAL "invalid \`${FN}' ANSI \`${ansi}'"
         fi
         ansi="${E}[${ansi}m"
