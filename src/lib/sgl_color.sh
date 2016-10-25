@@ -22,13 +22,14 @@
 # @opt -|--              End the options.
 # @val COLOR  Must be a color from the below options.
 #   `black'
-#   `red'
-#   `green'
-#   `yellow'
 #   `blue'
-#   `purple'
 #   `cyan'
+#   `green'
+#   `none'
+#   `purple'
+#   `red'
 #   `white'
+#   `yellow'
 # @val DELIM  Can be any string. By default DELIM is ` '.
 # @val MSG    Can be any string.
 # @return

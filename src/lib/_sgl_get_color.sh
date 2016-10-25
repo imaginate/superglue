@@ -9,13 +9,14 @@
 # @use _sgl_get_color COLOR
 # @val COLOR  Should be a color from the below options.
 #   `black'   Prints $SGL_BLACK.
-#   `red'     Prints $SGL_RED.
-#   `green'   Prints $SGL_GREEN.
-#   `yellow'  Prints $SGL_YELLOW.
 #   `blue'    Prints $SGL_BLUE.
-#   `purple'  Prints $SGL_PURPLE.
 #   `cyan'    Prints $SGL_CYAN.
+#   `green'   Prints $SGL_GREEN.
+#   `none'    Prints no color.
+#   `purple'  Prints $SGL_PURPLE.
+#   `red'     Prints $SGL_RED.
 #   `white'   Prints $SGL_WHITE.
+#   `yellow'  Prints $SGL_YELLOW.
 # @return
 #   0  PASS  COLOR is valid.
 #   1  FAIL  COLOR is invalid.
@@ -23,29 +24,31 @@
 _sgl_get_color()
 {
   case "$1" in
-    black)
+    black|Black|BLACK)
       printf '%s' "${SGL_BLACK}"
       ;;
-    red)
-      printf '%s' "${SGL_RED}"
-      ;;
-    green)
-      printf '%s' "${SGL_GREEN}"
-      ;;
-    yellow)
-      printf '%s' "${SGL_YELLOW}"
-      ;;
-    blue)
+    blue|Blue|BLUE)
       printf '%s' "${SGL_BLUE}"
       ;;
-    purple)
-      printf '%s' "${SGL_PURPLE}"
-      ;;
-    cyan)
+    cyan|Cyan|CYAN)
       printf '%s' "${SGL_CYAN}"
       ;;
-    white)
+    green|Green|GREEN)
+      printf '%s' "${SGL_GREEN}"
+      ;;
+    none|None|NONE)
+      ;;
+    purple|Purple|PURPLE)
+      printf '%s' "${SGL_PURPLE}"
+      ;;
+    red|Red|RED)
+      printf '%s' "${SGL_RED}"
+      ;;
+    white|White|WHITE)
       printf '%s' "${SGL_WHITE}"
+      ;;
+    yellow|Yellow|YELLOW)
+      printf '%s' "${SGL_YELLOW}"
       ;;
     *)
       return 1

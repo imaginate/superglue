@@ -12,13 +12,14 @@
   Values:
     COLOR  Must be a color from the below options.
       `black'
-      `red'
-      `green'
-      `yellow'
       `blue'
-      `purple'
       `cyan'
+      `green'
+      `none'
+      `purple'
+      `red'
       `white'
+      `yellow'
     DELIM  Can be any string. By default DELIM is ` '.
     MSG    Can be any string.
 
