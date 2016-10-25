@@ -240,12 +240,12 @@ sgl_err()
 
   # parse each MSG
   for ((i=1; i<len; i++)); do
-    part="${_SGL_VALS[${i}]}"
-    if [[ -n "${part}" ]]; then
+    val="${_SGL_VALS[${i}]}"
+    if [[ -n "${val}" ]]; then
       if [[ -n "${msg}" ]]; then
-        msg="${msg}${mdelim}${part}"
+        msg="${msg}${mdelim}${val}"
       else
-        msg="${part}"
+        msg="${val}"
       fi
     fi
   done
