@@ -26,13 +26,13 @@
 # @val COLOR  Must be a color from the below options. If a COLOR is defined
 #             without any OPTION or ANSI then the COLOR is reset.
 #   `black'
-#   `red'
-#   `green'
-#   `yellow'
 #   `blue'
-#   `purple'
 #   `cyan'
+#   `green'
+#   `purple'
+#   `red'
 #   `white'
+#   `yellow'
 # @return
 #   0  PASS
 ############################################################
@@ -105,15 +105,15 @@ sgl_set_color()
         color="$(printf '%s' "${color}" | ${sed} -e 's/=.*$//')"
       fi
       case "${color}" in
-        uncolor) ;;
-        black)   ;;
-        red)     ;;
-        green)   ;;
-        yellow)  ;;
-        blue)    ;;
-        purple)  ;;
-        cyan)    ;;
-        white)   ;;
+        uncolor|Uncolor|UNCOLOR) ;;
+        black|Black|BLACK)       ;;
+        blue|Blue|BLUE)          ;;
+        cyan|Cyan|CYAN)          ;;
+        green|Green|GREEN)       ;;
+        purple|Purple|PURPLE)    ;;
+        red|Red|RED)             ;;
+        white|White|WHITE)       ;;
+        yellow|Yellow|YELLOW)    ;;
         *)
           _sgl_err VAL "invalid \`${FN}' COLOR \`${color}'"
           ;;
@@ -126,39 +126,39 @@ sgl_set_color()
       fi
       if [[ ${disable} -eq 1 ]]; then
         case "${color}" in
-          uncolor) SGL_UNCOLOR='' ;;
-          black)   SGL_BLACK=''   ;;
-          red)     SGL_RED=''     ;;
-          green)   SGL_GREEN=''   ;;
-          yellow)  SGL_YELLOW=''  ;;
-          blue)    SGL_BLUE=''    ;;
-          purple)  SGL_PURPLE=''  ;;
-          cyan)    SGL_CYAN=''    ;;
-          white)   SGL_WHITE=''   ;;
+          uncolor|Uncolor|UNCOLOR) SGL_UNCOLOR='' ;;
+          black|Black|BLACK)       SGL_BLACK=''   ;;
+          blue|Blue|BLUE)          SGL_BLUE=''    ;;
+          cyan|Cyan|CYAN)          SGL_CYAN=''    ;;
+          green|Green|GREEN)       SGL_GREEN=''   ;;
+          purple|Purple|PURPLE)    SGL_PURPLE=''  ;;
+          red|Red|RED)             SGL_RED=''     ;;
+          white|White|WHITE)       SGL_WHITE=''   ;;
+          yellow|Yellow|YELLOW)    SGL_YELLOW=''  ;;
         esac
       elif [[ ${reset} -eq 1 ]] || [[ -z "${ansi}" ]]; then
         case "${color}" in
-          uncolor) SGL_UNCOLOR="${_SGL_UNCOLOR}" ;;
-          black)   SGL_BLACK="${_SGL_BLACK}"     ;;
-          red)     SGL_RED="${_SGL_RED}"         ;;
-          green)   SGL_GREEN="${_SGL_GREEN}"     ;;
-          yellow)  SGL_YELLOW="${_SGL_YELLOW}"   ;;
-          blue)    SGL_BLUE="${_SGL_BLUE}"       ;;
-          purple)  SGL_PURPLE="${_SGL_PURPLE}"   ;;
-          cyan)    SGL_CYAN="${_SGL_CYAN}"       ;;
-          white)   SGL_WHITE="${_SGL_WHITE}"     ;;
+          uncolor|Uncolor|UNCOLOR) SGL_UNCOLOR="${_SGL_UNCOLOR}" ;;
+          black|Black|BLACK)       SGL_BLACK="${_SGL_BLACK}"     ;;
+          blue|Blue|BLUE)          SGL_BLUE="${_SGL_BLUE}"       ;;
+          cyan|Cyan|CYAN)          SGL_CYAN="${_SGL_CYAN}"       ;;
+          green|Green|GREEN)       SGL_GREEN="${_SGL_GREEN}"     ;;
+          purple|Purple|PURPLE)    SGL_PURPLE="${_SGL_PURPLE}"   ;;
+          red|Red|RED)             SGL_RED="${_SGL_RED}"         ;;
+          white|White|WHITE)       SGL_WHITE="${_SGL_WHITE}"     ;;
+          yellow|Yellow|YELLOW)    SGL_YELLOW="${_SGL_YELLOW}"   ;;
         esac
       else
         case "${color}" in
-          uncolor) SGL_UNCOLOR="${ansi}" ;;
-          black)   SGL_BLACK="${ansi}"   ;;
-          red)     SGL_RED="${ansi}"     ;;
-          green)   SGL_GREEN="${ansi}"   ;;
-          yellow)  SGL_YELLOW="${ansi}"  ;;
-          blue)    SGL_BLUE="${ansi}"    ;;
-          purple)  SGL_PURPLE="${ansi}"  ;;
-          cyan)    SGL_CYAN="${ansi}"    ;;
-          white)   SGL_WHITE="${ansi}"   ;;
+          uncolor|Uncolor|UNCOLOR) SGL_UNCOLOR="${ansi}" ;;
+          black|Black|BLACK)       SGL_BLACK="${ansi}"   ;;
+          blue|Blue|BLUE)          SGL_BLUE="${ansi}"    ;;
+          cyan|Cyan|CYAN)          SGL_CYAN="${ansi}"    ;;
+          green|Green|GREEN)       SGL_GREEN="${ansi}"   ;;
+          purple|Purple|PURPLE)    SGL_PURPLE="${ansi}"  ;;
+          red|Red|RED)             SGL_RED="${ansi}"     ;;
+          white|White|WHITE)       SGL_WHITE="${ansi}"   ;;
+          yellow|Yellow|YELLOW)    SGL_YELLOW="${ansi}"  ;;
         esac
       fi
     done
@@ -168,23 +168,23 @@ sgl_set_color()
     if [[ ${disable} -eq 1 ]]; then
       SGL_UNCOLOR=''
       SGL_BLACK=''
-      SGL_RED=''
-      SGL_GREEN=''
-      SGL_YELLOW=''
       SGL_BLUE=''
-      SGL_PURPLE=''
       SGL_CYAN=''
+      SGL_GREEN=''
+      SGL_PURPLE=''
+      SGL_RED=''
       SGL_WHITE=''
+      SGL_YELLOW=''
     else
       SGL_UNCOLOR="${_SGL_UNCOLOR}"
       SGL_BLACK="${_SGL_BLACK}"
-      SGL_RED="${_SGL_RED}"
-      SGL_GREEN="${_SGL_GREEN}"
-      SGL_YELLOW="${_SGL_YELLOW}"
       SGL_BLUE="${_SGL_BLUE}"
-      SGL_PURPLE="${_SGL_PURPLE}"
       SGL_CYAN="${_SGL_CYAN}"
+      SGL_GREEN="${_SGL_GREEN}"
+      SGL_PURPLE="${_SGL_PURPLE}"
+      SGL_RED="${_SGL_RED}"
       SGL_WHITE="${_SGL_WHITE}"
+      SGL_YELLOW="${_SGL_YELLOW}"
     fi
   fi
 }
