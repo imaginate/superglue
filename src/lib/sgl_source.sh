@@ -50,6 +50,9 @@ sgl_source()
   local opt
   local -a funcs
 
+  [[ ${SGL_SILENT_PARENT} -eq 1 ]] && silent=1
+  [[ ${SGL_QUIET_PARENT}  -eq 1 ]] && quiet=1
+
   # parse each argument
   _sgl_parse_args "${FN}" \
     '-h|-?|--help' 0 \
@@ -82,26 +85,36 @@ sgl_source()
   done
 
   # catch missing FUNC
-  [[ ${#_SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`${FN}' FUNC"
+  if [[ ${#_SGL_VALS[@]} -eq 0 ]]; then
+    [[ ${silent} -eq 1 ]] && _sgl_err VAL
+    _sgl_err VAL "missing \`${FN}' FUNC"
+  fi
 
   # parse each FUNC
   # build the funcs array
   funcs=()
   for func in "${_SGL_VALS[@]}"; do
     if [[ ! "${func}" =~ ^[a-z_\*]+$ ]]; then
+      [[ ${silent} -eq 1 ]] && _sgl_err VAL
       _sgl_err VAL "invalid \`${FN}' \`${func}' FUNC"
     fi
     [[ "${func}" =~ ^sgl_ ]] || func="sgl_${func}"
     # parse FUNC pattern
     if [[ "${func}" =~ \* ]]; then
       for file in ${SGL_LIB}/${func}; do
-        [[ -f "${file}" ]] || _sgl_err VAL "invalid \`${FN}' \`${func}' FUNC"
+        if [[ ! -f "${file}" ]]; then
+          [[ ${silent} -eq 1 ]] && _sgl_err VAL
+          _sgl_err VAL "invalid \`${FN}' \`${func}' FUNC"
+        fi
         funcs[${#funcs[@]}]=${file##*/}
       done
     # parse FUNC function
     else
       file="${SGL_LIB}/${func}"
-      [[ -f "${file}" ]] || _sgl_err VAL "invalid \`${FN}' \`${func}' FUNC"
+      if [[ ! -f "${file}" ]]; then
+        [[ ${silent} -eq 1 ]] && _sgl_err VAL
+        _sgl_err VAL "invalid \`${FN}' \`${func}' FUNC"
+      fi
       funcs[${#funcs[@]}]=${func}
     fi
   done
