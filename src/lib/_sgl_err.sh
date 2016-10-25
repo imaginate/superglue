@@ -6,7 +6,7 @@
 
 ############################################################
 # @func _sgl_err
-# @use _sgl_err ERR MSG
+# @use _sgl_err ERR [MSG]
 # @val MSG  Can be any string.
 # @val ERR  Must be an error from the below options or any valid integer in the
 #           range of `1' to `126'.
@@ -28,7 +28,7 @@
 ############################################################
 _sgl_err()
 {
-  _sgl_fail "$@"
+  [[ $# -gt 1 ]] && _sgl_fail "$@"
   case "$1" in
     MISC)
       exit 1
