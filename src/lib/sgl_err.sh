@@ -194,8 +194,11 @@ sgl_err()
     esac
   done
 
+  # save values length
+  len=${#_SGL_VALS[@]}
+
   # save ERR ref
-  [[ ${#_SGL_VALS[@]} -gt 0 ]] && err="${_SGL_VALS[0]}"
+  [[ ${len} -gt 0 ]] && err="${_SGL_VALS[0]}"
 
   # update process level
   if [[ ${child} -eq -1 ]] && [[ "${err}" == 'CHLD' ]]; then
@@ -212,7 +215,7 @@ sgl_err()
   fi
 
   # parse ERR
-  if [[ ${#_SGL_VALS[@]} -eq 0 ]]; then
+  if [[ ${len} -eq 0 ]]; then
     [[ ${silent} -eq 1 ]] && _sgl_err VAL
     _sgl_err VAL "missing \`${FN}' ERR"
   fi
@@ -256,7 +259,7 @@ sgl_err()
   esac
 
   # parse each MSG
-  if [[ ${#_SGL_VALS[@]} -eq 1 ]]; then
+  if [[ ${len} -eq 1 ]]; then
     if [[ -p /dev/stdin ]]; then
       msg="$(${cat} /dev/stdin)"
     elif [[ -p /dev/fd/0 ]]; then
