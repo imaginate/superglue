@@ -2,15 +2,37 @@
   sgl_err [...OPTION] ERR ...MSG
 
   Options:
-    -d|--delim=DELIM  Deliminate each MSG with DELIM.
-    -h|-?|--help      Print help info and exit.
-    -Q|--silent       Disable `stderr' and `stdout' outputs.
-    -q|--quiet        Disable `stdout' output.
-    -r|--return       Return instead of exiting.
-    -v|--version      Print version info and exit.
-    -|--              End the options.
+    -C|--color-title[=COLOR]  Color TITLE with COLOR (default= `red').
+    -c|--color[-msg][=COLOR]  Color MSG with COLOR (default= `red').
+    -D|--delim-title=DELIM    Deliminate TITLE and MSG with DELIM.
+    -d|--delim[-msg]=DELIM    Deliminate each MSG with DELIM.
+    -E|--no-escape            Do not evaluate escapes in MSG.
+    -e|--escape               Do evaluate escapes in MSG.
+    -h|-?|--help              Print help info and exit.
+    -N|--no-color             Disable colored TITLE or MSG outputs.
+    -n|--no-newline           Do not print a trailing newline.
+    -P|--child                Mark this error as one for a child process.
+    -p|--parent               Mark this error as one for a parent process.
+    -Q|--silent               Disable `stderr' and `stdout' outputs.
+    -q|--quiet                Disable `stdout' output.
+    -r|--return               Return instead of exiting.
+    -T|--no-title             Disable any TITLE to be printed.
+    -t|--title=TITLE          Override the default TITLE to be printed.
+    -V|--verbose              Append the line number and context to output.
+    -v|--version              Print version info and exit.
+    -|--                      End the options.
 
   Values:
+    COLOR  Must be a color from the below options.
+      `black'
+      `blue'
+      `cyan'
+      `green'
+      `none'
+      `purple'
+      `red'
+      `white'
+      `yellow'
     DELIM  Can be any string. The default is ` '.
     ERR    Must be an error from the below options or any valid integer
            in the range of `1' to `126'.
@@ -22,6 +44,7 @@
       `CHLD'  A child process exited unsuccessfully (exit= `6').
       `SGL'   A `superglue' script error (exit= `7').
     MSG    Can be any string.
+    TITLE  Can be any string.
 
   Exit Codes:
     1  MISC  An unknown error.
