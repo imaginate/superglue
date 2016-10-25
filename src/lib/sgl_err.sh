@@ -81,6 +81,7 @@ sgl_err()
   local mcolor
   local tdelim=' '
   local mdelim=' '
+  local format
   local title
   local err
   local msg
@@ -193,13 +194,28 @@ sgl_err()
     esac
   done
 
-  # catch missing ERR or MSG
-  len=${#_SGL_VALS[@]}
-  [[ ${len} -gt 0 ]] || _sgl_err VAL "missing \`${FN}' ERR"
-  [[ ${len} -gt 1 ]] || _sgl_err VAL "missing \`${FN}' MSG"
+  # save ERR ref
+  [[ ${#_SGL_VALS[@]} -gt 0 ]] && err="${_SGL_VALS[0]}"
+
+  # update process level
+  if [[ ${child} -eq -1 ]] && [[ "${err}" == 'CHLD' ]]; then
+    child=1
+  fi
+
+  # update quiet and silent
+  if [[ ${child} -eq 1 ]]; then
+    [[ ${SGL_SILENT_CHILD} -eq 1 ]] && silent=1
+    [[ ${SGL_QUIET_CHILD}  -eq 1 ]] && quiet=1
+  else
+    [[ ${SGL_SILENT_PARENT} -eq 1 ]] && silent=1
+    [[ ${SGL_QUIET_PARENT}  -eq 1 ]] && quiet=1
+  fi
 
   # parse ERR
-  err="${_SGL_VALS[0]}"
+  if [[ ${#_SGL_VALS[@]} -eq 0 ]]; then
+    [[ ${silent} -eq 1 ]] && _sgl_err VAL
+    _sgl_err VAL "missing \`${FN}' ERR"
+  fi
   case "${err}" in
     MISC)
       [[ ${override} -eq 0 ]] && title='ERROR'
@@ -231,6 +247,7 @@ sgl_err()
       ;;
     *)
       if [[ ! "${err}" =~ ^[1-9][0-9]?[0-9]?$ ]] || [[ ${err} -gt 126 ]]; then
+        [[ ${silent} -eq 1 ]] && _sgl_err VAL
         _sgl_err VAL "invalid \`${FN}' ERR \`${err}'"
       fi
       [[ ${override} -eq 0 ]] && title='ERROR'
@@ -239,16 +256,27 @@ sgl_err()
   esac
 
   # parse each MSG
-  for ((i=1; i<len; i++)); do
-    val="${_SGL_VALS[${i}]}"
-    if [[ -n "${val}" ]]; then
-      if [[ -n "${msg}" ]]; then
-        msg="${msg}${mdelim}${val}"
-      else
-        msg="${val}"
-      fi
+  if [[ ${#_SGL_VALS[@]} -eq 1 ]]; then
+    if [[ -p /dev/stdin ]]; then
+      msg="$(${cat} /dev/stdin)"
+    elif [[ -p /dev/fd/0 ]]; then
+      msg="$(${cat} /dev/fd/0)"
+    else
+      [[ ${silent} -eq 1 ]] && _sgl_err VAL
+      _sgl_err VAL "missing \`${FN}' MSG"
     fi
-  done
+  else
+    for ((i=1; i<len; i++)); do
+      val="${_SGL_VALS[${i}]}"
+      if [[ -n "${val}" ]]; then
+        if [[ -n "${msg}" ]]; then
+          msg="${msg}${mdelim}${val}"
+        else
+          msg="${val}"
+        fi
+      fi
+    done
+  fi
 
   # color TITLE
   if [[ -n "${tcolor}" ]] && [[ -n "${title}" ]]; then
@@ -277,27 +305,17 @@ sgl_err()
     fi
   fi
 
-  # set process level (parent vs child)
-  if [[ ${child} -eq -1 ]] && [[ "${err}" == 'CHLD' ]]; then
-    child=1
-  fi
-
-  # update quiet and silent values
-  if [[ ${child} -eq 1 ]]; then
-    [[ ${SGL_SILENT_CHILD} -eq 1 ]] && silent=1
-    [[ ${SGL_QUIET_CHILD}  -eq 1 ]] && quiet=1
+  # set the MSG format
+  if [[ ${escape} -eq 1 ]]; then
+    format='%b'
   else
-    [[ ${SGL_SILENT_PARENT} -eq 1 ]] && silent=1
-    [[ ${SGL_QUIET_PARENT}  -eq 1 ]] && quiet=1
+    format='%s'
   fi
+  [[ ${newline} -eq 1 ]] && format="${format}\n"
 
   # print the error MSG
   if [[ ${silent} -ne 1 ]]; then
-    if [[ ${escape} -eq 1 ]]; then
-      printf "%b\n" "${msg}" 1>&2
-    else
-      printf "%s\n" "${msg}" 1>&2
-    fi
+    printf "${format}" "${msg}" 1>&2
     if [[ ${verbose} -eq 1 ]]; then
       local details="$(caller)"
       printf "%s\n" "- LINE ${details%% *}" 1>&2
