@@ -28,63 +28,30 @@
 ############################################################
 _sgl_err()
 {
-  local title
-  local code
-
+  _sgl_fail "$@"
   case "$1" in
     MISC)
-      title='ERR'
-      code=1
+      exit 1
       ;;
     OPT)
-      title='OPT_ERR'
-      code=2
+      exit 2
       ;;
     VAL)
-      title='VAL_ERR'
-      code=3
+      exit 3
       ;;
     AUTH)
-      title='AUTH_ERR'
-      code=4
+      exit 4
       ;;
     DPND)
-      title='DPND_ERR'
-      code=5
+      exit 5
       ;;
     CHLD)
-      title='CHLD_ERR'
-      code=6
+      exit 6
       ;;
     SGL)
-      title='SGL_ERR'
-      code=7
-      ;;
-    *)
-      if [[ ! "$1" =~ ^[1-9][0-9]?[0-9]?$ ]] || [[ $1 -gt 126 ]]; then
-        _sgl_err SGL "invalid \`_sgl_err' CODE \`$1' in \`superglue'"
-      fi
-      title='ERR'
-      code="$1"
+      exit 7
       ;;
   esac
-
-  if [[ ${SGL_COLOR_ON} -eq 1 ]]; then
-    [[ -n "${SGL_RED}"     ]] && title="${SGL_RED}${title}"
-    [[ -n "${SGL_UNCOLOR}" ]] && title="${title}${SGL_UNCOLOR}"
-  elif [[ ${SGL_COLOR_OFF} -ne 1 ]] && [[ -t 1 ]]; then
-    [[ -n "${SGL_RED}"     ]] && title="${SGL_RED}${title}"
-    [[ -n "${SGL_UNCOLOR}" ]] && title="${title}${SGL_UNCOLOR}"
-  fi
-
-  if [[ ${SGL_SILENT} -ne 1 ]] && [[ ${SGL_SILENT_PARENT} -ne 1 ]]; then
-    printf "%s\n" "${title} $2" 1>&2
-  fi
-  if [[ ${SGL_VERBOSE} -eq 1 ]]; then
-    local details="$(caller)"
-    printf "%s %s %s\n" '-' 'LINE' "${details%% *}"
-    printf "%s %s %s\n" '-' 'FILE' "${details##* }"
-  fi
-  exit ${code}
+  exit $1
 }
 readonly -f _sgl_err

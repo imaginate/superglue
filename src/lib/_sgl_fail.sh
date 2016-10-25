@@ -52,20 +52,18 @@ _sgl_fail()
   esac
 
   if [[ ${SGL_COLOR_ON} -eq 1 ]]; then
-    [[ -n "${SGL_RED}"     ]] && title="${SGL_RED}${title}"
-    [[ -n "${SGL_UNCOLOR}" ]] && title="${title}${SGL_UNCOLOR}"
+    title="${SGL_RED}${title}${SGL_UNCOLOR}"
   elif [[ ${SGL_COLOR_OFF} -ne 1 ]] && [[ -t 1 ]]; then
-    [[ -n "${SGL_RED}"     ]] && title="${SGL_RED}${title}"
-    [[ -n "${SGL_UNCOLOR}" ]] && title="${title}${SGL_UNCOLOR}"
+    title="${SGL_RED}${title}${SGL_UNCOLOR}"
   fi
 
   if [[ ${SGL_SILENT} -ne 1 ]] && [[ ${SGL_SILENT_PARENT} -ne 1 ]]; then
     printf "%s\n" "${title} $2" 1>&2
-  fi
-  if [[ ${SGL_VERBOSE} -eq 1 ]]; then
-    local details="$(caller)"
-    printf "%s %s %s\n" '-' 'LINE' "${details%% *}"
-    printf "%s %s %s\n" '-' 'FILE' "${details##* }"
+    if [[ ${SGL_VERBOSE} -eq 1 ]]; then
+      local details="$(caller)"
+      printf "%s %s %s\n" '-' 'LINE' "${details%% *}" 1>&2
+      printf "%s %s %s\n" '-' 'FILE' "${details##* }" 1>&2
+    fi
   fi
 }
 readonly -f _sgl_fail

@@ -148,11 +148,9 @@ sgl_err()
 
   # color the title
   if [[ ${SGL_COLOR_ON} -eq 1 ]]; then
-    [[ -n "${SGL_RED}"     ]] && title="${SGL_RED}${title}"
-    [[ -n "${SGL_UNCOLOR}" ]] && title="${title}${SGL_UNCOLOR}"
+    title="${SGL_RED}${title}${SGL_UNCOLOR}"
   elif [[ ${SGL_COLOR_OFF} -ne 1 ]] && [[ -t 1 ]]; then
-    [[ -n "${SGL_RED}"     ]] && title="${SGL_RED}${title}"
-    [[ -n "${SGL_UNCOLOR}" ]] && title="${title}${SGL_UNCOLOR}"
+    title="${SGL_RED}${title}${SGL_UNCOLOR}"
   fi
 
   # parse each MSG
@@ -174,11 +172,11 @@ sgl_err()
     else
       printf "%s %s\n" "${title}" "${msg}" 1>&2
     fi
-  fi
-  if [[ ${SGL_VERBOSE} -eq 1 ]]; then
-    local details="$(caller)"
-    printf "%s %s %s\n" '-' 'LINE' "${details%% *}"
-    printf "%s %s %s\n" '-' 'FILE' "${details##* }"
+    if [[ ${SGL_VERBOSE} -eq 1 ]]; then
+      local details="$(caller)"
+      printf "%s %s %s\n" '-' 'LINE' "${details%% *}" 1>&2
+      printf "%s %s %s\n" '-' 'FILE' "${details##* }" 1>&2
+    fi
   fi
 
   [[ ${ret} -eq 1 ]] && return ${code}
