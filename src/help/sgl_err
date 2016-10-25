@@ -43,7 +43,7 @@
       `DPND'  A dependency error (exit= `5').
       `CHLD'  A child process exited unsuccessfully (exit= `6').
       `SGL'   A `superglue' script error (exit= `7').
-    MSG    Can be any string.
+    MSG    Can be any string. May be provided via a piped `stdin'.
     TITLE  Can be any string.
 
   Exit Codes:

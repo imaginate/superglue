@@ -52,7 +52,7 @@
 #   `DPND'  A dependency error (exit= `5').
 #   `CHLD'  A child process exited unsuccessfully (exit= `6').
 #   `SGL'   A `superglue' script error (exit= `7').
-# @val MSG    Can be any string.
+# @val MSG    Can be any string. May be provided via a piped `stdin'.
 # @val TITLE  Can be any string.
 # @exit
 #   1  MISC  An unknown error.
