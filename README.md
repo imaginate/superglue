@@ -443,15 +443,19 @@ Note that `SGL_QUIET` and `SGL_SILENT` do not disable printing the colored `MSG`
   Values:
     COLOR  Must be a color from the below options.
       `black'
-      `red'
-      `green'
-      `yellow'
       `blue'
-      `purple'
       `cyan'
+      `green'
+      `none'
+      `purple'
+      `red'
       `white'
+      `yellow'
     DELIM  Can be any string. By default DELIM is ` '.
-    MSG    Can be any string.
+    MSG    Can be any string. May be provided via a piped `stdin'.
+
+  Returns:
+    0  PASS
 
 ```
 
@@ -560,7 +564,7 @@ Note that `SGL_QUIET` and `SGL_SILENT` do not disable printing the colored `MSG`
       `DPND'  A dependency error (exit= `5').
       `CHLD'  A child process exited unsuccessfully (exit= `6').
       `SGL'   A `superglue' script error (exit= `7').
-    MSG    Can be any string.
+    MSG    Can be any string. May be provided via a piped `stdin'.
     TITLE  Can be any string.
 
   Exit Codes:
@@ -668,6 +672,7 @@ This function parses each argument in `SGL_ARGS` and saves the resulting option/
 ```
 
 #### sgl_print
+Flexibly print a message to `stdout` or a destination of choice.
 ```text
 
   sgl_print [...OPTION] ...MSG
