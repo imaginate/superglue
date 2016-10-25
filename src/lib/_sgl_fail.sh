@@ -26,28 +26,28 @@ _sgl_fail()
 
   case "$1" in
     MISC)
-      title='ERR'
+      title='ERROR'
       ;;
     OPT)
-      title='OPT_ERR'
+      title='OPTION ERROR'
       ;;
     VAL)
-      title='VAL_ERR'
+      title='VALUE ERROR'
       ;;
     AUTH)
-      title='AUTH_ERR'
+      title='AUTHORITY ERROR'
       ;;
     DPND)
-      title='DPND_ERR'
+      title='DEPENDENCY ERROR'
       ;;
     CHLD)
-      title='CHLD_ERR'
+      title='CHILD ERROR'
       ;;
     SGL)
-      title='SGL_ERR'
+      title='SUPERGLUE ERROR'
       ;;
     *)
-      title='ERR'
+      title='ERROR'
       ;;
   esac
 
