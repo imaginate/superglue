@@ -739,13 +739,16 @@ Flexibly print a message to `stdout` or a destination of choice.
     COLOR  Must be a color from the below options. If a COLOR is defined
            without any OPTION or ANSI then the COLOR is reset.
       `black'
-      `red'
-      `green'
-      `yellow'
       `blue'
-      `purple'
       `cyan'
+      `green'
+      `purple'
+      `red'
       `white'
+      `yellow'
+
+  Returns:
+    0  PASS
 
 ```
 
