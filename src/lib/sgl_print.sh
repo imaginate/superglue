@@ -185,9 +185,8 @@ sgl_print()
       msg="$(${cat} /dev/stdin)"
     elif [[ -p /dev/fd/0 ]]; then
       msg="$(${cat} /dev/fd/0)"
-    elif [[ ${silent} -eq 1 ]]; then
-      _sgl_err VAL
     else
+      [[ ${silent} -eq 1 ]] && _sgl_err VAL
       _sgl_err VAL "missing \`${FN}' MSG"
     fi
   else
