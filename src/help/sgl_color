@@ -21,7 +21,7 @@
       `white'
       `yellow'
     DELIM  Can be any string. By default DELIM is ` '.
-    MSG    Can be any string.
+    MSG    Can be any string. May be provided via a piped `stdin'.
 
   Returns:
     0  PASS

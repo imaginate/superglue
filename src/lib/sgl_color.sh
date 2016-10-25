@@ -31,7 +31,7 @@
 #   `white'
 #   `yellow'
 # @val DELIM  Can be any string. By default DELIM is ` '.
-# @val MSG    Can be any string.
+# @val MSG    Can be any string. May be provided via a piped `stdin'.
 # @return
 #   0  PASS
 ############################################################
@@ -75,24 +75,32 @@ sgl_color()
   # save values length
   len=${#_SGL_VALS[@]}
 
-  # catch missing arguments
-  [[ ${len} -gt 0 ]] || _sgl_err VAL "missing \`${FN}' COLOR"
-  [[ ${len} -gt 1 ]] || _sgl_err VAL "missing \`${FN}' MSG"
-
   # parse COLOR
+  [[ ${len} -gt 0 ]] || _sgl_err VAL "missing \`${FN}' COLOR"
   color="$(_sgl_get_color "${_SGL_VALS[0]}")"
   [[ $? -eq 0 ]] || _sgl_err VAL "invalid \`${FN}' COLOR \`${_SGL_VALS[0]}'"
 
   # parse MSG
-  for ((i=1; i<len; i++)); do
-    if [[ -n "${_SGL_VALS[${i}]}" ]]; then
-      if [[ -n "${msg}" ]]; then
-        msg="${msg}${delim}${_SGL_VALS[${i}]}"
-      else
-        msg="${_SGL_VALS[${i}]}"
-      fi
+  if [[ ${len} -eq 1 ]]; then
+    if [[ -p /dev/stdin ]]; then
+      msg="$(${cat} /dev/stdin)"
+    elif [[ -p /dev/fd/0 ]]; then
+      msg="$(${cat} /dev/fd/0)"
+    else
+      [[ ${silent} -eq 1 ]] && _sgl_err VAL
+      _sgl_err VAL "missing \`${FN}' MSG"
     fi
-  done
+  else
+    for ((i=1; i<len; i++)); do
+      if [[ -n "${_SGL_VALS[${i}]}" ]]; then
+        if [[ -n "${msg}" ]]; then
+          msg="${msg}${delim}${_SGL_VALS[${i}]}"
+        else
+          msg="${_SGL_VALS[${i}]}"
+        fi
+      fi
+    done
+  fi
 
   # color MSG
   if [[ -n "${color}" ]]; then
