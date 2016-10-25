@@ -677,11 +677,17 @@ This function parses each argument in `SGL_ARGS` and saves the resulting option/
     -c|--color[-msg]=COLOR  Color MSG with COLOR.
     -D|--delim-title=DELIM  Deliminate TITLE and MSG with DELIM.
     -d|--delim[-msg]=DELIM  Deliminate each MSG with DELIM.
-    -e|--escape             Evaluate escapes.
+    -E|--no-escape          Do not evaluate escapes in MSG.
+    -e|--escape             Do evaluate escapes in MSG.
     -h|-?|--help            Print help info and exit.
+    -N|--no-color           Disable colored TITLE or MSG outputs.
     -n|--no-newline         Do not print a trailing newline.
+    -o|--out=DEST           Print this message to DEST.
+    -P|--child              Mark this output as one for a child process.
+    -p|--parent             Mark this output as one for a parent process.
     -Q|--silent             Disable `stderr' and `stdout' outputs.
     -q|--quiet              Disable `stdout' output.
+    -T|--no-title           Disable any TITLE to be printed.
     -t|--title=TITLE        Print TITLE before MSG.
     -v|--version            Print version info and exit.
     -|--                    End the options.
@@ -689,16 +695,21 @@ This function parses each argument in `SGL_ARGS` and saves the resulting option/
   Values:
     COLOR  Must be a color from the below options.
       `black'
-      `red'
-      `green'
-      `yellow'
       `blue'
-      `purple'
       `cyan'
+      `green'
+      `none'
+      `purple'
+      `red'
       `white'
+      `yellow'
     DELIM  Can be any string. By default DELIM is ` '.
-    MSG    Can be any string.
+    DEST   Must be `1|stdout', `2|stderr', or a valid file path.
+    MSG    Can be any string. May be provided via a piped `stdin'.
     TITLE  Can be any string.
+
+  Returns:
+    0  PASS
 
 ```
 
