@@ -96,7 +96,7 @@ sgl_source()
     if [[ "${func}" =~ \* ]]; then
       for file in ${SGL_LIB}/${func}; do
         [[ -f "${file}" ]] || _sgl_err VAL "invalid \`${FN}' \`${func}' FUNC"
-        funcs[${#funcs[@]}]=${func##*/}
+        funcs[${#funcs[@]}]=${file##*/}
       done
     # parse FUNC function
     else
