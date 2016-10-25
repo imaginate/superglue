@@ -57,7 +57,7 @@ _sgl_fail()
     title="${SGL_RED}${title}${SGL_UNCOLOR}"
   fi
 
-  if [[ ${SGL_SILENT} -ne 1 ]] && [[ ${SGL_SILENT_PARENT} -ne 1 ]]; then
+  if [[ ${SGL_SILENT} -ne 1 ]]; then
     printf "%s\n" "${title} $2" 1>&2
     if [[ ${SGL_VERBOSE} -eq 1 ]]; then
       local details="$(caller)"
