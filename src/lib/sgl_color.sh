@@ -95,12 +95,12 @@ sgl_color()
   done
 
   # color MSG
-  if [[ ${SGL_COLOR_ON} -eq 1 ]]; then
-    [[ -n "${color}"       ]] && msg="${color}${msg}"
-    [[ -n "${SGL_UNCOLOR}" ]] && msg="${msg}${SGL_UNCOLOR}"
-  elif [[ ${SGL_COLOR_OFF} -ne 1 ]] && [[ -t 1 ]]; then
-    [[ -n "${color}"       ]] && msg="${color}${msg}"
-    [[ -n "${SGL_UNCOLOR}" ]] && msg="${msg}${SGL_UNCOLOR}"
+  if [[ -n "${color}" ]]; then
+    if [[ ${SGL_COLOR_ON} -eq 1 ]]; then
+      msg="${color}${msg}${SGL_UNCOLOR}"
+    elif [[ ${SGL_COLOR_OFF} -ne 1 ]] && [[ -t 1 ]]; then
+      msg="${color}${msg}${SGL_UNCOLOR}"
+    fi
   fi
 
   printf '%s' "${msg}"
