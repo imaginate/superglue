@@ -2,6 +2,7 @@
   ./install.sh [OPTION]
 
   Options:
+    -c|--clean  Remove `superglue' files and directories.
     -f|--force  If destination exists overwrite it.
     -h|--help   Print help info and exit.
 

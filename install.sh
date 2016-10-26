@@ -6,6 +6,7 @@
 # @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
 #
 # @use ./install.sh [OPTION]
+# @opt -c|--clean  Remove `superglue' files and directories.
 # @opt -f|--force  If destination exists overwrite it.
 # @opt -h|--help   Print help info and exit.
 # @exit
@@ -19,7 +20,7 @@
 #   7  SGL   A `superglue' script error.
 ################################################################################
 
-[[ "${NIL}" == '/dev/null' ]] || NIL='/dev/null'
+readonly SGLUE_ROW_LEN=26
 
 ################################################################################
 ## SECTIONS
@@ -29,22 +30,27 @@
 ## - DEFINE HELPERS
 ## - CHECK $0 VALUE
 ## - CHECK PERMISSIONS
-## - PRINT HEADER
 ## - DEFINE COMMANDS
 ## - CHECK COMMANDS
 ## - CHANGE DIRECTORY
 ## - DEFINE SRC PATHS
 ## - CHECK SRC PATHS
 ## - DEFINE DEST PATHS
-## - MAKE DEST PATHS
 ## - PARSE OPTIONS
+## - PRINT HEADER
+## - MAKE DEST PATHS
 ## - DEFINE METHODS
 ## - INSTALL COMMANDS
 ## - INSTALL FUNCTIONS
 ## - INSTALL HELP FILES
-## - PRINT FOOTER
-## - EXIT
+## - END INSTALL
 ################################################################################
+
+SGLUE_TITLE='INSTALL'
+SGLUE_HEADER=0
+
+[[ "${NIL}" == '/dev/null' ]] || NIL='/dev/null'
+if readonly NIL 2> /dev/null; then : ; else : ; fi
 
 ################################################################################
 ## CLEAN BUILTINS
@@ -160,27 +166,27 @@ sglue_err()
       code=1
       ;;
     OPT)
-      title='OPTION ERROR'
+      title='OPTION-ERROR'
       code=2
       ;;
     VAL)
-      title='VALUE ERROR'
+      title='VALUE-ERROR'
       code=3
       ;;
     AUTH)
-      title='AUTHORITY ERROR'
+      title='AUTH-ERROR'
       code=4
       ;;
     DPND)
-      title='DEPENDENCY ERROR'
+      title='DEPEND-ERROR'
       code=5
       ;;
     CHLD)
-      title='CHILD ERROR'
+      title='CHILD-ERROR'
       code=6
       ;;
     SGL)
-      title='SUPERGLUE ERROR'
+      title='SUPERGLUE-ERROR'
       code=7
       ;;
     *)
@@ -188,7 +194,7 @@ sglue_err()
       ;;
   esac
   printf "%s %s\n" "${SGLUE_RED}${title}${SGLUE_UNCOLOR}" "$2" 1>&2
-  sglue_footer
+  [[ ${SGLUE_HEADER} -eq 1 ]] && sglue_footer
   exit ${code}
 }
 readonly -f sglue_err
@@ -288,6 +294,27 @@ sglue_chk()
 readonly -f sglue_chk
 
 ############################################################
+# Prints a row of dashes.
+#
+# @func sglue_dashes
+# @use sglue_dashes
+# @return
+#   0  PASS
+############################################################
+sglue_dashes()
+{
+  local dashes
+  local -i i
+  local -i len=${SGLUE_ROW_LEN}
+
+  for ((i=0; i<len; i++)); do
+    dashes="${dashes}-"
+  done
+  printf "%s\n" "${dashes}"
+}
+readonly -f sglue_dashes
+
+############################################################
 # Prints this scripts header.
 #
 # @func sglue_header
@@ -297,9 +324,19 @@ readonly -f sglue_chk
 ############################################################
 sglue_header()
 {
-  printf "%s\n" '-----------------------------'
-  printf "%s\n" '-- SUPERGLUE INSTALL START --'
-  printf "%s\n" '-----------------------------'
+  local title="-- START SGL ${SGLUE_TITLE} --"
+  local -i i=0
+  local -i len=$(( ${SGLUE_ROW_LEN} - ${#title} ))
+
+  for ((i=0; i<len; i++)); do
+    title="${title}-"
+  done
+
+  sglue_dashes
+  printf "%s\n" "${title}"
+  sglue_dashes
+
+  SGLUE_HEADER=1
 }
 readonly -f sglue_header
 
@@ -313,9 +350,17 @@ readonly -f sglue_header
 ############################################################
 sglue_footer()
 {
-  printf "%s\n" '-----------------------------'
-  printf "%s\n" '-- SUPERGLUE INSTALL END ----'
-  printf "%s\n" '-----------------------------'
+  local title="-- END SGL ${SGLUE_TITLE} --"
+  local -i i=0
+  local -i len=$(( ${SGLUE_ROW_LEN} - ${#title} ))
+
+  for ((i=0; i<len; i++)); do
+    title="${title}-"
+  done
+
+  sglue_dashes
+  printf "%s\n" "${title}"
+  sglue_dashes
 }
 readonly -f sglue_footer
 
@@ -337,12 +382,6 @@ if [[ ${EUID} -ne 0 ]]; then
   ${sudo} "$0" "$@"
   exit $?
 fi
-
-################################################################################
-## PRINT HEADER
-################################################################################
-
-sglue_header
 
 ################################################################################
 ## DEFINE COMMANDS
@@ -394,35 +433,62 @@ readonly SGLUE_LIB_DEST='/lib/superglue'
 readonly SGLUE_HELP_DEST='/usr/share/superglue/help'
 
 ################################################################################
-## MAKE DEST PATHS
-################################################################################
-
-[[ -d ${SGLUE_LIB_DEST}  ]] || ${mkdir} -m 0755 -p ${SGLUE_LIB_DEST}
-[[ -d ${SGLUE_HELP_DEST} ]] || ${mkdir} -m 0755 -p ${SGLUE_HELP_DEST}
-
-################################################################################
 ## PARSE OPTIONS
 ################################################################################
 
 SGLUE_FORCE=0
 
-while [[ $# -gt 0 ]]; do
+if [[ $# -gt 1 ]]; then
+  sglue_header
+  sglue_err OPT "only 1 OPTION allowed"
+fi
+
+if [[ $# -gt 0 ]]; then
   case "$1" in
+    -c|--clean)
+      SGLUE_TITLE='UNINSTALL'
+      sglue_header
+      # remove commands
+      for SGLUE_CMD in sgl sglue superglue; do
+        SGLUE_CMD="/bin/${SGLUE_CMD}"
+        [[ -x "${SGLUE_CMD}" ]] && ${rm} -f "${SGLUE_CMD}"
+      done
+      sglue_pass 'commands uninstalled'
+      # remove funcs
+      [[ -d "${SGLUE_LIB_DEST}" ]] && ${rm} -rf "${SGLUE_LIB_DEST}"
+      sglue_pass 'functions uninstalled'
+      # remove help files
+      [[ -d "${SGLUE_HELP_DEST}" ]] && ${rm} -rf "${SGLUE_HELP_DEST}"
+      sglue_pass 'help files uninstalled'
+      # end uninstall
+      sglue_footer
+      exit 0
+      ;;
     -f|--force)
       SGLUE_FORCE=1
-      shift
       ;;
     -h|--help)
       ${cat} "${SGLUE_REPO_D}/install.help"
-      printf "\n"
-      sglue_footer
       exit 0
       ;;
     *)
       sglue_err OPT "invalid OPTION \`$1'"
       ;;
   esac
-done
+fi
+
+################################################################################
+## PRINT HEADER
+################################################################################
+
+sglue_header
+
+################################################################################
+## MAKE DEST PATHS
+################################################################################
+
+[[ -d ${SGLUE_LIB_DEST}  ]] || ${mkdir} -m 0755 -p ${SGLUE_LIB_DEST}
+[[ -d ${SGLUE_HELP_DEST} ]] || ${mkdir} -m 0755 -p ${SGLUE_HELP_DEST}
 
 ################################################################################
 ## DEFINE METHODS
@@ -610,13 +676,8 @@ done
 sglue_pass 'help files installed'
 
 ################################################################################
-## PRINT FOOTER
+## END INSTALL
 ################################################################################
 
 sglue_footer
-
-################################################################################
-## EXIT
-################################################################################
-
 exit 0
