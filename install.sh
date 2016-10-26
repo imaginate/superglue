@@ -188,9 +188,25 @@ sglue_err()
       ;;
   esac
   printf "%s %s\n" "${SGLUE_RED}${title}${SGLUE_UNCOLOR}" "$2" 1>&2
+  sglue_footer
   exit ${code}
 }
 readonly -f sglue_err
+
+############################################################
+# Prints a success message.
+#
+# @func sglue_pass
+# @use sglue_pass MSG
+# @val MSG  Can be any valid string.
+# @return
+#   0  PASS
+############################################################
+sglue_pass()
+{
+  printf "%s %s\n" "${SGLUE_GREEN}PASS${SGLUE_UNCOLOR}" "$1"
+}
+readonly -f sglue_pass
 
 ############################################################
 # Prints the valid executable path for a command. If no valid
@@ -271,6 +287,38 @@ sglue_chk()
 }
 readonly -f sglue_chk
 
+############################################################
+# Prints this scripts header.
+#
+# @func sglue_header
+# @use sglue_header
+# @return
+#   0  PASS
+############################################################
+sglue_header()
+{
+  printf "%s\n" '-----------------------------'
+  printf "%s\n" '-- SUPERGLUE INSTALL START --'
+  printf "%s\n" '-----------------------------'
+}
+readonly -f sglue_header
+
+############################################################
+# Prints this scripts footer.
+#
+# @func sglue_footer
+# @use sglue_footer
+# @return
+#   0  PASS
+############################################################
+sglue_footer()
+{
+  printf "%s\n" '-----------------------------'
+  printf "%s\n" '-- SUPERGLUE INSTALL END ----'
+  printf "%s\n" '-----------------------------'
+}
+readonly -f sglue_footer
+
 ################################################################################
 ## CHECK $0 VALUE
 ################################################################################
@@ -294,8 +342,7 @@ fi
 ## PRINT HEADER
 ################################################################################
 
-printf "%s\n" '--------------------------'
-printf "%s\n" 'SUPERGLUE INSTALL STARTED'
+sglue_header
 
 ################################################################################
 ## DEFINE COMMANDS
@@ -367,6 +414,8 @@ while [[ $# -gt 0 ]]; do
       ;;
     -h|--help)
       ${cat} "${SGLUE_REPO_D}/install.help"
+      printf "\n"
+      sglue_footer
       exit 0
       ;;
     *)
@@ -534,6 +583,8 @@ for SGLUE_SRC in "${SGLUE_CMD_D}"/*.sh ; do
   sglue_mk_cmd "${SGLUE_SRC}"
 done
 
+sglue_pass 'commands installed'
+
 ################################################################################
 ## INSTALL FUNCTIONS
 ################################################################################
@@ -543,6 +594,8 @@ ${rm} -rf ${SGLUE_LIB_DEST}/*
 for SGLUE_SRC in "${SGLUE_LIB_D}"/sgl_*.sh ; do
   sglue_mk_lib "${SGLUE_SRC}"
 done
+
+sglue_pass 'functions installed'
 
 ################################################################################
 ## INSTALL HELP FILES
@@ -554,12 +607,13 @@ for SGLUE_SRC in "${SGLUE_HELP_D}"/* ; do
   sglue_mk_help "${SGLUE_SRC}"
 done
 
+sglue_pass 'help files installed'
+
 ################################################################################
 ## PRINT FOOTER
 ################################################################################
 
-printf "%s\n" 'SUPERGLUE INSTALL FINISHED'
-printf "%s\n" '--------------------------'
+sglue_footer
 
 ################################################################################
 ## EXIT
