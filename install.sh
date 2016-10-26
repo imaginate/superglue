@@ -1,6 +1,6 @@
 #!/bin/bash --posix
 #
-# Install `superglue' scripts `./src/**/*.sh'.
+# Install `superglue' scripts `./src/**/*'.
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
@@ -10,7 +10,7 @@
 # @opt -h|--help   Print help info and exit.
 # @exit
 #   0  PASS  A successful exit.
-#   1  MISC  An unknown error.
+#   1  ERR   An unknown error.
 #   2  OPT   An invalid option.
 #   3  VAL   An invalid or missing value.
 #   4  AUTH  A permissions error.
@@ -19,15 +19,119 @@
 #   7  SGL   A `superglue' script error.
 ################################################################################
 
+[[ "${NIL}" == '/dev/null' ]] || NIL='/dev/null'
+
+################################################################################
+## SECTIONS
+## - CLEAN BUILTINS
+## - DEFINE COLORS
+## - CHECK BASH VERSION
+## - DEFINE HELPERS
+## - CHECK $0 VALUE
+## - CHECK PERMISSIONS
+## - PRINT HEADER
+## - DEFINE COMMANDS
+## - CHECK COMMANDS
+## - CHANGE DIRECTORY
+## - DEFINE SRC PATHS
+## - CHECK SRC PATHS
+## - DEFINE DEST PATHS
+## - MAKE DEST PATHS
+## - PARSE OPTIONS
+## - DEFINE METHODS
+## - INSTALL COMMANDS
+## - INSTALL FUNCTIONS
+## - INSTALL HELP FILES
+## - PRINT FOOTER
+## - EXIT
+################################################################################
+
+################################################################################
+## CLEAN BUILTINS
+################################################################################
+
+############################################################
+# @func sglue_unset_func
+# @use sglue_unset_func BUILTIN
+# @val BUILTIN  A bash shell builtin command.
+# @return
+#   0  PASS
+############################################################
+sglue_unset_func()
+{
+  if unset -f $1 2> ${NIL}; then
+    return 0
+  else
+    return 0
+  fi
+}
+
+############################################################
+# @func sglue_unset_funcs
+# @use sglue_unset_funcs ...BUILTIN
+# @val BUILTIN  A bash shell builtin command.
+# @return
+#   0  PASS
+############################################################
+sglue_unset_funcs()
+{
+  while [ $# -gt 0 ]; do
+    sglue_unset_func $1
+    shift
+  done
+}
+
+# See below for complete reference.
+# - [Special Builtins](http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_14)
+# - [Bourne Builtins](https://www.gnu.org/software/bash/manual/html_node/Bourne-Shell-Builtins.html#Bourne-Shell-Builtins)
+# - [Bash Builtins](https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html#Bash-Builtins)
+
+# Note that bash is in [posix mode](https://www.gnu.org/software/bash/manual/html_node/Bash-POSIX-Mode.html#Bash-POSIX-Mode)
+# which disallows function names to be the same as special builtins.
+
+sglue_unset_func shopt
+shopt -u expand_aliases
+sglue_unset_funcs cd getopts hash pwd test umask
+sglue_unset_funcs bind builtin caller command declare echo enable false help \
+  let local logout printf read shopt source type typeset ulimit
+unset -f sglue_unset_func
+unset -f sglue_unset_funcs
+
+################################################################################
+## DEFINE COLORS
+################################################################################
+
+SGLUE_UNCOLOR=''
+SGLUE_RED=''
+SGLUE_GREEN=''
+
+if [[ -t 1 ]]; then
+  SGLUE_UNCOLOR="$(printf '%b' '\033[0;0m')"
+  SGLUE_RED="$(printf '%b' '\033[0;91m')"
+  SGLUE_GREEN="$(printf '%b' '\033[0;32m')"
+fi
+
+################################################################################
+## CHECK BASH VERSION
+################################################################################
+
+if [[ -z "${BASH_VERSINFO}" ]] || [[ ${BASH_VERSINFO[0]} -ne 4 ]]; then
+  printf "%s %s\n" "${SGLUE_RED}DEPENDENCY ERROR${SGLUE_UNCOLOR}" \
+    'bash version 4 required' 1>&2
+  exit 5
+fi
+
 ################################################################################
 ## DEFINE HELPERS
 ################################################################################
 
 ############################################################
-# @func
+# Prints an error message and exits the process.
+#
+# @func sglue_err
 # @use sglue_err ERR MSG
 # @val ERR  Must be one of the below errors.
-#   `MISC'  An unknown error (exit= `1').
+#   `ERR'   An unknown error (exit= `1').
 #   `OPT'   An invalid option (exit= `2').
 #   `VAL'   An invalid or missing value (exit= `3').
 #   `AUTH'  A permissions error (exit= `4').
@@ -36,7 +140,7 @@
 #   `SGL'   A `superglue' script error (exit= `7').
 # @val MSG  Can be any valid string.
 # @exit
-#   1  MISC  An unknown error.
+#   1  ERR   An unknown error.
 #   2  OPT   An invalid option.
 #   3  VAL   An invalid or missing value.
 #   4  AUTH  A permissions error.
@@ -51,45 +155,53 @@ sglue_err()
   local -i code
 
   case "$1" in
-    MISC)
-      title='ERR'
+    ERR)
+      title='ERROR'
       code=1
       ;;
     OPT)
-      title='OPT_ERR'
+      title='OPTION ERROR'
       code=2
       ;;
     VAL)
-      title='VAL_ERR'
+      title='VALUE ERROR'
       code=3
       ;;
     AUTH)
-      title='AUTH_ERR'
+      title='AUTHORITY ERROR'
       code=4
       ;;
     DPND)
-      title='DPND_ERR'
+      title='DEPENDENCY ERROR'
       code=5
       ;;
     CHLD)
-      title='CHLD_ERR'
+      title='CHILD ERROR'
       code=6
       ;;
     SGL)
-      title='SGL_ERR'
+      title='SUPERGLUE ERROR'
       code=7
       ;;
     *)
       sglue_err SGL "invalid \`${FN}' ERR \`$1'"
       ;;
   esac
-  printf "%s\n" "${title} $2" 1>&2
+  printf "%s %s\n" "${SGLUE_RED}${title}${SGLUE_UNCOLOR}" "$2" 1>&2
   exit ${code}
 }
 readonly -f sglue_err
 
 ############################################################
-# @func
+# Prints the valid executable path for a command. If no valid
+# path exists then the command name is printed. The command
+# must exist in one of the following directories (in order
+# of preference).
+#   `/bin/CMD'
+#   `/usr/bin/CMD'
+#   `/usr/local/bin/CMD'
+#
+# @func sglue_which
 # @use sglue_which CMD
 # @val CMD  Must be an executable.
 # @return
@@ -111,75 +223,79 @@ sglue_which()
 readonly -f sglue_which
 
 ############################################################
-# @func
-# @use sglue_chk TYPE PATH
-# @val PATH  Must be a valid file path.
+# Checks the validity of a path. If the path is invalid an
+# error is printed and the process is exited.
+#
+# @func sglue_chk
+# @use sglue_chk TYPE ...PATH
+# @val PATH  Must be a valid file path (see TYPE options).
 # @val TYPE  Must be one of the below options.
-#   `CMD'
-#   `DIR'
-#   `FILE'
-# @note If the check fails this function does exit.
+#   `CMD'   PATH must be a valid executable path.
+#   `DIR'   PATH must be a valid directory path.
+#   `FILE'  PATH must be a valid readable file path.
 # @return
 #   0  PASS
 ############################################################
 sglue_chk()
 {
   local -r FN='sglue_chk'
+  local -r TYPE="$1"
+  local path
 
-  [[ -n "$2" ]] || sglue_err SGL "missing \`${FN}' PATH"
-
-  case "$1" in
+  shift
+  case "${TYPE}" in
     CMD)
-      [[ -x "$2" ]] || sglue_err DPND "invalid executable path \`$2'"
+      for path in "$@"; do
+        [[ -n "${path}" ]] || sglue_err SGL "invalid \`${FN}' PATH \`${path}'"
+        [[ "${path}" =~ ^/ ]] || sglue_err DPND "could not find command \`${path}'"
+        [[ -x "${path}" ]] || sglue_err DPND "invalid executable path \`${path}'"
+      done
       ;;
     DIR)
-      [[ -d "$2" ]] || sglue_err DPND "invalid directory path \`$2'"
+      for path in "$@"; do
+        [[ -n "${path}" ]] || sglue_err SGL "invalid \`${FN}' PATH \`${path}'"
+        [[ -d "${path}" ]] || sglue_err DPND "invalid directory path \`${path}'"
+      done
       ;;
     FILE)
-      [[ -f "$2" ]] || sglue_err DPND "invalid file path \`$2'"
+      for path in "$@"; do
+        [[ -n "${path}" ]] || sglue_err SGL "invalid \`${FN}' PATH \`${path}'"
+        [[ -f "${path}" ]] || sglue_err DPND "invalid file path \`${path}'"
+        [[ -r "${path}" ]] || sglue_err DPND "invalid readable path \`${path}'"
+      done
       ;;
     *)
-      sglue_err SGL "invalid \`${FN}' TYPE \`$1'"
+      sglue_err SGL "invalid \`${FN}' TYPE \`${TYPE}'"
       ;;
   esac
 }
 readonly -f sglue_chk
 
-############################################################
-# @func
-# @use sglue_help
-# @return
-#   0  PASS
-############################################################
-sglue_help()
-{
-  ${cat} <<'EOF'
+################################################################################
+## CHECK $0 VALUE
+################################################################################
 
-  ./install.sh [OPTION]
-
-  Options:
-    -f|--force  If destination exists overwrite it.
-    -h|--help   Print help info and exit.
-
-  Exit Codes:
-    0  PASS  A successful exit.
-    1  MISC  An unknown error.
-    2  OPT   An invalid option.
-    3  VAL   An invalid or missing value.
-    4  AUTH  A permissions error.
-    5  DPND  A dependency error.
-    6  CHLD  A child process exited unsuccessfully.
-    7  SGL   A `superglue' script error.
-
-EOF
-}
-readonly -f sglue_help
+if [[ ! "$0" =~ install\.sh$ ]]; then
+  sglue_err CHLD "invalid shell script param \$0 \`$0'"
+fi
 
 ################################################################################
 ## CHECK PERMISSIONS
 ################################################################################
 
-[[ ${EUID} -eq 0 ]] || sglue_err AUTH 'invalid user permissions'
+if [[ ${EUID} -ne 0 ]]; then
+  sudo=$(sglue_which sudo)
+  [[ "${sudo}" =~ ^/ ]] || sglue_err AUTH 'invalid user permissions'
+  ${sudo} "$0" "$@"
+  exit $?
+fi
+
+################################################################################
+## PRINT HEADER
+################################################################################
+
+printf "%s\n" '--------------------------'
+printf "%s\n" 'SUPERGLUE INSTALL STARTED'
 
 ################################################################################
 ## DEFINE COMMANDS
@@ -198,42 +314,20 @@ sed=$(sglue_which sed)
 ## CHECK COMMANDS
 ################################################################################
 
-sglue_chk CMD ${cat}
-sglue_chk CMD ${chmod}
-sglue_chk CMD ${chown}
-sglue_chk CMD ${cp}
-sglue_chk CMD ${grep}
-sglue_chk CMD ${mkdir}
-sglue_chk CMD ${rm}
-sglue_chk CMD ${sed}
-
-################################################################################
-## CHECK $0 VALUE
-################################################################################
-
-printf '%s' "$0" | ${grep} 'install\.sh$' > /dev/null
-RT=$?
-[[ $RT -eq 1 ]] && sglue_err CHLD "invalid shell script param \$0 \`$0'"
-[[ $RT -ne 0 ]] && sglue_err CHLD "\$0 \`${grep}' exited with \`$RT'"
+sglue_chk CMD ${cat} ${chmod} ${chown} ${cp} ${grep} ${mkdir} ${rm} ${sed}
 
 ################################################################################
 ## CHANGE DIRECTORY
 ################################################################################
 
-if [[ ! "$0" =~ ^(\./)?install\.sh$ ]]; then
-  RS="$(printf '%s' "$0" | ${sed} -e 's|/install\.sh$||')"
-  RT=$?
-  [[ $RT -eq 0 ]] || sglue_err CHLD "\$0 \`${sed}' exited with \`$RT'"
-  [[ -n "$RS"  ]] || sglue_err CHLD "\$0 \`${sed}' printed empty result"
-  [[ -d "$RS"  ]] || sglue_err CHLD "\$0 \`${sed}' printed invalid path \`$RS'"
-  cd "$RS"
-fi
+[[ "$0" =~ ^(\./)?install\.sh$ ]] || cd "${0%%/install.sh}"
 
 ################################################################################
-## SET SRC PATHS
+## DEFINE SRC PATHS
 ################################################################################
 
-readonly SGLUE_SRC_D="$(pwd -P)/src"
+readonly SGLUE_REPO_D="$(pwd -P)"
+readonly SGLUE_SRC_D="${SGLUE_REPO_D}/src"
 readonly SGLUE_CMD_D="${SGLUE_SRC_D}/bin"
 readonly SGLUE_LIB_D="${SGLUE_SRC_D}/lib"
 readonly SGLUE_HELP_D="${SGLUE_SRC_D}/help"
@@ -242,13 +336,11 @@ readonly SGLUE_HELP_D="${SGLUE_SRC_D}/help"
 ## CHECK SRC PATHS
 ################################################################################
 
-sglue_chk DIR "${SGLUE_SRC_D}"
-sglue_chk DIR "${SGLUE_CMD_D}"
-sglue_chk DIR "${SGLUE_LIB_D}"
-sglue_chk DIR "${SGLUE_HELP_D}"
+sglue_chk DIR "${SGLUE_REPO_D}" "${SGLUE_SRC_D}" "${SGLUE_CMD_D}" \
+  "${SGLUE_LIB_D}" "${SGLUE_HELP_D}"
 
 ################################################################################
-## SET DEST PATHS
+## DEFINE DEST PATHS
 ################################################################################
 
 readonly SGLUE_LIB_DEST='/lib/superglue'
@@ -274,7 +366,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     -h|--help)
-      sglue_help
+      ${cat} "${SGLUE_REPO_D}/install.help"
       exit 0
       ;;
     *)
@@ -435,12 +527,16 @@ sglue_mk_help()
 }
 
 ################################################################################
-## INSTALL SUPERGLUE
+## INSTALL COMMANDS
 ################################################################################
 
 for SGLUE_SRC in "${SGLUE_CMD_D}"/*.sh ; do
   sglue_mk_cmd "${SGLUE_SRC}"
 done
+
+################################################################################
+## INSTALL FUNCTIONS
+################################################################################
 
 ${rm} -rf ${SGLUE_LIB_DEST}/*
 
@@ -448,11 +544,22 @@ for SGLUE_SRC in "${SGLUE_LIB_D}"/sgl_*.sh ; do
   sglue_mk_lib "${SGLUE_SRC}"
 done
 
+################################################################################
+## INSTALL HELP FILES
+################################################################################
+
 ${rm} -rf ${SGLUE_HELP_DEST}/*
 
 for SGLUE_SRC in "${SGLUE_HELP_D}"/* ; do
   sglue_mk_help "${SGLUE_SRC}"
 done
+
+################################################################################
+## PRINT FOOTER
+################################################################################
+
+printf "%s\n" 'SUPERGLUE INSTALL FINISHED'
+printf "%s\n" '--------------------------'
 
 ################################################################################
 ## EXIT
