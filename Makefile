@@ -4,16 +4,16 @@
 all: install
 
 install:
-	/usr/bin/sudo ./install.sh
+	@./install.sh
 
 i: install
 
 force:
-	/usr/bin/sudo ./install.sh --force
+	@./install.sh --force
 
 f: force
 
 test:
-	./test/quick.test
+	@./test/quick.test
 
 t: test
