@@ -6,9 +6,9 @@
 # @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
 #
 # @use ./install.sh [OPTION]
-# @opt -c|--clean  Remove `superglue' files and directories.
-# @opt -f|--force  If destination exists overwrite it.
-# @opt -h|--help   Print help info and exit.
+# @opt -?|-h|--help    Print help info and exit.
+# @opt -f|--force      If a destination exists overwrite it.
+# @opt -x|--uninstall  Remove `superglue' files and directories.
 # @exit
 #   0  PASS  A successful exit.
 #   1  ERR   An unknown error.
@@ -445,7 +445,15 @@ fi
 
 if [[ $# -gt 0 ]]; then
   case "$1" in
-    -c|--clean)
+    -\?|-h|--help)
+      ${cat} "${SGLUE_REPO_D}/install.help"
+      printf "\n"
+      exit 0
+      ;;
+    -f|--force)
+      SGLUE_FORCE=1
+      ;;
+    -x|--uninstall)
       SGLUE_TITLE='UNINSTALL'
       sglue_header
       # remove commands
@@ -457,18 +465,11 @@ if [[ $# -gt 0 ]]; then
       # remove funcs
       [[ -d "${SGLUE_LIB_DEST}" ]] && ${rm} -rf "${SGLUE_LIB_DEST}"
       sglue_pass 'functions uninstalled'
-      # remove help files
+      # remove helps
       [[ -d "${SGLUE_HELP_DEST}" ]] && ${rm} -rf "${SGLUE_HELP_DEST}"
       sglue_pass 'help files uninstalled'
       # end uninstall
       sglue_footer
-      exit 0
-      ;;
-    -f|--force)
-      SGLUE_FORCE=1
-      ;;
-    -h|--help)
-      ${cat} "${SGLUE_REPO_D}/install.help"
       exit 0
       ;;
     *)

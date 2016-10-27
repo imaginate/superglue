@@ -1,0 +1,24 @@
+
+  make [TARGET]
+
+  Targets:
+    b|build      The same as `install'.
+    c|clean      The same as `uninstall'.
+    f|force      Forcefully install all of the `superglue' paths.
+    h|help       Print the help info and exit.
+    i|install    Safely install all of the `superglue' paths.
+    t|test       Run all of the tests and print the results.
+    x|uninstall  Remove all of the `superglue' paths.
+
+  Default Target:
+    install
+
+  Exit Codes:
+    0  PASS  A successful exit.
+    1  ERR   An unknown error.
+    2  OPT   An invalid option.
+    3  VAL   An invalid or missing value.
+    4  AUTH  A permissions error.
+    5  DPND  A dependency error.
+    6  CHLD  A child process exited unsuccessfully.
+    7  SGL   A `superglue' script error.

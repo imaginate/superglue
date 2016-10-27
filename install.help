@@ -2,9 +2,9 @@
   ./install.sh [OPTION]
 
   Options:
-    -c|--clean  Remove `superglue' files and directories.
-    -f|--force  If destination exists overwrite it.
-    -h|--help   Print help info and exit.
+    -?|-h|--help    Print help info and exit.
+    -f|--force      If a destination exists overwrite it.
+    -x|--uninstall  Remove `superglue' files and directories.
 
   Exit Codes:
     0  PASS  A successful exit.

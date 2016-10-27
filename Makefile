@@ -1,20 +1,51 @@
 
-.PHONY: install i force f test t clean c
+################################################################################
+## DECLARE PHONY TARGETS
+################################################################################
+
+.PHONY: \
+	b build \
+	c clean \
+	f force \
+	h help \
+	i install install-f install-force \
+	t test \
+	x uninstall
+
+################################################################################
+## DEFINE DEFAULT TARGET
+################################################################################
 
 all: install
 
+################################################################################
+## DEFINE PHONY TARGETS
+################################################################################
+
+b: build
+build: install
+
+c: clean
+clean: uninstall
+
+f: force
+force: install-force
+
+h: help
+help:
+	@cat ./make.help && printf "\n"
+
+i: install
 install:
 	@./install.sh
-i: install
-
-force:
+install-f: install-force
+install-force:
 	@./install.sh --force
-f: force
 
+t: test
 test:
 	@./test/quick.test
-t: test
 
-clean:
-	@./install.sh --clean
-c: clean
+x: uninstall
+uninstall:
+	@./install.sh --uninstall
