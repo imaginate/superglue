@@ -586,6 +586,7 @@ Note that `SGL_QUIET` and `SGL_SILENT` do not disable printing the colored `MSG`
   Options:
     -B|--backup-ext=EXT   Override the usual backup file extension.
     -b|--backup[=CTRL]    Make a backup of each existing destination file.
+    -d|--define=VARS      Define variables for each DEST to use.
     -F|--no-force         If destination exists do not overwrite it.
     -f|--force            If destination exists overwrite it.
     -H|--cmd-dereference  Follow command-line SRC symlinks.
@@ -630,6 +631,13 @@ Note that `SGL_QUIET` and `SGL_SILENT` do not disable printing the colored `MSG`
     REGEX  Can be any string. Refer to bash test `=~' operator for more details.
     SRC    Must be a valid file path. File must also contain at least one
            destination tag: `# @dest DEST'.
+    VAR    Must be a valid `KEY=VALUE' pair. The KEY must start with a character
+           matching `[a-zA-Z_]', can only contain `[a-zA-Z0-9_]', and must end
+           with `[a-zA-Z0-9]'. The VALUE must not contain a `,'.
+    VARS   Must be a list of one or more VAR separated by `,'.
+
+  Returns:
+    0  PASS
 
 ```
 

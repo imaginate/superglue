@@ -15,6 +15,7 @@
 # @use sgl_mk_dest [...OPTION] ...SRC
 # @opt -B|--backup-ext=EXT   Override the usual backup file extension.
 # @opt -b|--backup[=CTRL]    Make a backup of each existing destination file.
+# @opt -d|--define=VARS      Define variables for each DEST to use.
 # @opt -F|--no-force         If destination exists do not overwrite it.
 # @opt -f|--force            If a destination exists overwrite it.
 # @opt -H|--cmd-dereference  Follow command-line SRC symlinks.
@@ -57,6 +58,10 @@
 # @val REGEX  Can be any string. Refer to bash test `=~' operator for more details.
 # @val SRC    Must be a valid file path. File must also contain at least one
 #             destination tag: `# @dest DEST'.
+# @val VAR    Must be a valid `KEY=VALUE' pair. The KEY must start with a character
+#             matching `[a-zA-Z_]', can only contain `[a-zA-Z0-9_]', and must end
+#             with `[a-zA-Z0-9]'. The VALUE must not contain a `,'.
+# @val VARS   Must be a list of one or more VAR separated by `,'.
 # @return
 #   0  PASS
 ############################################################
@@ -71,23 +76,31 @@ sgl_mk_dest()
   local -i silent=${SGL_SILENT}
   local -a opts
   local -a vals
+  local -a vars
+  local -A paths
   local regex='/[^/]+/[^/]+$'
   local attr
   local mode
   local own
   local opt
   local val
+  local var
   local src
-  local dest
-  local parent
   local tag
+  local dest
+  local path
   local space
-  local home
+  local parent
+
+  # setup VARS
+  vars=(HOME)
+  paths[HOME]="$(printf '%s' ${HOME} | ${sed} -e 's/[\/&]/\\&/g')"
 
   # parse each argument
   _sgl_parse_args "${FN}" \
     '-B|--backup-ext'   1 \
     '-b|--backup'       2 \
+    '-d|--define'       1 \
     '-F|--no-force'     0 \
     '-f|--force'        0 \
     '-H|--cmd-dereference' 0 \
@@ -140,6 +153,21 @@ sgl_mk_dest()
         else
           opts[${#opts[@]}]='--backup'
         fi
+        ;;
+      -d|--define)
+        val="${_SGL_OPT_VALS[${i}]}"
+        [[ -n "${val}" ]] || _sgl_err VAL "missing \`${FN}' \`${opt}' VARS"
+        while IFS= read -r -d ',' var; do
+          if [[ ! "${var}" =~ ^[a-zA-Z_]= ]]; then
+            _sgl_err VAL "invalid \`${FN}' \`${opt}' VAR \`${var}'"
+          fi
+          path="${var#*=}"
+          var="${var%%=*}"
+          vars[${#vars[@]}]="${var}"
+          paths[${var}]="$(printf '%s' "${path}" | ${sed} -e 's/[\/&]/\\&/g')"
+        done <<EOF
+"${val},"
+EOF
         ;;
       -F|--no-force)
         force=0
@@ -275,7 +303,6 @@ EOF
   # set grep/sed regexps and home replace
   tag='^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+'
   space='[[:blank:]]\+$'
-  home="$(printf '%s' ${HOME} | ${sed} -e 's/[\/&]/\\&/g')"
 
   # build values
   vals=()
@@ -292,8 +319,13 @@ EOF
 
     # parse each DEST
     while IFS= read -r dest; do
-      dest="$(printf '%s' "${dest}" | ${sed} -e "s/${tag}//" -e "s/${space}//" \
-        -e 's/\$HOME\|\${HOME}/'"${home}/")"
+      dest="$(printf '%s' "${dest}" | ${sed} -e "s/${tag}//" -e "s/${space}//")"
+      for var in "${vars[@]}"; do
+        [[ "${dest}" =~ ${var} ]] || continue
+        path="${paths[${var}]}"
+        var='\$'"${var}"'\|\${'"${var}"'}' # regex `$VAR|${VAR}'
+        dest="$(printf '%s' "${dest}" | ${sed} -e "s/${var}/${path}/g")"
+      done
       if [[ -n "${regex}" ]] && [[ ! "${dest}" =~ ${regex} ]]; then
         _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST path \`${dest}'"
       fi
