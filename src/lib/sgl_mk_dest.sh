@@ -77,11 +77,13 @@ sgl_mk_dest()
   local -a opts
   local -a vals
   local -a vars
+  local -A keys
   local -A paths
   local regex='/[^/]+/[^/]+$'
   local attr
   local mode
   local own
+  local key
   local opt
   local val
   local var
@@ -94,6 +96,7 @@ sgl_mk_dest()
 
   # setup VARS
   vars=(HOME)
+  keys[HOME]='\$HOME\|\${HOME}' # regex `$KEY|${KEY}'
   paths[HOME]="$(printf '%s' ${HOME} | ${sed} -e 's/[\/&]/\\&/g')"
 
   # parse each argument
@@ -158,15 +161,21 @@ sgl_mk_dest()
         val="${_SGL_OPT_VALS[${i}]}"
         [[ -n "${val}" ]] || _sgl_err VAL "missing \`${FN}' \`${opt}' VARS"
         while IFS= read -r -d ',' var; do
-          if [[ ! "${var}" =~ ^[a-zA-Z_]= ]]; then
-            _sgl_err VAL "invalid \`${FN}' \`${opt}' VAR \`${var}'"
+          if [[ ! "${var}" =~ = ]]; then
+            _sgl_err VAL "missing \`${FN}' \`${opt}' VAR \`${var}' VALUE"
           fi
+          key="${var%%=*}"
           path="${var#*=}"
-          var="${var%%=*}"
-          vars[${#vars[@]}]="${var}"
-          paths[${var}]="$(printf '%s' "${path}" | ${sed} -e 's/[\/&]/\\&/g')"
+          if [[ ! "${key}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]] || \
+             [[ ! "${key}" =~ [a-zA-Z0-9]$ ]]
+          then
+            _sgl_err VAL "invalid \`${FN}' \`${opt}' VAR \`${var}' KEY \`${key}'"
+          fi
+          vars[${#vars[@]}]="${key}"
+          keys[${key}]='\$'"${key}"'\|\${'"${key}"'}' # regex `$KEY|${KEY}'
+          paths[${key}]="$(printf '%s' "${path}" | ${sed} -e 's/[\/&]/\\&/g')"
         done <<EOF
-"${val},"
+${val},
 EOF
         ;;
       -F|--no-force)
@@ -202,7 +211,7 @@ EOF
               ;;
           esac
         done <<EOF
-"${val},"
+${val},
 EOF
         opts[${#opts[@]}]="--no-preserve=${val}"
         ;;
@@ -226,7 +235,7 @@ EOF
                 ;;
             esac
           done <<EOF
-"${val},"
+${val},
 EOF
           opts[${#opts[@]}]="--preserve=${val}"
         else
@@ -322,9 +331,9 @@ EOF
       dest="$(printf '%s' "${dest}" | ${sed} -e "s/${tag}//" -e "s/${space}//")"
       for var in "${vars[@]}"; do
         [[ "${dest}" =~ ${var} ]] || continue
+        key="${keys[${var}]}"
         path="${paths[${var}]}"
-        var='\$'"${var}"'\|\${'"${var}"'}' # regex `$VAR|${VAR}'
-        dest="$(printf '%s' "${dest}" | ${sed} -e "s/${var}/${path}/g")"
+        dest="$(printf '%s' "${dest}" | ${sed} -e "s/${key}/${path}/g")"
       done
       if [[ -n "${regex}" ]] && [[ ! "${dest}" =~ ${regex} ]]; then
         _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST path \`${dest}'"
