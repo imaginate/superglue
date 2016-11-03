@@ -116,13 +116,14 @@ cat <<'EOF' > "${src}"
 # SOURCE
 # @dest $HOME/dest.sgl.file
 # @dest ${TMP}/dest.sgl.file
+# @mode 0755
 # ...
 EOF
 
 while IFS= read -r line; do
   [[ -n "${line}" ]] && add_error "${line}"
 done <<EOF
-$(sgl mk_dest -d 'TMP=/tmp' -m 0755 "${src}" 3>&2 2>&1 1>&3-)
+$(sgl mk_dest -d 'TMP=/tmp' "${src}" 3>&2 2>&1 1>&3-)
 EOF
 
 dest1="${HOME}/dest.sgl.file"
