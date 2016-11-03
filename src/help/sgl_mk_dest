@@ -5,6 +5,8 @@
     -B|--backup-ext=EXT   Override the usual backup file extension.
     -b|--backup[=CTRL]    Make a backup of each existing destination file.
     -d|--define=VARS      Define variables for each DEST to use.
+    -E|--no-empty         Force SRC to contain at least one destination tag.
+    -e|--empty            Allow SRC to not contain a destination tag.
     -F|--no-force         If destination exists do not overwrite it.
     -f|--force            If destination exists overwrite it.
     -H|--cmd-dereference  Follow command-line SRC symlinks.

@@ -17,6 +17,8 @@
 # @opt -B|--backup-ext=EXT   Override the usual backup file extension.
 # @opt -b|--backup[=CTRL]    Make a backup of each existing destination file.
 # @opt -d|--define=VARS      Define variables for each DEST to use.
+# @opt -E|--no-empty         Force SRC to contain at least one destination tag.
+# @opt -e|--empty            Allow SRC to not contain a destination tag.
 # @opt -F|--no-force         If destination exists do not overwrite it.
 # @opt -f|--force            If a destination exists overwrite it.
 # @opt -H|--cmd-dereference  Follow command-line SRC symlinks.
@@ -72,43 +74,102 @@
 sgl_mk_dest()
 {
   local -r FN='sgl_mk_dest'
-  local -i RT
-  local -i i
-  local -i len
-  local -i force=0
-  local -i quiet=${SGL_QUIET}
-  local -i silent=${SGL_SILENT}
-  local -a modes
-  local -a owns
-  local -a opts
-  local -a vals
-  local -a vars
-  local -A keys
-  local -A paths
-  local regex='/[^/]+/[^/]+$'
+
+  # tag patterns
+  local -r dtag='^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+'
+
+  # option flags
+  local -i silent
+  local -i quiet
+  local -i force
+  local -i empty
+  local regex
   local mode
   local own
-  local key
-  local opt
-  local val
-  local var
-  local src
-  local tag
-  local dest
-  local path
-  local space
-  local parent
 
-  # setup VARS
-  vars=(HOME)
-  keys[HOME]='\$HOME\|\${HOME}' # regex `$KEY|${KEY}'
-  paths[HOME]="$(printf '%s' ${HOME} | ${sed} -e 's/[\/&]/\\&/g')"
+  # parsed values
+  local -a cp_opts
+  local -A vars
 
-  # parse each argument
+  __sgl_mk_dest__args "$@"
+  __sgl_mk_dest__opts "${_SGL_OPTS[@]}"
+  __sgl_mk_dest__vals "${_SGL_VALS[@]}"
+}
+readonly -f sgl_mk_dest
+
+################################################################################
+## DEFINE HELPER FUNCTIONS
+################################################################################
+
+############################################################
+# @private
+# @func __sgl_mk_dest__add_cp_opt
+# @use __sgl_mk_dest__add_cp_opt OPTION[=VALUE]
+# @return
+#   0  PASS
+############################################################
+__sgl_mk_dest__add_cp_opt()
+{
+  cp_opts[${#cp_opts[@]}]="$1"
+}
+readonly -f __sgl_mk_dest__add_cp_opt
+
+############################################################
+# @private
+# @func __sgl_mk_dest__chk_key
+# @use __sgl_mk_dest__chk_key KEY
+# @return
+#   0  PASS
+#   1  FAIL
+############################################################
+__sgl_mk_dest__chk_key()
+{
+  if [[ "$1" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]] && [[ "$1" =~ [a-zA-Z0-9]$ ]]; then
+    return 0
+  fi
+  return 1
+}
+readonly -f __sgl_mk_dest__chk_key
+
+############################################################
+# @private
+# @func __sgl_mk_dest__has_key
+# @use __sgl_mk_dest__has_key KEY
+# @return
+#   0  PASS
+#   1  FAIL
+############################################################
+__sgl_mk_dest__has_key()
+{
+  local _key
+
+  for _key in "${!vars[@]}"; do
+    [[ "$1" == "${_key}" ]] && return 0
+  done
+  return 1
+}
+readonly -f __sgl_mk_dest__has_key
+
+################################################################################
+## DEFINE ARGUMENT FUNCTIONS
+################################################################################
+
+############################################################
+# @private
+# @func __sgl_mk_dest__args
+# @use __sgl_mk_dest__args ...ARG
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__args()
+{
   _sgl_parse_args "${FN}" \
     '-B|--backup-ext'   1 \
     '-b|--backup'       2 \
     '-d|--define'       1 \
+    '-E|--no-empty'     0 \
+    '-e|--empty'        0 \
     '-F|--no-force'     0 \
     '-f|--force'        0 \
     '-H|--cmd-dereference' 0 \
@@ -131,277 +192,231 @@ sgl_mk_dest()
     '-w|--warn'         0 \
     '-x|--one-file-system' 0 \
     -- "$@"
+}
+readonly -f __sgl_mk_dest__args
+
+################################################################################
+## DEFINE OPTION FUNCTIONS
+################################################################################
+
+############################################################
+# @private
+# @func __sgl_mk_dest__opts
+# @use __sgl_mk_dest__opts ...OPT
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__opts()
+{
+  local -i _index=0
+  local -i _bool
+  local _opt
+  local _val
+
+  # set default values
+  cp_opts=()
+  vars=(['HOME']="$(printf '%s' "${HOME}" | ${sed} -e 's/[\/&]/\\&/g')")
+  empty=0
+  force=0
+  regex='/[^/]+/[^/]+$'
+  quiet=${SGL_QUIET}
+  silent=${SGL_SILENT}
+  [[ ${SGL_QUIET_PARENT}  -eq 1 ]] && quiet=1
+  [[ ${SGL_SILENT_PARENT} -eq 1 ]] && silent=1
 
   # parse each OPTION
-  len=${#_SGL_OPTS[@]}
-  opts=()
-  for ((i=0; i<len; i++)); do
-    opt="${_SGL_OPTS[${i}]}"
-    case "${opt}" in
-      -B|--backup-ext)
-        __sgl_mk_dest__opt_B "${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -b|--backup)
-        __sgl_mk_dest__opt_b ${_SGL_OPT_BOOL[${i}]} "${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -d|--define)
-        __sgl_mk_dest__opt_d "${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -F|--no-force)
-        force=0
-        opts[${#opts[@]}]='--no-clobber'
-        ;;
-      -f|--force)
-        force=1
-        opts[${#opts[@]}]='--force'
-        ;;
-      -H|--cmd-dereference)
-        opts[${#opts[@]}]='-H'
-        ;;
-      -h|-\?|--help)
-        _sgl_help sgl_mk_dest
-        ;;
-      -K|--no-keep)
-        __sgl_mk_dest__opt_K "${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -k|--keep)
-        __sgl_mk_dest__opt_k ${_SGL_OPT_BOOL[${i}]} "${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -L|--dereference)
-        opts[${#opts[@]}]='-L'
-        ;;
-      -l|--link)
-        opts[${#opts[@]}]='--link'
-        ;;
-      -m|--mode)
-        __sgl_mk_dest__opt_m "${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -n|--no-clobber)
-        force=0
-        opts[${#opts[@]}]='--no-clobber'
-        ;;
-      -o|--owner)
-        __sgl_mk_dest__opt_o "${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -P|--no-dereference)
-        opts[${#opts[@]}]='-P'
-        ;;
-      -Q|--silent)
-        silent=1
-        ;;
-      -q|--quiet)
-        quiet=1
-        ;;
-      -s|--symlink)
-        opts[${#opts[@]}]='--symbolic-link'
-        ;;
-      -t|--test)
-        regex="${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -u|--update)
-        opts[${#opts[@]}]='--update'
-        ;;
-      -V|--verbose)
-        opts[${#opts[@]}]='--verbose'
-        ;;
-      -v|--version)
-        _sgl_version
-        ;;
-      -w|--warn)
-        force=1
-        opts[${#opts[@]}]='--interactive'
-        ;;
-      -x|--one-file-system)
-        opts[${#opts[@]}]='--one-file-system'
-        ;;
-      *)
-        _sgl_err SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
-        ;;
-    esac
+  for _opt in "$@"; do
+    _bool=${_SGL_OPT_BOOL[${_index}]}
+    _val="${_SGL_OPT_VALS[${_index}]}"
+    __sgl_mk_dest__opt "${_opt}" ${_bool} "${_val}"
+    _index=$(( ++_index ))
   done
+
+  # set empty regex to pass
+  [[ -z "${regex}" ]] && regex='.*'
 
   # append target option
-  opts[${#opts[@]}]='--no-target-directory'
-
-  # catch missing SRC
-  [[ ${#_SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`${FN}' SRC"
-
-  # set grep/sed regexps and home replace
-  tag='^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+'
-  space='[[:blank:]]\+$'
-
-  # build values
-  vals=()
-  for src in "${_SGL_VALS[@]}"; do
-    [[ -f "${src}" ]] || _sgl_err VAL "invalid \`${FN}' SRC path \`${src}'"
-
-    # catch missing dest tag in SRC
-    ${grep} "${tag}" "${src}" > ${NIL}
-    RT=$?
-    [[ ${RT} -eq 1 ]] && _sgl_err VAL "missing \`${FN}' SRC \`${src}' dest tag"
-    if [[ ${RT} -ne 0 ]]; then
-      _sgl_err CHLD "\`${grep}' in \`${FN}' exited with \`${RT}'"
-    fi
-
-    # parse each DEST
-    while IFS= read -r dest; do
-      dest="$(printf '%s' "${dest}" | ${sed} -e "s/${tag}//" -e "s/${space}//")"
-      for var in "${vars[@]}"; do
-        [[ "${dest}" =~ ${var} ]] || continue
-        key="${keys[${var}]}"
-        path="${paths[${var}]}"
-        dest="$(printf '%s' "${dest}" | ${sed} -e "s/${key}/${path}/g")"
-      done
-      if [[ -n "${regex}" ]] && [[ ! "${dest}" =~ ${regex} ]]; then
-        _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST path \`${dest}'"
-      fi
-      parent="$(printf '%s' "${dest}" | ${sed} -e 's|/[^/]\+$||')"
-      if [[ ! -d "${parent}" ]]; then
-        _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST path \`${dest}'"
-      fi
-      if [[ -d "${dest}" ]]; then
-        _sgl_err VAL "a DEST dir \`${dest}' already exists in SRC \`${src}'"
-      fi
-      if [[ -f "${dest}" ]] && [[ ${force} -ne 1 ]]; then
-        _sgl_err VAL "DEST \`${dest}' already exists (use \`--force' to overwrite)"
-      fi
-
-      # append SRC and DEST
-      vals[${#vals[@]}]="${src}"
-      vals[${#vals[@]}]="${dest}"
-    done <<EOF
-$(${grep} "${tag}" "${src}")
-EOF
-  done
-
-  # make each DEST
-  len=${#vals[@]}
-  for ((i=0; i<len; i++)); do
-    src="${vals[${i}]}"
-    i=$(( ++i ))
-    dest="${vals[${i}]}"
-
-    # copy SRC
-    ${cp} "${opts[@]}" "${src}" "${dest}"
-    RT=$?
-    if [[ ${RT} -ne 0 ]]; then
-      _sgl_err CHLD "\`${cp}' in \`${FN}' exited with \`${RT}'"
-    fi
-
-    # set DEST file mode
-    if [[ -n "${mode}" ]]; then
-      ${chmod} "${mode}" "${dest}"
-      RT=$?
-      if [[ ${RT} -ne 0 ]]; then
-        _sgl_err CHLD "\`${chmod}' in \`${FN}' exited with \`${RT}'"
-      fi
-    fi
-
-    # set DEST file owner
-    if [[ -n "${own}" ]]; then
-      ${chown} "${own}" "${dest}"
-      RT=$?
-      if [[ ${RT} -ne 0 ]]; then
-        _sgl_err CHLD "\`${chown}' in \`${FN}' exited with \`${RT}'"
-      fi
-    fi
-  done
+  __sgl_mk_dest__add_cp_opt '--no-target-directory'
 }
-readonly -f sgl_mk_dest
+readonly -f __sgl_mk_dest__opts
+
+############################################################
+# @private
+# @func __sgl_mk_dest__opt
+# @use __sgl_mk_dest__opt OPT BOOL VAL
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__opt()
+{
+  case "$1" in
+    -B|--backup-ext)
+      __sgl_mk_dest__opt_B "$@"
+      ;;
+    -b|--backup)
+      __sgl_mk_dest__opt_b "$@"
+      ;;
+    -d|--define)
+      __sgl_mk_dest__opt_d "$@"
+      ;;
+    -E|--no-empty)
+      empty=0
+      ;;
+    -e|--empty)
+      empty=1
+      ;;
+    -F|--no-force)
+      force=0
+      __sgl_mk_dest__add_cp_opt '--no-clobber'
+      ;;
+    -f|--force)
+      force=1
+      __sgl_mk_dest__add_cp_opt '--force'
+      ;;
+    -H|--cmd-dereference)
+      __sgl_mk_dest__add_cp_opt '-H'
+      ;;
+    -h|-\?|--help)
+      _sgl_help sgl_mk_dest
+      ;;
+    -K|--no-keep)
+      __sgl_mk_dest__opt_K "$@"
+      ;;
+    -k|--keep)
+      __sgl_mk_dest__opt_k "$@"
+      ;;
+    -L|--dereference)
+      __sgl_mk_dest__add_cp_opt '-L'
+      ;;
+    -l|--link)
+      __sgl_mk_dest__add_cp_opt '--link'
+      ;;
+    -m|--mode)
+      __sgl_mk_dest__opt_m "$@"
+      ;;
+    -n|--no-clobber)
+      force=0
+      __sgl_mk_dest__add_cp_opt '--no-clobber'
+      ;;
+    -o|--owner)
+      __sgl_mk_dest__opt_o "$@"
+      ;;
+    -P|--no-dereference)
+      __sgl_mk_dest__add_cp_opt '-P'
+      ;;
+    -Q|--silent)
+      silent=1
+      ;;
+    -q|--quiet)
+      quiet=1
+      ;;
+    -s|--symlink)
+      __sgl_mk_dest__add_cp_opt '--symbolic-link'
+      ;;
+    -t|--test)
+      regex="$3"
+      ;;
+    -u|--update)
+      __sgl_mk_dest__add_cp_opt '--update'
+      ;;
+    -V|--verbose)
+      __sgl_mk_dest__add_cp_opt '--verbose'
+      ;;
+    -v|--version)
+      _sgl_version
+      ;;
+    -w|--warn)
+      force=1
+      __sgl_mk_dest__add_cp_opt '--interactive'
+      ;;
+    -x|--one-file-system)
+      __sgl_mk_dest__add_cp_opt '--one-file-system'
+      ;;
+    *)
+      _sgl_err SGL "invalid parsed \`${FN}' OPTION \`${1}'"
+      ;;
+  esac
+}
+readonly -f __sgl_mk_dest__opt
 
 ############################################################
 # @private
 # @func __sgl_mk_dest__opt_B
-# @use __sgl_mk_dest__opt_B EXT
-# @val EXT  Must be a valid file extension to append to the end of a backup file.
-#           The default is `~'. Spaces are not allowed.
+# @use __sgl_mk_dest__opt_B OPT BOOL VAL
 # @return
 #   0  PASS
 # @exit-on-error
 ############################################################
 __sgl_mk_dest__opt_B()
 {
-  [[ -n "$1" ]] || _sgl_err VAL "missing \`${FN}' \`${opt}' EXT"
+  [[ -n "$3" ]] || _sgl_err VAL "missing \`${FN}' \`${1}' EXT"
 
-  if [[ "$1" =~ [[:space:]] ]]; then
-    _sgl_err VAL "invalid space in \`${FN}' \`${opt}' EXT \`${1}'"
+  if [[ "$3" =~ [[:space:]] ]]; then
+    _sgl_err VAL "invalid space in \`${FN}' \`${1}' EXT \`${3}'"
   fi
 
-  opts[${#opts[@]}]="--suffix=${1}"
+  __sgl_mk_dest__add_cp_opt "--suffix=${3}"
 }
 readonly -f __sgl_mk_dest__opt_B
 
 ############################################################
 # @private
 # @func __sgl_mk_dest__opt_b
-# @use __sgl_mk_dest__opt_b BOOL CTRL
-# @val BOOL  Must be a boolean (false=`0'|true=`1') that indicates whether CTRL
-#            should be parsed.
-# @val CTRL  Must be a backup control method from below options.
-#   `none|off'      Never make backups (even if `--backup' is given).
-#   `numbered|t'    Make numbered backups.
-#   `existing|nil'  If numbered backups exist make numbered. Otherwise make simple.
-#   `simple|never'  Always make simple backups.
+# @use __sgl_mk_dest__opt_b OPT BOOL VAL
 # @return
 #   0  PASS
 # @exit-on-error
 ############################################################
 __sgl_mk_dest__opt_b()
 {
-  if [[ $1 -eq 0 ]]; then
-    opts[${#opts[@]}]='--backup'
+  if [[ $2 -eq 0 ]]; then
+    __sgl_mk_dest__add_cp_opt '--backup'
     return 0
   fi
 
-  case "$2" in
+  case "$3" in
     none|off)     ;;
     numbered|t)   ;;
     existing|nil) ;;
     simple|never) ;;
     *)
-      _sgl_err VAL "invalid \`${FN}' \`${opt}' CTRL \`${2}'"
+      _sgl_err VAL "invalid \`${FN}' \`${1}' CTRL \`${3}'"
       ;;
   esac
-  opts[${#opts[@]}]="--backup=${2}"
+  __sgl_mk_dest__add_cp_opt "--backup=${3}"
 }
 readonly -f __sgl_mk_dest__opt_b
 
 ############################################################
 # @private
 # @func __sgl_mk_dest__opt_d
-# @use __sgl_mk_dest__opt_d VARS
-# @val VAR   Must be a valid `KEY=VALUE' pair. The KEY must start with a character
-#            matching `[a-zA-Z_]', can only contain `[a-zA-Z0-9_]', and must end
-#            with `[a-zA-Z0-9]'. The VALUE must not contain a `,'.
-# @val VARS  Must be a list of one or more VAR separated by `,'.
+# @use __sgl_mk_dest__opt_d OPT BOOL VAL
 # @return
 #   0  PASS
 # @exit-on-error
 ############################################################
 __sgl_mk_dest__opt_d()
 {
-  local -r chars='^[a-zA-Z_][a-zA-Z0-9_]*$'
-  local -r endchar='[a-zA-Z0-9]$'
-  local var
-  local key
-  local path
+  local _var
+  local _key
+  local _val
 
-  [[ -n "$1" ]] || _sgl_err VAL "missing \`${FN}' \`${opt}' VARS"
+  [[ -n "$3" ]] || _sgl_err VAL "missing \`${FN}' \`${1}' VARS"
 
-  while IFS= read -r -d ',' var; do
-    if [[ ! "${var}" =~ = ]]; then
-      _sgl_err VAL "missing \`${FN}' \`${opt}' VAR \`${var}' VALUE"
+  while IFS= read -r -d ',' _var; do
+    if [[ ! "${_var}" =~ = ]]; then
+      _sgl_err VAL "missing \`${FN}' \`${1}' VAR \`${_var}' VALUE"
     fi
-    key="${var%%=*}"
-    path="${var#*=}"
-    if [[ ! "${key}" =~ ${chars} ]] || [[ ! "${key}" =~ ${endchar} ]]; then
-      _sgl_err VAL "invalid \`${FN}' \`${opt}' VAR \`${var}' KEY \`${key}'"
+    _key="${_var%%=*}"
+    _val="${_var#*=}"
+    if ! __sgl_mk_dest__chk_key "${_key}"; then
+      _sgl_err VAL "invalid \`${FN}' \`${1}' VAR \`${_var}' KEY \`${_key}'"
     fi
-    vars[${#vars[@]}]="${key}"
-    keys[${key}]='\$'"${key}"'\|\${'"${key}"'}' # regex `$KEY|${KEY}'
-    paths[${key}]="$(printf '%s' "${path}" | ${sed} -e 's/[\/&]/\\&/g')"
+    vars["${_key}"]="$(printf '%s' "${_val}" | ${sed} -e 's/[\/&]/\\&/g')"
   done <<EOF
-${1},
+${3},
 EOF
 }
 readonly -f __sgl_mk_dest__opt_d
@@ -409,29 +424,20 @@ readonly -f __sgl_mk_dest__opt_d
 ############################################################
 # @private
 # @func __sgl_mk_dest__opt_K
-# @use __sgl_mk_dest__opt_K ATTRS
-# @val ATTR   Must be a file attribute from below options.
-#   `mode'
-#   `ownership'
-#   `timestamps'
-#   `context'
-#   `links'
-#   `xattr'
-#   `all'
-# @val ATTRS  Must be a list of one or more ATTR separated by `,'.
+# @use __sgl_mk_dest__opt_K OPT BOOL VAL
 # @return
 #   0  PASS
 # @exit-on-error
 ############################################################
 __sgl_mk_dest__opt_K()
 {
-  local attr
+  local _attr
 
-  [[ -n "$1" ]] || _sgl_err VAL "missing \`${FN}' \`${opt}' ATTRS"
+  [[ -n "$3" ]] || _sgl_err VAL "missing \`${FN}' \`${1}' ATTRS"
 
   # check each ATTR
-  while IFS= read -r -d ',' attr; do
-    case "${attr}" in
+  while IFS= read -r -d ',' _attr; do
+    case "${_attr}" in
       mode)       ;;
       ownership)  ;;
       timestamps) ;;
@@ -440,50 +446,39 @@ __sgl_mk_dest__opt_K()
       xattr)      ;;
       all)        ;;
       *)
-        _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
+        _sgl_err VAL "invalid \`${FN}' \`${1}' ATTR \`${_attr}'"
         ;;
     esac
   done <<EOF
-${1},
+${3},
 EOF
 
-  opts[${#opts[@]}]="--no-preserve=${1}"
+  __sgl_mk_dest__add_cp_opt "--no-preserve=${3}"
 }
 readonly -f __sgl_mk_dest__opt_K
 
 ############################################################
 # @private
 # @func __sgl_mk_dest__opt_k
-# @use __sgl_mk_dest__opt_k BOOL ATTRS
-# @val ATTR   Must be a file attribute from below options.
-#   `mode'
-#   `ownership'
-#   `timestamps'
-#   `context'
-#   `links'
-#   `xattr'
-#   `all'
-# @val ATTRS  Must be a list of one or more ATTR separated by `,'.
-# @val BOOL  Must be a boolean (false=`0'|true=`1') that indicates whether ATTRS
-#            should be parsed.
+# @use __sgl_mk_dest__opt_k OPT BOOL VAL
 # @return
 #   0  PASS
 # @exit-on-error
 ############################################################
 __sgl_mk_dest__opt_k()
 {
-  local attr
+  local _attr
 
-  if [[ $1 -eq 0 ]]; then
-    opts[${#opts[@]}]='--preserve'
+  if [[ $2 -eq 0 ]]; then
+    __sgl_mk_dest__add_cp_opt '--preserve'
     return 0
   fi
 
-  [[ -n "$2" ]] || _sgl_err VAL "missing \`${FN}' \`${opt}' ATTRS"
+  [[ -n "$3" ]] || _sgl_err VAL "missing \`${FN}' \`${1}' ATTRS"
 
   # check each ATTR
-  while IFS= read -r -d ',' attr; do
-    case "${attr}" in
+  while IFS= read -r -d ',' _attr; do
+    case "${_attr}" in
       mode)       ;;
       ownership)  ;;
       timestamps) ;;
@@ -492,58 +487,252 @@ __sgl_mk_dest__opt_k()
       xattr)      ;;
       all)        ;;
       *)
-        _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
+        _sgl_err VAL "invalid \`${FN}' \`${1}' ATTR \`${_attr}'"
         ;;
     esac
   done <<EOF
-${2},
+${3},
 EOF
 
-  opts[${#opts[@]}]="--preserve=${2}"
+  __sgl_mk_dest__add_cp_opt "--preserve=${3}"
 }
 readonly -f __sgl_mk_dest__opt_k
 
 ############################################################
 # @private
 # @func __sgl_mk_dest__opt_m
-# @use __sgl_mk_dest__opt_m MODE
-# @val MODE  Must be a valid file mode.
+# @use __sgl_mk_dest__opt_m OPT BOOL VAL
 # @return
 #   0  PASS
 # @exit-on-error
 ############################################################
 __sgl_mk_dest__opt_m()
 {
-  local -r lmode='^[ugoa]*([-+=]([rwxXst]+|[ugo]))+$'
-  local -r omode='^[-+=]?[0-7]{1,4}$'
+  local -r _lmode='^[ugoa]*([-+=]([rwxXst]+|[ugo]))+$'
+  local -r _omode='^[-+=]?[0-7]{1,4}$'
 
-  [[ -n "$1" ]] || _sgl_err VAL "missing \`${FN}' \`${opt}' MODE"
+  [[ -n "$3" ]] || _sgl_err VAL "missing \`${FN}' \`${1}' MODE"
 
-  if [[ ! "$1" =~ ${lmode} ]] && [[ ! "$1" =~ ${omode} ]]; then
-    _sgl_err VAL "invalid \`${FN}' \`${opt}' MODE \`${1}'"
+  if [[ ! "$3" =~ ${_lmode} ]] && [[ ! "$3" =~ ${_omode} ]]; then
+    _sgl_err VAL "invalid \`${FN}' \`${1}' MODE \`${3}'"
   fi
 
-  mode="$1"
+  mode="$3"
 }
 readonly -f __sgl_mk_dest__opt_m
 
 ############################################################
 # @private
 # @func __sgl_mk_dest__opt_o
-# @use __sgl_mk_dest__opt_o OWNER
-# @val OWNER  Must be a valid USER[:GROUP].
+# @use __sgl_mk_dest__opt_o OPT BOOL VAL
 # @return
 #   0  PASS
 # @exit-on-error
 ############################################################
 __sgl_mk_dest__opt_o()
 {
-  [[ -n "$1" ]] || _sgl_err VAL "missing \`${FN}' \`${opt}' OWNER"
+  [[ -n "$3" ]] || _sgl_err VAL "missing \`${FN}' \`${1}' OWNER"
 
-  if [[ "$1" =~ [[:space:]] ]]; then
-    _sgl_err VAL "invalid space in \`${FN}' \`${opt}' OWNER \`${1}'"
+  if [[ "$3" =~ [[:space:]] ]]; then
+    _sgl_err VAL "invalid space in \`${FN}' \`${1}' OWNER \`${3}'"
   fi
 
-  own="$1"
+  own="$3"
 }
 readonly -f __sgl_mk_dest__opt_o
+
+################################################################################
+## DEFINE VALUE FUNCTIONS
+################################################################################
+
+############################################################
+# @private
+# @func __sgl_mk_dest__vals
+# @use __sgl_mk_dest__vals ...SRC
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__vals()
+{
+  local _src
+
+  [[ $# -eq 0 ]] && _sgl_err VAL "missing \`${FN}' SRC"
+
+  for _src in "$@"; do
+    __sgl_mk_dest__val "${_src}"
+  done
+}
+readonly -f __sgl_mk_dest__vals
+
+############################################################
+# @private
+# @func __sgl_mk_dest__val
+# @use __sgl_mk_dest__val SRC
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__val()
+{
+  local src="$1"
+  local dst
+  local _mode
+  local _own
+
+  [[ -f "${src}" ]] || _sgl_err VAL "invalid path for \`${FN}' SRC \`${src}'"
+
+  # handle no dest tags in SRC
+  if ! ${grep} "${dtag}" "${src}" > ${NIL} 2>&1; then
+    [[ ${empty} -eq 1 ]] && return 0
+    _sgl_err VAL "missing dest tag in \`${FN}' SRC \`${src}'"
+  fi
+
+  # set file mode
+  if [[ -n "${mode}" ]]; then
+    _mode="${mode}"
+  else
+    : # insert mode tag logic here
+  fi
+
+  # set file owner
+  if [[ -n "${own}" ]]; then
+    _own="${own}"
+  else
+    : # insert own tag logic here
+  fi
+
+  # parse each DEST
+  while IFS= read -r dst; do
+    __sgl_mk_dest__dst
+    __sgl_mk_dest__cp
+    __sgl_mk_dest__chmod "${_mode}"
+    __sgl_mk_dest__chown "${_own}"
+  done <<EOF
+$(${grep} "${dtag}" "${src}" 2> ${NIL})
+EOF
+}
+readonly -f __sgl_mk_dest__val
+
+############################################################
+# @private
+# @func __sgl_mk_dest__dst
+# @use __sgl_mk_dest__dst
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__dst()
+{
+  local -r _blank='[[:blank:]]\+$'
+  local _key
+  local _val
+
+  # trim dest tag and blank space from DEST
+  dst="$(printf '%s' "${dst}" | ${sed} -e "s/${dtag}//" -e "s/${_blank}//")"
+
+  # replace vars in DEST
+  while [[ "${dst}" =~ \$ ]]; do
+    _key="${dst#*$}"
+    if [[ -z "${_key}" ]]; then
+      _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST \`${dst}'"
+    fi
+    if [[ "${_key}" =~ ^\{ ]]; then
+      if [[ ! "${_key}" =~ \} ]]; then
+        _key="KEY \`\$${_key%%\$*}'"
+        _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST \`${dst}' ${_key}"
+      fi
+      _key="${_key#\{}"
+      _key="${_key%%\}*}"
+      if ! __sgl_mk_dest__chk_key "${_key}"; then
+        _key="KEY \`\${${_key}}'"
+        _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST \`${dst}' ${_key}"
+      fi
+      if ! __sgl_mk_dest__has_key "${_key}"; then
+        _key="KEY \`\${${_key}}'"
+        _sgl_err VAL "undefined \`${FN}' SRC \`${src}' DEST \`${dst}' ${_key}"
+      fi
+      _val="${vars[${_key}]}"
+      _key='\${'"${_key}"'}'
+      dst="$(printf '%s' "${dst}" | ${sed} -e "s/${_key}/${_val}/")"
+    else
+      _key="$(printf '%s' "${_key}" | ${sed} -e 's/[^a-zA-Z0-9_].*$//')"
+      if ! __sgl_mk_dest__chk_key "${_key}"; then
+        _key="KEY \`\$${_key}'"
+        _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST \`${dst}' ${_key}"
+      fi
+      if ! __sgl_mk_dest__has_key "${_key}"; then
+        _key="KEY \`\$${_key}'"
+        _sgl_err VAL "undefined \`${FN}' SRC \`${src}' DEST \`${dst}' ${_key}"
+      fi
+      _val="${vars[${_key}]}"
+      _key='\$'"${_key}"
+      dst="$(printf '%s' "${dst}" | ${sed} -e "s/${_key}/${_val}/")"
+    fi
+  done
+
+  # check DEST
+  if [[ ! "${dst}" =~ ${regex} ]] || [[ ! -d "${dst%/*}" ]]; then
+    _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST \`${dst}'"
+  fi
+  if [[ ! -f "${dst}" ]]; then
+    if [[ -d "${dst}" ]]; then
+      _sgl_err VAL "a dir already exists for DEST \`${dst}' in SRC \`${src}'"
+    fi
+    if [[ -a "${dst}" ]]; then
+      _sgl_err VAL "a non-file already exists for DEST \`${dst}' in SRC \`${src}'"
+    fi
+  elif [[ ${force} -ne 1 ]]; then
+    _sgl_err VAL "DEST \`${dst}' already exists (use \`--force' to overwrite)"
+  fi
+}
+readonly -f __sgl_mk_dest__dst
+
+############################################################
+# @private
+# @func __sgl_mk_dest__cp
+# @use __sgl_mk_dest__cp
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__cp()
+{
+  ${cp} "${cp_opts[@]}" "${src}" "${dst}" \
+    || _sgl_err CHLD "\`${cp}' in \`${FN}' exited with \`$?'"
+}
+readonly -f __sgl_mk_dest__cp
+
+############################################################
+# @private
+# @func __sgl_mk_dest__chmod
+# @use __sgl_mk_dest__chmod MODE
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__chmod()
+{
+  [[ -n "${1}" ]] || return 0
+
+  ${chmod} "${1}" "${dst}" \
+    || _sgl_err CHLD "\`${chmod}' in \`${FN}' exited with \`$?'"
+}
+readonly -f __sgl_mk_dest__chmod
+
+############################################################
+# @private
+# @func __sgl_mk_dest__chown
+# @use __sgl_mk_dest__chown OWNER
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__chown()
+{
+  [[ -n "${1}" ]] || return 0
+
+  ${chown} "${1}" "${dst}" \
+    || _sgl_err CHLD "\`${chown}' in \`${FN}' exited with \`$?'"
+}
+readonly -f __sgl_mk_dest__chown
