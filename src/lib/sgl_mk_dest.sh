@@ -77,6 +77,8 @@ sgl_mk_dest()
 
   # tag patterns
   local -r dtag='^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+'
+  local -r mtag='^[[:blank:]]*#[[:blank:]]*@mode[[:blank:]]\+'
+  local -r otag='^[[:blank:]]*#[[:blank:]]*@own[[:blank:]]\+'
 
   # option flags
   local -i silent
@@ -116,6 +118,22 @@ readonly -f __sgl_mk_dest__add_cp_opt
 
 ############################################################
 # @private
+# @func __sgl_mk_dest__chk_mode
+# @use __sgl_mk_dest__chk_mode MODE
+# @return
+#   0  PASS
+#   1  FAIL
+############################################################
+__sgl_mk_dest__chk_mode()
+{
+  [[ "$1" =~ ^[ugoa]*([-+=]([rwxXst]+|[ugo]))+$ ]] && return 0
+  [[ "$1" =~ ^[-+=]?[0-7]{1,4}$ ]] && return 0
+  return 1
+}
+readonly -f __sgl_mk_dest__chk_mode
+
+############################################################
+# @private
 # @func __sgl_mk_dest__chk_key
 # @use __sgl_mk_dest__chk_key KEY
 # @return
@@ -149,6 +167,19 @@ __sgl_mk_dest__has_key()
   return 1
 }
 readonly -f __sgl_mk_dest__has_key
+
+############################################################
+# @private
+# @func __sgl_mk_dest__trim_tag
+# @use __sgl_mk_dest__trim_tag TAG LINE
+# @return
+#   0  PASS
+############################################################
+__sgl_mk_dest__trim_tag()
+{
+  printf '%s' "${2}" | ${sed} -e "s/${1}//" -e 's/[[:blank:]]\+$//'
+}
+readonly -f __sgl_mk_dest__trim_tag
 
 ################################################################################
 ## DEFINE ARGUMENT FUNCTIONS
@@ -508,14 +539,10 @@ readonly -f __sgl_mk_dest__opt_k
 ############################################################
 __sgl_mk_dest__opt_m()
 {
-  local -r _lmode='^[ugoa]*([-+=]([rwxXst]+|[ugo]))+$'
-  local -r _omode='^[-+=]?[0-7]{1,4}$'
-
   [[ -n "$3" ]] || _sgl_err VAL "missing \`${FN}' \`${1}' MODE"
 
-  if [[ ! "$3" =~ ${_lmode} ]] && [[ ! "$3" =~ ${_omode} ]]; then
-    _sgl_err VAL "invalid \`${FN}' \`${1}' MODE \`${3}'"
-  fi
+  __sgl_mk_dest__chk_mode "$3" \
+    || _sgl_err VAL "invalid \`${FN}' \`${1}' MODE \`${3}'"
 
   mode="$3"
 }
@@ -591,15 +618,28 @@ __sgl_mk_dest__val()
   # set file mode
   if [[ -n "${mode}" ]]; then
     _mode="${mode}"
-  else
-    : # insert mode tag logic here
+  elif ${grep} "${mtag}" "${src}" > ${NIL} 2>&1; then
+    if [[ "$(${grep} -c "${mtag}" "${src}" 2> ${NIL})" != '1' ]]; then
+      _sgl_err VAL "only 1 mode tag allowed in \`${FN}' SRC \`${src}'"
+    fi
+    _mode="$(${grep} "${mtag}" "${src}" 2> ${NIL})"
+    _mode="$(__sgl_mk_dest__trim_tag "${mtag}" "${_mode}")"
+    __sgl_mk_dest__chk_mode "${_mode}" \
+      || _sgl_err VAL "invalid \`${FN}' SRC \`${src}' MODE \`${_mode}'"
   fi
 
   # set file owner
   if [[ -n "${own}" ]]; then
     _own="${own}"
-  else
-    : # insert own tag logic here
+  elif ${grep} "${otag}" "${src}" > ${NIL} 2>&1; then
+    if [[ "$(${grep} -c "${otag}" "${src}" 2> ${NIL})" != '1' ]]; then
+      _sgl_err VAL "only 1 own tag allowed in \`${FN}' SRC \`${src}'"
+    fi
+    _own="$(${grep} "${otag}" "${src}" 2> ${NIL})"
+    _own="$(__sgl_mk_dest__trim_tag "${otag}" "${_own}")"
+    if [[ "${_own}" =~ [[:space:]] ]]; then
+      _sgl_err VAL "invalid space in \`${FN}' SRC \`${src}' OWNER \`${_own}'"
+    fi
   fi
 
   # parse each DEST
@@ -624,12 +664,11 @@ readonly -f __sgl_mk_dest__val
 ############################################################
 __sgl_mk_dest__dst()
 {
-  local -r _blank='[[:blank:]]\+$'
   local _key
   local _val
 
   # trim dest tag and blank space from DEST
-  dst="$(printf '%s' "${dst}" | ${sed} -e "s/${dtag}//" -e "s/${_blank}//")"
+  dst="$(__sgl_mk_dest__trim_tag "${dtag}" "${dst}")"
 
   # replace vars in DEST
   while [[ "${dst}" =~ \$ ]]; do
