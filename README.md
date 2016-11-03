@@ -39,73 +39,57 @@ Superglue is a comprehensive bash library and wrapper designed for minimal kerne
 
 
 ## Example
-```bash
-# Copies the source to each destination found in the source.
-# Destinations are defined using `@dest /path/to/dest'.
-# Also sets each destinations file mode and owner.
-sgl mk_dest -m 0644 -o user -u ./source.file
-```
-```bash
-#!/bin/superglue
+- **Interact Instantly**<br>
+  This example copies a source file to multiple destinations with [sgl_mk_dest](#sgl_mk_dest). Destinations and other values are defined with tags (e.g. `# @TAG VALUE`) from within the source file for maximum convenience and flexibility.
+  ```bash
+  # make an example source file
+  src="${HOME}/source.file"
+  cat <<'EOF' > "${src}"
+  # EXAMPLE SOURCE FILE
+  # ...
+  # @dest ${HOME}/destination.file
+  # @dest $CUSTOM/destination.file
+  # @mode 0755
+  # @own user:group
+  # ...
+  EOF
+  # run sgl_mk_dest which makes both destinations
+  sgl mk_dest --define='CUSTOM=/your/custom/path' "${src}"
+  ```
 
-# Load only the needed functions.
-sgl_source 'chk_*' err parse_args print
+- **Wrap Warmly**<br>
+  This example shows how you can quickly create executable scripts that are reliable and clear.
+  ```bash
+  #!/bin/superglue -S
 
-# Verify the user is root or exit the process.
-sgl_chk_uid --exit --prg='Example' 0
+  # Verify that the effective user is the root or exit.
+  sgl_chk_uid --exit -- 0
 
-# Parse the arguments easily.
-sgl_parse_args --prg 'Example' --options \
-  '-a|--ask' Y \
-  '-b|--bounce' \
-  '-c|--coast' \
-  '-t|--tell' M \
-  '-?|--help'
+  # Parse the arguments and exit if an invalid option is used.
+  sgl_parse_args --options \
+    '-a|--ask' Y \
+    '-b|--bounce' \
+    '-c|--coast' \
+    '-t|--tell' M \
+    '-?|--help'
 
-# Handle the parsed options.
-len=${#SGL_OPTS[@]}
-for ((i=0; i<len; i++)); do
-  opt="${SGL_OPTS[i]}"
-  case "${opt}" in
-    -a|--ask)
-      DEMO_ASK="${SGL_OPT_VALS[i]}"
-      # If empty throw an error and exit the process.
-      [[ -n "${DEMO_ASK}" ]] || sgl_err VAL "invalid empty value for \`${opt}'"
-      ;;
-    -b|--bounce)
-      DEMO_BOUNCE=1
-      DEMO_COAST=0
-      ;;
-    -c|--coast)
-      DEMO_BOUNCE=0
-      DEMO_COAST=1
-      ;;
-    -t|--tell)
-      if [[ ${SGL_OPT_BOOL[i]} -eq 1 ]]; then
-        DEMO_TELL="${SGL_OPT_VALS[i]}"
-      else
-        DEMO_TELL="${DEMO_ASK}"
-      fi
-      ;;
-    -\?|--help)
-      echo 'some helpful info'
-      exit 0
-      ;;
-  esac
-done
+  # Process the parsed options.
+  for opt in "${SGL_OPTS[@]}"; do
+    # ...
+  done
 
-# Print to stdout with easy disabling or prettifying.
-sgl_print -C blue -t 'Your Choice' -D ' - ' -- 'Ask or tell?'
-#  => "<blue>Your Choice</blue> - Ask or tell?"
+  # On test failure print a clear error message and exit.
+  test -n "${str}" || sgl_err VAL "invalid empty string"
 
-# If grep fails exit the process.
-${grep} 'a mighty pattern' random.txt > ${NIL}
-sgl_chk_exit --exit --prg='Example' --cmd='grep' $?
+  # If grep fails exit the process.
+  ${grep} 'a mighty pattern' random.txt > ${NIL}
+  sgl_chk_exit --exit --prg='Wrap Warmly' --cmd='grep' $?
 
-sgl_print --title=VALUES --delim-msg=',' "${SGL_VALS[@]}"
-sgl_print --color-msg green 'EXAMPLE PASSED'
-exit 0
-```
+  # Prettily print to stdout.
+  sgl_print -C blue -t 'Your Choice' -D ' - ' -- 'Maybe...'
+  sgl_print --title='VALUES' --delim=',' "${SGL_VALS[@]}"
+  sgl_print --color green 'EXAMPLE PASSED'
+  ```
 
 ## Install
 
