@@ -55,14 +55,22 @@
 #   `numbered|t'    Make numbered backups.
 #   `existing|nil'  If numbered backups exist make numbered. Otherwise make simple.
 #   `simple|never'  Always make simple backups.
-# @val DEST   Must be a valid path.
+# @val DEST   Must be a valid path. Can include defined VAR KEYs identified by a
+#             leading `$' and optionally wrapped with curly brackets, `${KEY}'.
 # @val EXT    Must be a valid file extension to append to the end of a backup file.
 #             The default is `~'. Spaces are not allowed.
 # @val MODE   Must be a valid file mode.
 # @val OWNER  Must be a valid USER[:GROUP].
 # @val REGEX  Can be any string. Refer to bash test `=~' operator for more details.
-# @val SRC    Must be a valid file path. File must also contain at least one
-#             destination tag: `# @dest DEST'.
+# @val SRC    Must be a valid file path. The SRC file must contain at least one
+#             `dest' TAG unless `--empty' is used and can contain one `mode' and
+#             `own' TAG. Note that OPTION values take priority over TAG values.
+# @val TAG    A TAG is defined within a SRC file's contents. It must be a one-line
+#             comment formatted as `# @TAG VALUE'. Spacing is optional except
+#             between TAG and VALUE. The TAG must be one of the options below.
+#   `dest'  Formatted `# @dest DEST'.
+#   `mode'  Formatted `# @mode MODE'.
+#   `own'   Formatted `# @own OWNER'.
 # @val VAR    Must be a valid `KEY=VALUE' pair. The KEY must start with a character
 #             matching `[a-zA-Z_]', can only contain `[a-zA-Z0-9_]', and must end
 #             with `[a-zA-Z0-9]'. The VALUE must not contain a `,'.

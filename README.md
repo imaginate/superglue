@@ -587,6 +587,8 @@ Note that `SGL_QUIET` and `SGL_SILENT` do not disable printing the colored `MSG`
     -B|--backup-ext=EXT   Override the usual backup file extension.
     -b|--backup[=CTRL]    Make a backup of each existing destination file.
     -d|--define=VARS      Define variables for each DEST to use.
+    -E|--no-empty         Force SRC to contain at least one destination tag.
+    -e|--empty            Allow SRC to not contain a destination tag.
     -F|--no-force         If destination exists do not overwrite it.
     -f|--force            If destination exists overwrite it.
     -H|--cmd-dereference  Follow command-line SRC symlinks.
@@ -611,7 +613,7 @@ Note that `SGL_QUIET` and `SGL_SILENT` do not disable printing the colored `MSG`
     -|--                  End the options.
 
   Values:
-    ATTRS  A comma-separated list of file attributes from below options.
+    ATTR   Must be a file attribute from below options.
       `mode'
       `ownership'
       `timestamps'
@@ -619,18 +621,28 @@ Note that `SGL_QUIET` and `SGL_SILENT` do not disable printing the colored `MSG`
       `links'
       `xattr'
       `all'
-    CTRL   A version control method to use for backups from below options.
+    ATTRS  Must be a list of one or more ATTR separated by `,'.
+    CTRL   Must be a backup control method from below options.
       `none|off'      Never make backups (even if `--backup' is given).
       `numbered|t'    Make numbered backups.
       `existing|nil'  If numbered backups exist make numbered. Otherwise make simple.
       `simple|never'  Always make simple backups.
-    DEST   Must be a valid path.
-    EXT    An extension to append to the end of a backup file. The default is `~'.
+    DEST   Must be a valid path. Can include defined VAR KEYs identified by a
+           leading `$' and optionally wrapped with curly brackets, `${KEY}'.
+    EXT    Must be a valid file extension to append to the end of a backup file.
+           The default is `~'. Spaces are not allowed.
     MODE   Must be a valid file mode.
     OWNER  Must be a valid USER[:GROUP].
     REGEX  Can be any string. Refer to bash test `=~' operator for more details.
-    SRC    Must be a valid file path. File must also contain at least one
-           destination tag: `# @dest DEST'.
+    SRC    Must be a valid file path. The SRC file must contain at least one
+           `dest' TAG unless `--empty' is used and can contain one `mode' and
+           `own' TAG. Note that OPTION values take priority over TAG values.
+    TAG    A TAG is defined within a SRC file's contents. It must be a one-line
+           comment formatted as `# @TAG VALUE'. Spacing is optional except
+           between TAG and VALUE. The TAG must be one of the options below.
+      `dest'  Formatted `# @dest DEST'.
+      `mode'  Formatted `# @mode MODE'.
+      `own'   Formatted `# @own OWNER'.
     VAR    Must be a valid `KEY=VALUE' pair. The KEY must start with a character
            matching `[a-zA-Z_]', can only contain `[a-zA-Z0-9_]', and must end
            with `[a-zA-Z0-9]'. The VALUE must not contain a `,'.
