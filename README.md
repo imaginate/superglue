@@ -15,30 +15,8 @@ Superglue is a comprehensive bash library and wrapper designed for minimal kerne
   - [Posix Grep](https://www.gnu.org/software/grep/grep.html)
   - [Posix Sed](https://www.gnu.org/software/sed/sed.html)
 
-## Contents
-- [Example](#example)
-- [Install](#install)
-- [Reference](#reference)
-- [Main Command](#command)
-- [Variables](#varaibles)
-- [Functions](#functions)
-  - [sgl_chk_cmd](#sgl_chk_cmd)
-  - [sgl_chk_dir](#sgl_chk_dir)
-  - [sgl_chk_exit](#sgl_chk_exit)
-  - [sgl_chk_file](#sgl_chk_file)
-  - [sgl_chk_uid](#sgl_chk_uid)
-  - [sgl_color](#sgl_color)
-  - [sgl_cp](#sgl_cp)
-  - [sgl_err](#sgl_err)
-  - [sgl_mk_dest](#sgl_mk_dest)
-  - [sgl_parse_args](#sgl_parse_args)
-  - [sgl_print](#sgl_print)
-  - [sgl_set_color](#sgl_set_color)
-  - [sgl_source](#sgl_source)
-- [Everything Else](#everything-else)
 
-
-## Example
+### Examples
 - **Interact Instantly**<br>
   This example copies a source file to multiple destinations with [sgl_mk_dest](#sgl_mk_dest). Destinations and other values are defined with tags (e.g. `# @TAG VALUE`) from within the source file for maximum convenience and flexibility.
   ```bash
@@ -91,23 +69,8 @@ Superglue is a comprehensive bash library and wrapper designed for minimal kerne
   sgl_print --color green 'EXAMPLE PASSED'
   ```
 
-## Install
-
-```sh
-git clone https://github.com/imaginate/superglue.git
-make -C superglue && rm -rf superglue
-```
-
-**NOTE**<br>
-The following Linux packages are on the to-do list. To help please message [Adam](adam@imaginate.life).
-- [deb](https://wiki.debian.org/HowToPackageForDebian)
-- [rpm](https://fedoraproject.org/wiki/How_to_create_an_RPM_package)
-- [pkg](https://wiki.archlinux.org/index.php/creating_packages)
-- [apk](https://wiki.alpinelinux.org/wiki/Creating_an_Alpine_package)
-- [portage](https://wiki.gentoo.org/wiki/Portage)
-
-
 ## Reference
+- [Install](#install)
 - [Command](#command)
 - [Variables](#varaibles)
   - [main](#main)
@@ -128,7 +91,20 @@ The following Linux packages are on the to-do list. To help please message [Adam
   - [sgl_set_color](#sgl_set_color)
   - [sgl_source](#sgl_source)
 
-### Command
+## Install
+```sh
+git clone https://github.com/imaginate/superglue.git
+make -C superglue && rm -rf superglue
+```
+**NOTE**<br>
+The following Linux packages are on the to-do list.
+- [deb](https://wiki.debian.org/HowToPackageForDebian)
+- [rpm](https://fedoraproject.org/wiki/How_to_create_an_RPM_package)
+- [pkg](https://wiki.archlinux.org/index.php/creating_packages)
+- [apk](https://wiki.alpinelinux.org/wiki/Creating_an_Alpine_package)
+- [portage](https://wiki.gentoo.org/wiki/Portage)
+
+## Command
 ```text
 
   sgl|sglue|superglue [...OPTION] FUNC [...FUNC_ARG]
@@ -183,9 +159,9 @@ The following Linux packages are on the to-do list. To help please message [Adam
 
 ```
 
-### Variables
+## Variables
 
-#### Main
+### Main
 - `SGL_ARGS`  A _read-only_ zero-based indexed array of each [command](#command) passed `SCRIPT_ARG`.
 - `SGL_FUNC`  The _read-only_ name of the [command](#command) passed `FUNC`.
 - `SGL_OPTS`  See [sgl_parse_args](#sgl_parse_args).
@@ -195,7 +171,7 @@ The following Linux packages are on the to-do list. To help please message [Adam
 - `SGL_VALS`  See [sgl_parse_args](#sgl_parse_args).
 - `SGL_VERSION`  The _read-only_ `superglue` version.
 
-#### Options
+### Options
 All options are booleans (i.e. their value is `1` for `true` or `0` for `false`).
 - `SGL_ALIAS`
 - `SGL_COLOR_OFF`
@@ -208,7 +184,7 @@ All options are booleans (i.e. their value is `1` for `true` or `0` for `false`)
 - `SGL_SILENT_PARENT`
 - `SGL_VERBOSE`
 
-#### Colors
+### Colors
 All colors are evaluated [ANSI SGR escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code#graphics). Use [sgl_set_color](#sgl_set_color) to safely change these values.
 - `SGL_BLACK`  Default code is `30`.
 - `SGL_BLUE`  Default code is `94`.
@@ -220,9 +196,9 @@ All colors are evaluated [ANSI SGR escape codes](https://en.wikipedia.org/wiki/A
 - `SGL_WHITE`  Default code is `97`.
 - `SGL_YELLOW`  Default code is `33`.
 
-### Functions
+## Functions
 
-#### sgl_chk_cmd
+### sgl_chk_cmd
 ```text
 
   sgl_chk_cmd [...OPTION] ...CMD
@@ -259,7 +235,7 @@ All colors are evaluated [ANSI SGR escape codes](https://en.wikipedia.org/wiki/A
 
 ```
 
-#### sgl_chk_dir
+### sgl_chk_dir
 ```text
 
   sgl_chk_dir [...OPTION] ...DIR
@@ -296,7 +272,7 @@ All colors are evaluated [ANSI SGR escape codes](https://en.wikipedia.org/wiki/A
 
 ```
 
-#### sgl_chk_exit
+### sgl_chk_exit
 ```text
 
   sgl_chk_exit [...OPTION] ...CODE
@@ -335,7 +311,7 @@ All colors are evaluated [ANSI SGR escape codes](https://en.wikipedia.org/wiki/A
 
 ```
 
-#### sgl_chk_file
+### sgl_chk_file
 ```text
 
   sgl_chk_file [...OPTION] ...FILE
@@ -372,7 +348,7 @@ All colors are evaluated [ANSI SGR escape codes](https://en.wikipedia.org/wiki/A
 
 ```
 
-#### sgl_chk_uid
+### sgl_chk_uid
 ```text
 
   sgl_chk_uid [...OPTION] ...UID
@@ -410,7 +386,7 @@ All colors are evaluated [ANSI SGR escape codes](https://en.wikipedia.org/wiki/A
 
 ```
 
-#### sgl_color
+### sgl_color
 Note that `SGL_QUIET` and `SGL_SILENT` do not disable printing the colored `MSG` to `stdout`.
 ```text
 
@@ -443,7 +419,7 @@ Note that `SGL_QUIET` and `SGL_SILENT` do not disable printing the colored `MSG`
 
 ```
 
-#### sgl_cp
+### sgl_cp
 ```text
 
   sgl_cp [...OPTION] SRC DEST
@@ -501,7 +477,7 @@ Note that `SGL_QUIET` and `SGL_SILENT` do not disable printing the colored `MSG`
 
 ```
 
-#### sgl_err
+### sgl_err
 ```text
 
   sgl_err [...OPTION] ERR ...MSG
@@ -562,7 +538,7 @@ Note that `SGL_QUIET` and `SGL_SILENT` do not disable printing the colored `MSG`
 
 ```
 
-#### sgl_mk_dest
+### sgl_mk_dest
 ```text
 
   sgl_mk_dest [...OPTION] ...SRC
@@ -637,7 +613,7 @@ Note that `SGL_QUIET` and `SGL_SILENT` do not disable printing the colored `MSG`
 
 ```
 
-#### sgl_parse_args
+### sgl_parse_args
 This function parses each argument in `SGL_ARGS` and saves the resulting option/values to the following zero-based indexed arrays:
 - `SGL_OPTS`  Each parsed option (e.g. `-s` or `--long`).
 - `SGL_OPT_BOOL`  Whether each option has a value (`0` or `1`).
@@ -675,7 +651,7 @@ This function parses each argument in `SGL_ARGS` and saves the resulting option/
 
 ```
 
-#### sgl_print
+### sgl_print
 Flexibly print a message to `stdout` or a destination of choice.
 ```text
 
@@ -722,7 +698,7 @@ Flexibly print a message to `stdout` or a destination of choice.
 
 ```
 
-#### sgl_set_color
+### sgl_set_color
 ```text
 
   sgl_set_color [...OPTION] [...COLOR[=ANSI]]
@@ -756,7 +732,7 @@ Flexibly print a message to `stdout` or a destination of choice.
 
 ```
 
-#### sgl_source
+### sgl_source
 Note that `sgl_source` is automatically available within `superglue`.
 ```text
 
@@ -790,7 +766,6 @@ Note that `sgl_source` is automatically available within `superglue`.
     0  PASS
 
 ```
-
 
 ## Everything Else
 [Issue/Suggestion](https://github.com/imaginate/superglue/issues)<br>
