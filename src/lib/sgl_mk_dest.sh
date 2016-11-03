@@ -11,6 +11,7 @@
 ################################################################################
 
 ############################################################
+# @public
 # @func sgl_mk_dest
 # @use sgl_mk_dest [...OPTION] ...SRC
 # @opt -B|--backup-ext=EXT   Override the usual backup file extension.
@@ -38,7 +39,7 @@
 # @opt -w|--warn             If destination exists prompt before overwrite.
 # @opt -x|--one-file-system  Stay on this file system.
 # @opt -|--                  End the options.
-# @val ATTRS  A comma-separated list of file attributes from below options.
+# @val ATTR   Must be a file attribute from below options.
 #   `mode'
 #   `ownership'
 #   `timestamps'
@@ -46,13 +47,15 @@
 #   `links'
 #   `xattr'
 #   `all'
-# @val CTRL   A version control method to use for backups from below options.
+# @val ATTRS  Must be a list of one or more ATTR separated by `,'.
+# @val CTRL   Must be a backup control method from below options.
 #   `none|off'      Never make backups (even if `--backup' is given).
 #   `numbered|t'    Make numbered backups.
 #   `existing|nil'  If numbered backups exist make numbered. Otherwise make simple.
 #   `simple|never'  Always make simple backups.
 # @val DEST   Must be a valid path.
-# @val EXT    An extension to append to the end of a backup file. The default is `~'.
+# @val EXT    Must be a valid file extension to append to the end of a backup file.
+#             The default is `~'. Spaces are not allowed.
 # @val MODE   Must be a valid file mode.
 # @val OWNER  Must be a valid USER[:GROUP].
 # @val REGEX  Can be any string. Refer to bash test `=~' operator for more details.
@@ -64,6 +67,7 @@
 # @val VARS   Must be a list of one or more VAR separated by `,'.
 # @return
 #   0  PASS
+# @exit-on-error
 ############################################################
 sgl_mk_dest()
 {
@@ -74,13 +78,14 @@ sgl_mk_dest()
   local -i force=0
   local -i quiet=${SGL_QUIET}
   local -i silent=${SGL_SILENT}
+  local -a modes
+  local -a owns
   local -a opts
   local -a vals
   local -a vars
   local -A keys
   local -A paths
   local regex='/[^/]+/[^/]+$'
-  local attr
   local mode
   local own
   local key
@@ -134,49 +139,13 @@ sgl_mk_dest()
     opt="${_SGL_OPTS[${i}]}"
     case "${opt}" in
       -B|--backup-ext)
-        val="${_SGL_OPT_VALS[${i}]}"
-        if [[ -z "${val}" ]] || [[ "${val}" =~ [[:space:]] ]]; then
-          _sgl_err VAL "invalid \`${FN}' \`${opt}' EXT \`${val}'"
-        fi
-        opts[${#opts[@]}]="--suffix=${val}"
+        __sgl_mk_dest__opt_B "${_SGL_OPT_VALS[${i}]}"
         ;;
       -b|--backup)
-        if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
-          val="${_SGL_OPT_VALS[${i}]}"
-          case "${val}" in
-            none|off)     ;;
-            numbered|t)   ;;
-            existing|nil) ;;
-            simple|never) ;;
-            *)
-              _sgl_err VAL "invalid \`${FN}' CTRL \`${val}'"
-              ;;
-          esac
-          opts[${#opts[@]}]="--backup=${val}"
-        else
-          opts[${#opts[@]}]='--backup'
-        fi
+        __sgl_mk_dest__opt_b ${_SGL_OPT_BOOL[${i}]} "${_SGL_OPT_VALS[${i}]}"
         ;;
       -d|--define)
-        val="${_SGL_OPT_VALS[${i}]}"
-        [[ -n "${val}" ]] || _sgl_err VAL "missing \`${FN}' \`${opt}' VARS"
-        while IFS= read -r -d ',' var; do
-          if [[ ! "${var}" =~ = ]]; then
-            _sgl_err VAL "missing \`${FN}' \`${opt}' VAR \`${var}' VALUE"
-          fi
-          key="${var%%=*}"
-          path="${var#*=}"
-          if [[ ! "${key}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]] || \
-             [[ ! "${key}" =~ [a-zA-Z0-9]$ ]]
-          then
-            _sgl_err VAL "invalid \`${FN}' \`${opt}' VAR \`${var}' KEY \`${key}'"
-          fi
-          vars[${#vars[@]}]="${key}"
-          keys[${key}]='\$'"${key}"'\|\${'"${key}"'}' # regex `$KEY|${KEY}'
-          paths[${key}]="$(printf '%s' "${path}" | ${sed} -e 's/[\/&]/\\&/g')"
-        done <<EOF
-${val},
-EOF
+        __sgl_mk_dest__opt_d "${_SGL_OPT_VALS[${i}]}"
         ;;
       -F|--no-force)
         force=0
@@ -193,54 +162,10 @@ EOF
         _sgl_help sgl_mk_dest
         ;;
       -K|--no-keep)
-        val="${_SGL_OPT_VALS[${i}]}"
-        if [[ -z "${val}" ]] || [[ ! "${val}" =~ ^[a-z]+(,[a-z]+)*$ ]]; then
-          _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTRS \`${val}'"
-        fi
-        while IFS= read -r -d ',' attr; do
-          case "${attr}" in
-            mode)       ;;
-            ownership)  ;;
-            timestamps) ;;
-            context)    ;;
-            links)      ;;
-            xattr)      ;;
-            all)        ;;
-            *)
-              _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
-              ;;
-          esac
-        done <<EOF
-${val},
-EOF
-        opts[${#opts[@]}]="--no-preserve=${val}"
+        __sgl_mk_dest__opt_K "${_SGL_OPT_VALS[${i}]}"
         ;;
       -k|--keep)
-        if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
-          val="${_SGL_OPT_VALS[${i}]}"
-          if [[ -z "${val}" ]] || [[ ! "${val}" =~ ^[a-z]+(,[a-z]+)*$ ]]; then
-            _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTRS \`${val}'"
-          fi
-          while IFS= read -r -d ',' attr; do
-            case "${attr}" in
-              mode)       ;;
-              ownership)  ;;
-              timestamps) ;;
-              context)    ;;
-              links)      ;;
-              xattr)      ;;
-              all)        ;;
-              *)
-                _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
-                ;;
-            esac
-          done <<EOF
-${val},
-EOF
-          opts[${#opts[@]}]="--preserve=${val}"
-        else
-          opts[${#opts[@]}]='--preserve'
-        fi
+        __sgl_mk_dest__opt_k ${_SGL_OPT_BOOL[${i}]} "${_SGL_OPT_VALS[${i}]}"
         ;;
       -L|--dereference)
         opts[${#opts[@]}]='-L'
@@ -249,22 +174,14 @@ EOF
         opts[${#opts[@]}]='--link'
         ;;
       -m|--mode)
-        val="${_SGL_OPT_VALS[${i}]}"
-        if [[ -z "${val}" ]] || [[ "${val}" =~ [[:space:]] ]]; then
-          _sgl_err VAL "invalid \`${FN}' \`${opt}' MODE \`${val}'"
-        fi
-        mode="${val}"
+        __sgl_mk_dest__opt_m "${_SGL_OPT_VALS[${i}]}"
         ;;
       -n|--no-clobber)
         force=0
         opts[${#opts[@]}]='--no-clobber'
         ;;
       -o|--owner)
-        val="${_SGL_OPT_VALS[${i}]}"
-        if [[ -z "${val}" ]] || [[ "${val}" =~ [[:space:]] ]]; then
-          _sgl_err VAL "invalid \`${FN}' \`${opt}' OWNER \`${val}'"
-        fi
-        own="${val}"
+        __sgl_mk_dest__opt_o "${_SGL_OPT_VALS[${i}]}"
         ;;
       -P|--no-dereference)
         opts[${#opts[@]}]='-P'
@@ -391,3 +308,242 @@ EOF
   done
 }
 readonly -f sgl_mk_dest
+
+############################################################
+# @private
+# @func __sgl_mk_dest__opt_B
+# @use __sgl_mk_dest__opt_B EXT
+# @val EXT  Must be a valid file extension to append to the end of a backup file.
+#           The default is `~'. Spaces are not allowed.
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__opt_B()
+{
+  [[ -n "$1" ]] || _sgl_err VAL "missing \`${FN}' \`${opt}' EXT"
+
+  if [[ "$1" =~ [[:space:]] ]]; then
+    _sgl_err VAL "invalid space in \`${FN}' \`${opt}' EXT \`${1}'"
+  fi
+
+  opts[${#opts[@]}]="--suffix=${1}"
+}
+readonly -f __sgl_mk_dest__opt_B
+
+############################################################
+# @private
+# @func __sgl_mk_dest__opt_b
+# @use __sgl_mk_dest__opt_b BOOL CTRL
+# @val BOOL  Must be a boolean (false=`0'|true=`1') that indicates whether CTRL
+#            should be parsed.
+# @val CTRL  Must be a backup control method from below options.
+#   `none|off'      Never make backups (even if `--backup' is given).
+#   `numbered|t'    Make numbered backups.
+#   `existing|nil'  If numbered backups exist make numbered. Otherwise make simple.
+#   `simple|never'  Always make simple backups.
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__opt_b()
+{
+  if [[ $1 -eq 0 ]]; then
+    opts[${#opts[@]}]='--backup'
+    return 0
+  fi
+
+  case "$2" in
+    none|off)     ;;
+    numbered|t)   ;;
+    existing|nil) ;;
+    simple|never) ;;
+    *)
+      _sgl_err VAL "invalid \`${FN}' \`${opt}' CTRL \`${2}'"
+      ;;
+  esac
+  opts[${#opts[@]}]="--backup=${2}"
+}
+readonly -f __sgl_mk_dest__opt_b
+
+############################################################
+# @private
+# @func __sgl_mk_dest__opt_d
+# @use __sgl_mk_dest__opt_d VARS
+# @val VAR   Must be a valid `KEY=VALUE' pair. The KEY must start with a character
+#            matching `[a-zA-Z_]', can only contain `[a-zA-Z0-9_]', and must end
+#            with `[a-zA-Z0-9]'. The VALUE must not contain a `,'.
+# @val VARS  Must be a list of one or more VAR separated by `,'.
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__opt_d()
+{
+  local -r chars='^[a-zA-Z_][a-zA-Z0-9_]*$'
+  local -r endchar='[a-zA-Z0-9]$'
+  local var
+  local key
+  local path
+
+  [[ -n "$1" ]] || _sgl_err VAL "missing \`${FN}' \`${opt}' VARS"
+
+  while IFS= read -r -d ',' var; do
+    if [[ ! "${var}" =~ = ]]; then
+      _sgl_err VAL "missing \`${FN}' \`${opt}' VAR \`${var}' VALUE"
+    fi
+    key="${var%%=*}"
+    path="${var#*=}"
+    if [[ ! "${key}" =~ ${chars} ]] || [[ ! "${key}" =~ ${endchar} ]]; then
+      _sgl_err VAL "invalid \`${FN}' \`${opt}' VAR \`${var}' KEY \`${key}'"
+    fi
+    vars[${#vars[@]}]="${key}"
+    keys[${key}]='\$'"${key}"'\|\${'"${key}"'}' # regex `$KEY|${KEY}'
+    paths[${key}]="$(printf '%s' "${path}" | ${sed} -e 's/[\/&]/\\&/g')"
+  done <<EOF
+${1},
+EOF
+}
+readonly -f __sgl_mk_dest__opt_d
+
+############################################################
+# @private
+# @func __sgl_mk_dest__opt_K
+# @use __sgl_mk_dest__opt_K ATTRS
+# @val ATTR   Must be a file attribute from below options.
+#   `mode'
+#   `ownership'
+#   `timestamps'
+#   `context'
+#   `links'
+#   `xattr'
+#   `all'
+# @val ATTRS  Must be a list of one or more ATTR separated by `,'.
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__opt_K()
+{
+  local attr
+
+  [[ -n "$1" ]] || _sgl_err VAL "missing \`${FN}' \`${opt}' ATTRS"
+
+  # check each ATTR
+  while IFS= read -r -d ',' attr; do
+    case "${attr}" in
+      mode)       ;;
+      ownership)  ;;
+      timestamps) ;;
+      context)    ;;
+      links)      ;;
+      xattr)      ;;
+      all)        ;;
+      *)
+        _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
+        ;;
+    esac
+  done <<EOF
+${1},
+EOF
+
+  opts[${#opts[@]}]="--no-preserve=${1}"
+}
+readonly -f __sgl_mk_dest__opt_K
+
+############################################################
+# @private
+# @func __sgl_mk_dest__opt_k
+# @use __sgl_mk_dest__opt_k BOOL ATTRS
+# @val ATTR   Must be a file attribute from below options.
+#   `mode'
+#   `ownership'
+#   `timestamps'
+#   `context'
+#   `links'
+#   `xattr'
+#   `all'
+# @val ATTRS  Must be a list of one or more ATTR separated by `,'.
+# @val BOOL  Must be a boolean (false=`0'|true=`1') that indicates whether ATTRS
+#            should be parsed.
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__opt_k()
+{
+  local attr
+
+  if [[ $1 -eq 0 ]]; then
+    opts[${#opts[@]}]='--preserve'
+    return 0
+  fi
+
+  [[ -n "$2" ]] || _sgl_err VAL "missing \`${FN}' \`${opt}' ATTRS"
+
+  # check each ATTR
+  while IFS= read -r -d ',' attr; do
+    case "${attr}" in
+      mode)       ;;
+      ownership)  ;;
+      timestamps) ;;
+      context)    ;;
+      links)      ;;
+      xattr)      ;;
+      all)        ;;
+      *)
+        _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
+        ;;
+    esac
+  done <<EOF
+${2},
+EOF
+
+  opts[${#opts[@]}]="--preserve=${2}"
+}
+readonly -f __sgl_mk_dest__opt_k
+
+############################################################
+# @private
+# @func __sgl_mk_dest__opt_m
+# @use __sgl_mk_dest__opt_m MODE
+# @val MODE  Must be a valid file mode.
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__opt_m()
+{
+  local -r lmode='^[ugoa]*([-+=]([rwxXst]+|[ugo]))+$'
+  local -r omode='^[-+=]?[0-7]{1,4}$'
+
+  [[ -n "$1" ]] || _sgl_err VAL "missing \`${FN}' \`${opt}' MODE"
+
+  if [[ ! "$1" =~ ${lmode} ]] && [[ ! "$1" =~ ${omode} ]]; then
+    _sgl_err VAL "invalid \`${FN}' \`${opt}' MODE \`${1}'"
+  fi
+
+  mode="$1"
+}
+readonly -f __sgl_mk_dest__opt_m
+
+############################################################
+# @private
+# @func __sgl_mk_dest__opt_o
+# @use __sgl_mk_dest__opt_o OWNER
+# @val OWNER  Must be a valid USER[:GROUP].
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__opt_o()
+{
+  [[ -n "$1" ]] || _sgl_err VAL "missing \`${FN}' \`${opt}' OWNER"
+
+  if [[ "$1" =~ [[:space:]] ]]; then
+    _sgl_err VAL "invalid space in \`${FN}' \`${opt}' OWNER \`${1}'"
+  fi
+
+  own="$1"
+}
+readonly -f __sgl_mk_dest__opt_o
