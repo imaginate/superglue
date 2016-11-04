@@ -106,10 +106,12 @@ fi
 
 readonly bash='/bin/bash'
 readonly cat="$(_sgl_which cat)"
+readonly chgrp="$(_sgl_which chgrp)"
 readonly chmod="$(_sgl_which chmod)"
 readonly chown="$(_sgl_which chown)"
 readonly cp="$(_sgl_which cp)"
 readonly grep="$(_sgl_which grep)"
+readonly ln="$(_sgl_which ln)"
 readonly mkdir="$(_sgl_which mkdir)"
 readonly mv="$(_sgl_which mv)"
 readonly rm="$(_sgl_which rm)"
@@ -119,8 +121,8 @@ readonly sed="$(_sgl_which sed)"
 ## CHECK COMMANDS
 ################################################################################
 
-_sgl_chk_cmd ${bash} ${cat} ${chmod} ${chown} ${cp} ${grep} ${mkdir} ${mv} \
-  ${rm} ${sed}
+_sgl_chk_cmd ${bash} ${cat} ${chgrp} ${chmod} ${chown} ${cp} ${grep} ${ln} \
+  ${mkdir} ${mv} ${rm} ${sed}
 
 ################################################################################
 ## DEFINE COLORS
