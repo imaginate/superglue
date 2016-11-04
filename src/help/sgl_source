@@ -22,6 +22,7 @@
       sgl_mk_dest
       sgl_parse_args
       sgl_print
+      sgl_rm_dest
       sgl_set_color
       sgl_source
 

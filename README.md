@@ -88,6 +88,7 @@ Superglue is a comprehensive bash library and wrapper designed for minimal kerne
   - [sgl_mk_dest](#sgl_mk_dest)
   - [sgl_parse_args](#sgl_parse_args)
   - [sgl_print](#sgl_print)
+  - [sgl_rm_dest](#sgl_rm_dest)
   - [sgl_set_color](#sgl_set_color)
   - [sgl_source](#sgl_source)
 
@@ -145,7 +146,9 @@ The following Linux packages are on the to-do list.
     sgl_mk_dest
     sgl_parse_args
     sgl_print
+    sgl_rm_dest
     sgl_set_color
+    sgl_source
 
   Exit Codes:
     0  PASS  A successful exit.
@@ -698,6 +701,49 @@ Flexibly print a message to `stdout` or a destination of choice.
 
 ```
 
+### sgl_rm_dest
+```text
+
+  sgl_rm_dest [...OPTION] ...SRC
+
+  Options:
+    -d|--define=VARS      Define variables for each DEST to use.
+    -E|--no-empty         Force SRC to contain at least one destination tag.
+    -e|--empty            Allow SRC to not contain a destination tag.
+    -F|--no-force         If destination exists do not overwrite it.
+    -f|--force            If destination exists overwrite it.
+    -h|-?|--help          Print help info and exit.
+    -Q|--silent           Disable `stderr' and `stdout' outputs.
+    -q|--quiet            Disable `stdout' output.
+    -t|--test=REGEX       Test each DEST path against REGEX (uses bash `=~').
+    -V|--verbose          Print exec status details.
+    -v|--version          Print version info and exit.
+    -x|--one-file-system  Stay on this file system.
+    -|--                  End the options.
+
+  Values:
+    DEST   Must be a valid path. Can include defined VAR KEYs identified by a
+           leading `$' and optionally wrapped with curly brackets, `${KEY}'.
+    REGEX  Can be any string. Refer to bash test `=~' operator for more details.
+    SRC    Must be a valid file path. The SRC file must contain at least one
+           `dest' TAG unless `--empty' is used and can contain one `mode' and
+           `own' TAG. Note that OPTION values take priority over TAG values.
+    TAG    A TAG is defined within a SRC file's contents. It must be a one-line
+           comment formatted as `# @TAG VALUE'. Spacing is optional except
+           between TAG and VALUE. The TAG must be one of the options below.
+      `dest'  Formatted `# @dest DEST'.
+      `mode'  Formatted `# @mode MODE'.
+      `own'   Formatted `# @own OWNER'.
+    VAR    Must be a valid `KEY=VALUE' pair. The KEY must start with a character
+           matching `[a-zA-Z_]', can only contain `[a-zA-Z0-9_]', and must end
+           with `[a-zA-Z0-9]'. The VALUE must not contain a `,'.
+    VARS   Must be a list of one or more VAR separated by `,'.
+
+  Returns:
+    0  PASS
+
+```
+
 ### sgl_set_color
 ```text
 
@@ -759,6 +805,7 @@ Note that `sgl_source` is automatically available within `superglue`.
       sgl_mk_dest
       sgl_parse_args
       sgl_print
+      sgl_rm_dest
       sgl_set_color
       sgl_source
 

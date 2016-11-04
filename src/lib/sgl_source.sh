@@ -33,6 +33,7 @@
 #   sgl_mk_dest
 #   sgl_parse_args
 #   sgl_print
+#   sgl_rm_dest
 #   sgl_set_color
 #   sgl_source
 # @return
@@ -192,6 +193,12 @@ sgl_source()
           print()
           {
             sgl_print "$@"
+          }
+          ;;
+        sgl_rm_dest)
+          rm_dest()
+          {
+            sgl_rm_dest "$@"
           }
           ;;
         sgl_set_color)
