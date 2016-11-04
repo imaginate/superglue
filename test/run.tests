@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# Run `superglue' unit tests.
+#
+# @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
+# @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
+#
+# @use ./run.tests [...SECTION]
+# @val SECTION  Must be a `./SECTION.test' file. If undefined all tests are ran.
+# @exit
+#   0  PASS  All tests passed.
+#   1  FAIL  One or more tests failed.
+################################################################################
+
+################################################################################
+## CHANGE DIRECTORY
+################################################################################
+
+[[ "$0" =~ ^(\./)?run\.tests$ ]] || cd "${0%/*}"
+
+################################################################################
+## LOAD REFS & HELPERS
+################################################################################
+
+source ./test.refs
+source ./echo.helpers
+source ./test.helpers
+
+################################################################################
+## RUN TESTS
+################################################################################
+
+echo_header
+
+if ((${#} > 0)); then
+  run_tests "$@"
+else
+  run_tests ./*.test
+fi
+
+echo_final
+echo_footer
