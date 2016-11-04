@@ -20,10 +20,11 @@ declare -r HEAD='START SGL TESTS'
 declare -r FOOT='END SGL TESTS'
 
 ################################################################################
-## DEFINE ROW LENGTH
+## DEFINE LENGTHS
 ################################################################################
 
-declare -ir ROWLENGTH=30
+declare -ir ROWLENGTH=40
+declare -ir SECTIONWIDTH=-14
 
 ################################################################################
 ## DEFINE COLORS
