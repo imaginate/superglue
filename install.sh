@@ -20,7 +20,7 @@
 #   7  SGL   A `superglue' script error.
 ################################################################################
 
-readonly SGLUE_ROW_LEN=26
+readonly SGLUE_ROW_LEN=36
 
 ################################################################################
 ## SECTIONS
@@ -193,26 +193,11 @@ sglue_err()
       sglue_err SGL "invalid \`${FN}' ERR \`$1'"
       ;;
   esac
-  printf "%s %s\n" "${SGLUE_RED}${title}${SGLUE_UNCOLOR}" "$2" 1>&2
+  printf " %s  %s\n" "${SGLUE_RED}${title}${SGLUE_UNCOLOR}" "$2" 1>&2
   [[ ${SGLUE_HEADER} -eq 1 ]] && sglue_footer
   exit ${code}
 }
 readonly -f sglue_err
-
-############################################################
-# Prints a success message.
-#
-# @func sglue_pass
-# @use sglue_pass MSG
-# @val MSG  Can be any valid string.
-# @return
-#   0  PASS
-############################################################
-sglue_pass()
-{
-  printf "%s %s\n" "${SGLUE_GREEN}PASS${SGLUE_UNCOLOR}" "$1"
-}
-readonly -f sglue_pass
 
 ############################################################
 # Prints the valid executable path for a command. If no valid
@@ -324,16 +309,8 @@ readonly -f sglue_dashes
 ############################################################
 sglue_header()
 {
-  local title="-- START SGL ${SGLUE_TITLE} --"
-  local -i i=0
-  local -i len=$(( ${SGLUE_ROW_LEN} - ${#title} ))
-
-  for ((i=0; i<len; i++)); do
-    title="${title}-"
-  done
-
   sglue_dashes
-  printf "%s\n" "${title}"
+  printf "%s\n" "- START SUPERGLUE ${SGLUE_TITLE}"
   sglue_dashes
 
   SGLUE_HEADER=1
@@ -350,16 +327,8 @@ readonly -f sglue_header
 ############################################################
 sglue_footer()
 {
-  local title="-- END SGL ${SGLUE_TITLE} --"
-  local -i i=0
-  local -i len=$(( ${SGLUE_ROW_LEN} - ${#title} ))
-
-  for ((i=0; i<len; i++)); do
-    title="${title}-"
-  done
-
   sglue_dashes
-  printf "%s\n" "${title}"
+  printf "%s\n" "- END SUPERGLUE ${SGLUE_TITLE}"
   sglue_dashes
 }
 readonly -f sglue_footer
@@ -457,17 +426,17 @@ if [[ $# -gt 0 ]]; then
       SGLUE_TITLE='UNINSTALL'
       sglue_header
       # remove commands
+      printf " %s\n" 'Uninstalling commands...'
       for SGLUE_CMD in sgl sglue superglue; do
         SGLUE_CMD="/bin/${SGLUE_CMD}"
         [[ -x "${SGLUE_CMD}" ]] && ${rm} -f "${SGLUE_CMD}"
       done
-      sglue_pass 'commands uninstalled'
       # remove funcs
+      printf " %s\n" 'Uninstalling functions...'
       [[ -d "${SGLUE_LIB_DEST}" ]] && ${rm} -rf "${SGLUE_LIB_DEST}"
-      sglue_pass 'functions uninstalled'
       # remove helps
+      printf " %s\n" 'Uninstalling help files...'
       [[ -d "${SGLUE_HELP_DEST}" ]] && ${rm} -rf "${SGLUE_HELP_DEST}"
-      sglue_pass 'help files uninstalled'
       # end uninstall
       sglue_footer
       exit 0
@@ -646,39 +615,45 @@ sglue_mk_help()
 ## INSTALL COMMANDS
 ################################################################################
 
+printf " %s\n" 'Installing commands...'
+
 for SGLUE_SRC in "${SGLUE_CMD_D}"/*.sh ; do
   sglue_mk_cmd "${SGLUE_SRC}"
 done
-
-sglue_pass 'commands installed'
 
 ################################################################################
 ## INSTALL FUNCTIONS
 ################################################################################
 
+printf " %s\n" 'Removing old functions...'
+
 ${rm} -rf ${SGLUE_LIB_DEST}/*
+
+printf " %s\n" 'Installing new functions...'
 
 for SGLUE_SRC in "${SGLUE_LIB_D}"/sgl_*.sh ; do
   sglue_mk_lib "${SGLUE_SRC}"
 done
 
-sglue_pass 'functions installed'
-
 ################################################################################
 ## INSTALL HELP FILES
 ################################################################################
 
+printf " %s\n" 'Removing old help files...'
+
 ${rm} -rf ${SGLUE_HELP_DEST}/*
+
+printf " %s\n" 'Installing new help files...'
 
 for SGLUE_SRC in "${SGLUE_HELP_D}"/* ; do
   sglue_mk_help "${SGLUE_SRC}"
 done
 
-sglue_pass 'help files installed'
-
 ################################################################################
 ## END INSTALL
 ################################################################################
 
+sglue_dashes
+printf " %s\n" "${SGLUE_GREEN}Installation Success${SGLUE_UNCOLOR}"
 sglue_footer
 exit 0
