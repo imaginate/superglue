@@ -1,0 +1,54 @@
+#!/bin/bash
+#
+# @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
+# @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
+################################################################################
+
+################################################################################
+## DEFINE TITLES
+################################################################################
+
+declare -r HEAD='START SGL TESTS'
+declare -r FOOT='END SGL TESTS'
+
+################################################################################
+## DEFINE ROW LENGTH
+################################################################################
+
+declare -ir ROWLENGTH=30
+
+################################################################################
+## DEFINE COLORS
+################################################################################
+
+declare -r UNCOLOR="$(printf '%b' '\033[0;0m')"
+declare -r RED="$(printf '%b' '\033[0;91m')"
+declare -r GREEN="$(printf '%b' '\033[0;32m')"
+
+################################################################################
+## DEFINE ERROR REFS
+################################################################################
+
+declare -ax ERRORS
+declare -ix FAILED=0
+
+################################################################################
+## DEFINE SGL FUNC LIST
+################################################################################
+
+declare -ar SGLFUNCS=( \
+  sgl_chk_cmd    \
+  sgl_chk_dir    \
+  sgl_chk_exit   \
+  sgl_chk_file   \
+  sgl_chk_uid    \
+  sgl_color      \
+  sgl_cp         \
+  sgl_err        \
+  sgl_mk_dest    \
+  sgl_parse_args \
+  sgl_print      \
+  sgl_rm_dest    \
+  sgl_set_color  \
+  sgl_source     \
+)
