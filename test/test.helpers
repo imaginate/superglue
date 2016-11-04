@@ -1,0 +1,67 @@
+#!/bin/bash
+#
+# @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
+# @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
+################################################################################
+
+############################################################
+# @func run_test
+# @use run_test SECTION
+# @return
+#   0  PASS
+############################################################
+run_test()
+{
+  [[ -f "${1}.test" ]] || stop "invalid SECTION \`${1}' tests stopped"
+
+  ERRORS=()
+  source "${1}.test"
+  echo_result "${1^^}"
+}
+declare -fr run_test
+
+############################################################
+# @func run_tests
+# @use run_tests ...PATH|SECTION
+# @return
+#   0  PASS
+############################################################
+run_tests()
+{
+  local path
+
+  for path in "$@"; do
+    path="${path##*/}"
+    run_test "${path%.test}"
+  done
+}
+declare -fr run_tests
+
+############################################################
+# Prints an error message and aborts the tests.
+#
+# @func stop
+# @use stop ...MSG
+# @exit
+#   1  FAIL
+############################################################
+stop()
+{
+  echo_stop "${*}"
+  echo_footer
+  exit 1
+}
+declare -fr stop
+
+############################################################
+# @func throw
+# @use throw ...MSG
+# @return
+#   0  PASS
+############################################################
+throw()
+{
+  ERRORS+=("$*")
+  $((++FAILED))
+}
+declare -frx throw
