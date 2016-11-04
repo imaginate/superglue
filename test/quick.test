@@ -164,11 +164,23 @@ if [[ -f "${dest2}" ]] && [[ "$(cat "${src}")" != "$(cat "${dest2}")" ]]; then
   add_error "invalid dest file \`${dest2}'"
 fi
 
-## CLEAN-UP
-[[ -f "${src}"   ]] && rm "${src}"
-[[ -f "${dest1}" ]] && rm "${dest1}"
-[[ -f "${dest2}" ]] && rm "${dest2}"
+## EXEC
+# Run sgl_rm_dest and save every error.
+while IFS= read -r line; do
+  [[ -n "${line}" ]] && add_error "${line}"
+done <<EOF
+$(sgl rm_dest -d 'TMP=/tmp' "${src}" 3>&2 2>&1 1>&3-)
+EOF
 
+## CHECK
+# Make an error for each existing dest file.
+[[ -f "${dest1}" ]] && add_error "existing dest file \`${dest1}'"
+[[ -f "${dest2}" ]] && add_error "existing dest file \`${dest2}'"
+
+## CLEAN-UP
+[[ -f "${src}" ]] && rm "${src}"
+
+## PRINT
 print_result COMMAND
 
 ################################################################################
