@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+# Verify the installation.
+#
+# @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
+# @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
+################################################################################
+
+local cmd
+local func
+local path
+
+################################################################################
+## CHECK BIN
+################################################################################
+
+for cmd in "${SGLCMDS[@]}"; do
+  path="${BIN}/${cmd}"
+  [[ -x "${path}" ]] || throw "missing executable \`${path}'"
+done
+
+################################################################################
+## CHECK LIB
+################################################################################
+
+for func in "${SGLFUNCS[@]}"; do
+  path="${LIB}/${func}"
+  [[ -f "${path}" ]] || throw "missing function \`${path}'"
+done
+
+################################################################################
+## CHECK HELP
+################################################################################
+
+path="${HELP}/superglue"
+[[ -f "${path}" ]] || throw "missing help info \`${path}'"
+
+for func in "${SGLFUNCS[@]}"; do
+  path="${HELP}/${func}"
+  [[ -f "${path}" ]] || throw "missing help info \`${path}'"
+done
