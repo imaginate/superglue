@@ -44,7 +44,7 @@ install-force:
 
 t: test
 test:
-	@./test/quick.test
+	@./test/run.tests
 
 x: uninstall
 uninstall:
