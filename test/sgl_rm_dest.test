@@ -1,0 +1,70 @@
+#!/bin/bash
+#
+# Verify `sgl_rm_dest'.
+#
+# @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
+# @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
+################################################################################
+
+################################################################################
+## SETUP ENV
+################################################################################
+
+# Define src and dest file paths.
+local src="${HOME}/source.sgl.file"
+local dest1="${HOME}/dest.sgl.file"
+local dest2='/tmp/dest.sgl.file'
+
+# Stop tests if a test file already exists.
+[[ -f "${src}"   ]] && stop "src file \`${src}' already exists tests stopped"
+[[ -f "${dest1}" ]] && stop "dest file \`${dest1}' already exists tests stopped"
+[[ -f "${dest2}" ]] && stop "dest file \`${dest2}' already exists tests stopped"
+
+# Make the test src file.
+cat <<'EOF' > "${src}"
+# SOURCE
+# @dest $HOME/dest.sgl.file
+# @dest ${TMP}/dest.sgl.file
+# @mode 0755
+# ...
+EOF
+
+# Make each dest file.
+cp "${src}" "${dest1}"
+cp "${src}" "${dest2}"
+
+################################################################################
+## RUN FUNCTION
+################################################################################
+
+######################################################################
+# @note-for-bash-newbies
+# @lines 52-56
+#
+# The `while' loop is used to catch and register any errors from
+# `sgl_rm_dest'. The following is an ordered sequence of events:
+# - The `stderr' from `sgl_rm_dest' is redirected to `stdout'.
+# - The original `stdout' for `sgl_rm_dest' is redirected and closed.
+# - `sgl_rm_dest' is executed within a here document that captures the 
+#   redirected `stderr' and sets it as the `stdin' for `read'.
+# - Each line is read and any errors are thrown until `stdin' closes.
+######################################################################
+while IFS= read -r line; do
+  [[ -n "${line}" ]] && throw "${line}"
+done <<EOF
+$(sgl rm_dest -d 'TMP=/tmp' "${src}" 3>&2 2>&1 1>&3-)
+EOF
+
+################################################################################
+## CHECK RESULTS
+################################################################################
+
+# Catch an existing dest file.
+[[ -f "${dest1}" ]] && throw "existing dest file \`${dest1}'"
+[[ -f "${dest2}" ]] && throw "existing dest file \`${dest2}'"
+
+################################################################################
+## CLEAN ENV
+################################################################################
+
+[[ -f "${src}" ]] && rm "${src}"
