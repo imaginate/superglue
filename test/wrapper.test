@@ -1,0 +1,109 @@
+#!/bin/bash
+#
+# Verify superglue script wrapper.
+#
+# @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
+# @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
+################################################################################
+
+################################################################################
+## SETUP ENV
+################################################################################
+
+# Define test file paths.
+local cmd="${HOME}/fake.sgl.cmd"
+local rnd="${HOME}/random.txt"
+
+# Make the random file.
+cat <<'EOF' > "${rnd}"
+Includes a mighty pattern for passing grep.
+And some other random stuff.
+...
+EOF
+
+# Make the wrapped script.
+cat <<'EOF' > "${cmd}"
+#!/bin/superglue -C
+
+# Load only the needed functions.
+sgl_source 'chk_*' err parse_args print
+
+# Verify the user is root or exit the process.
+sgl_chk_uid --exit --prg='Example' 1000
+
+# Parse the arguments easily.
+sgl_parse_args --prg 'Example' --options \
+  '-a|--ask' Y \
+  '-b|--bounce' \
+  '-c|--coast' \
+  '-t|--tell' M \
+  '-?|--help'
+
+# Handle the parsed options.
+len=${#SGL_OPTS[@]}
+for ((i=0; i<len; i++)); do
+  opt="${SGL_OPTS[i]}"
+  case "${opt}" in
+    -a|--ask)
+      DEMO_ASK="${SGL_OPT_VALS[i]}"
+      # If empty throw an error and exit the process.
+      [[ -n "${DEMO_ASK}" ]] || sgl_err VAL "invalid empty value for \`${opt}'"
+      ;;
+    -b|--bounce)
+      DEMO_BOUNCE=1
+      DEMO_COAST=0
+      ;;
+    -c|--coast)
+      DEMO_BOUNCE=0
+      DEMO_COAST=1
+      ;;
+    -t|--tell)
+      if [[ ${SGL_OPT_BOOL[i]} -eq 1 ]]; then
+        DEMO_TELL="${SGL_OPT_VALS[i]}"
+      else
+        DEMO_TELL="${DEMO_ASK}"
+      fi
+      ;;
+    -\?|--help)
+      echo 'some helpful info'
+      exit 0
+      ;;
+  esac
+done
+
+# If grep fails exit the process.
+${grep} 'a mighty pattern' "${HOME}/random.txt" > ${NIL}
+sgl_chk_exit --exit --prg='Example' --cmd='grep' $?
+
+exit 0
+EOF
+chmod 0755 "${cmd}"
+
+################################################################################
+## RUN SCRIPT
+################################################################################
+
+######################################################################
+# @note-for-bash-newbies
+# @lines 98-102
+#
+# The `while' loop is used to catch and register any errors from the
+# wrapped script. The following is an ordered sequence of events:
+# - The script's `stderr' is redirected to `stdout'.
+# - The script's original `stdout' is redirected and closed.
+# - The script is executed within a here document that captures the 
+#   redirected `stderr' and sets it as the `stdin' for `read'.
+# - Each line is read and any errors are thrown until `stdin' closes.
+######################################################################
+while IFS= read -r line; do
+  [[ -n "${line}" ]] && throw "${line}"
+done <<EOF
+$("${cmd}" --ask='Something?' -ct 3>&2 2>&1 1>&3-)
+EOF
+
+################################################################################
+## CLEAN ENV
+################################################################################
+
+[[ -f "${cmd}" ]] && rm "${cmd}"
+[[ -f "${rnd}" ]] && rm "${rnd}"
