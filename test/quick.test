@@ -80,6 +80,18 @@ add_error()
   (( ++FAILED ))
 }
 
+############################################################
+# @func die
+# @use die ...MSG
+# @exit
+#   1  FAIL
+############################################################
+die()
+{
+  printf " %s %s %s\n" '-' "${RED}STOP${UNCOLOR}" "$*" 1>&2
+  exit 1
+}
+
 ################################################################################
 ## PRINT TABLE HEADER
 ################################################################################
@@ -111,7 +123,16 @@ print_result INSTALL
 ## TEST COMMAND
 ################################################################################
 
+## SETUP
+# Define src and dest file paths.
 src="${HOME}/source.sgl.file"
+dest1="${HOME}/dest.sgl.file"
+dest2='/tmp/dest.sgl.file'
+# Stop tests if any test file already exists.
+[[ -f "${src}"   ]] && die "src file \`${src}' already exists tests stopped"
+[[ -f "${dest1}" ]] && die "dest file \`${dest1}' already exists tests stopped"
+[[ -f "${dest2}" ]] && die "dest file \`${dest2}' already exists tests stopped"
+# Make the test src file.
 cat <<'EOF' > "${src}"
 # SOURCE
 # @dest $HOME/dest.sgl.file
@@ -120,21 +141,22 @@ cat <<'EOF' > "${src}"
 # ...
 EOF
 
+## EXEC
+# Run sgl_mk_dest and save every error.
 while IFS= read -r line; do
   [[ -n "${line}" ]] && add_error "${line}"
 done <<EOF
 $(sgl mk_dest -d 'TMP=/tmp' "${src}" 3>&2 2>&1 1>&3-)
 EOF
 
-dest1="${HOME}/dest.sgl.file"
-dest2='/tmp/dest.sgl.file'
-
+## CHECK
+# Make an error for each missing dest file.
 [[ -f "${dest1}" ]] || add_error "missing dest file \`${dest1}'"
 [[ -f "${dest2}" ]] || add_error "missing dest file \`${dest2}'"
-
+# Make an error for each non-executable dest file.
 [[ -x "${dest1}" ]] || add_error "invalid file mode for dest file \`${dest1}'"
 [[ -x "${dest2}" ]] || add_error "invalid file mode for dest file \`${dest2}'"
-
+# Make an error for each incorrect dest file content.
 if [[ -f "${dest1}" ]] && [[ "$(cat "${src}")" != "$(cat "${dest1}")" ]]; then
   add_error "invalid dest file \`${dest1}'"
 fi
@@ -142,6 +164,7 @@ if [[ -f "${dest2}" ]] && [[ "$(cat "${src}")" != "$(cat "${dest2}")" ]]; then
   add_error "invalid dest file \`${dest2}'"
 fi
 
+## CLEAN-UP
 [[ -f "${src}"   ]] && rm "${src}"
 [[ -f "${dest1}" ]] && rm "${dest1}"
 [[ -f "${dest2}" ]] && rm "${dest2}"
