@@ -310,7 +310,7 @@ readonly -f sglue_dashes
 sglue_header()
 {
   sglue_dashes
-  printf "%s\n" "- START SUPERGLUE ${SGLUE_TITLE}"
+  printf "%s\n" "## START SUPERGLUE ${SGLUE_TITLE}"
   sglue_dashes
 
   SGLUE_HEADER=1
@@ -328,7 +328,7 @@ readonly -f sglue_header
 sglue_footer()
 {
   sglue_dashes
-  printf "%s\n" "- END SUPERGLUE ${SGLUE_TITLE}"
+  printf "%s\n" "## END SUPERGLUE ${SGLUE_TITLE}"
   sglue_dashes
 }
 readonly -f sglue_footer
