@@ -42,7 +42,7 @@
 #   7  SGL   A `superglue' script error.
 ################################################################################
 
-readonly SGL_VERSION='0.1.0-alpha.5'
+readonly SGL_VERSION='0.1.0-alpha.6'
 readonly SGL='superglue'
 
 ################################################################################
