@@ -182,7 +182,7 @@ mk_row()
     dash="$(mk_dash ${n})"
 
     row="${dash} ${1} ${dash}"
-    $((ROWLENGTH > ${#row})) && row="${row}-"
+    [[ ${#row} -lt ${ROWLENGTH} ]] && row="${row}-"
   else
     row="$(mk_dash ${ROWLENGTH})"
   fi
