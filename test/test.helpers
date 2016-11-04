@@ -16,7 +16,7 @@ run_test()
 
   ERRORS=()
   source "${1}.test"
-  echo_result "${1^^}"
+  echo_result "${1}"
 }
 declare -fr run_test
 
