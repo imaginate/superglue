@@ -1,8 +1,8 @@
 # Superglue [![build status](https://travis-ci.org/imaginate/superglue.svg?branch=master)](https://travis-ci.org/imaginate/superglue) [![version](https://img.shields.io/badge/version-0.1.0--alpha.6-brightgreen.svg?style=flat)](http://superglue.tech)
 
-### Eat Bash Steroids
+### Bash Steroids
 
-Superglue is a comprehensive bash library and wrapper designed for minimal kernel environments.
+Superglue is a comprehensive bash library and wrapper designed for minimal kernel environments with GNU-style options for every function.
 - Write quick and clean scripts with helper functions and variables.
 - Enjoy automatic environment stabilization and dependency checks.
 - Discover documentation delight with thorough references and help guides.
