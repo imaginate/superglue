@@ -17,6 +17,24 @@ echo()
 declare -fr echo
 
 ############################################################
+# @func echo_dashes
+# @use echo_dashes
+# @return
+#   0  PASS
+############################################################
+echo_dashes()
+{
+  local -i i
+  local dashes
+
+  for ((i=0; i<${ROWLENGTH}; i++)); do
+    dashes="${dashes}-"
+  done
+  echo "${dashes}"
+}
+declare -fr echo_dashes
+
+############################################################
 # @func echo_err
 # @use echo_err ...MSG
 # @return
@@ -52,7 +70,7 @@ declare -fr echo_errs
 ############################################################
 echo_final()
 {
-  echo "$(mk_row)"
+  echo_dashes
 
   if ((FAILED == 0)); then
     echo " ${GREEN}All Tests Passed${UNCOLOR}"
@@ -70,9 +88,9 @@ declare -fr echo_final
 ############################################################
 echo_footer()
 {
-  echo "$(mk_row)"
-  echo "$(mk_row "${FOOT}")"
-  echo "$(mk_row)"
+  echo_dashes
+  echo "## ${FOOT}"
+  echo_dashes
 }
 declare -fr echo_footer
 
@@ -84,9 +102,9 @@ declare -fr echo_footer
 ############################################################
 echo_header()
 {
-  echo "$(mk_row)"
-  echo "$(mk_row "${HEAD}")"
-  echo "$(mk_row)"
+  echo_dashes
+  echo "## ${HEAD}"
+  echo_dashes
 }
 declare -fr echo_header
 
@@ -137,56 +155,3 @@ echo_stop()
   echo " - ${RED}STOP${UNCOLOR} ${*}" 1>&2
 }
 declare -fr echo_stop
-
-############################################################
-# Prints a specified number of dashes without a newline.
-#
-# @func mk_dash
-# @use mk_dash COUNT
-# @val COUNT  The number of dashes to print.
-# @return
-#   0  PASS
-############################################################
-mk_dash()
-{
-  local -i i
-  local dash
-
-  for ((i=0; i<${1}; i++)); do
-    dash="${dash}-"
-  done
-  printf '%s' "${dash}"
-}
-declare -fr mk_dash
-
-############################################################
-# Prints a dashed title row without a newline.
-#
-# @func mk_row
-# @use mk_row [TITLE]
-# @val TITLE  Can be any string. If defined the TITLE is
-#             padded with spaces and surrounded by dashes.
-#             If undefined a row of dashes is printed.
-# @return
-#   0  PASS
-############################################################
-mk_row()
-{
-  local -i n
-  local dash
-  local row
-
-  if ((${#} > 0)); then
-    n=$((ROWLENGTH - ${#1} - 2))
-    n=$((n / 2))
-    dash="$(mk_dash ${n})"
-
-    row="${dash} ${1} ${dash}"
-    [[ ${#row} -lt ${ROWLENGTH} ]] && row="${row}-"
-  else
-    row="$(mk_dash ${ROWLENGTH})"
-  fi
-
-  printf '%s' "${row}"
-}
-declare -fr mk_row

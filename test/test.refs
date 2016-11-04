@@ -16,14 +16,14 @@ declare -r HELP='/usr/share/superglue/help'
 ## DEFINE TITLES
 ################################################################################
 
-declare -r HEAD='START SGL TESTS'
-declare -r FOOT='END SGL TESTS'
+declare -r HEAD='START SUPERGLUE TESTS'
+declare -r FOOT='END SUPERGLUE TESTS'
 
 ################################################################################
 ## DEFINE LENGTHS
 ################################################################################
 
-declare -ir ROWLENGTH=40
+declare -ir ROWLENGTH=36
 declare -ir SECTIONWIDTH=-14
 
 ################################################################################
