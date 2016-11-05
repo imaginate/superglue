@@ -6,10 +6,14 @@
 # @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
 #
 # @use ./install.sh [...OPTION]
-# @opt -?|-h|--help    Print help info and exit.
-# @opt -f|--force      If a destination exists overwrite it.
-# @opt -q|--quiet      Do not print any messages to `stdout'.
-# @opt -x|--uninstall  Remove `superglue' files and directories.
+# @opt -?|-h|--help     Print help info and exit.
+# @opt -b|--bin=PATH    Override the default bin path, `/bin'.
+# @opt -f|--force       If a destination exists overwrite it.
+# @opt -l|--lib=PATH    Override the default lib path, `/usr/lib'.
+# @opt -q|--quiet       Do not print any messages to `stdout'.
+# @opt -s|--share=PATH  Override the default lib path, `/usr/share'.
+# @opt -x|--uninstall   Remove `superglue' files and directories.
+# @val PATH  Must be a valid absolute directory path.
 # @exit
 #   0  PASS  A successful exit.
 #   1  ERR   An unknown error.
@@ -515,11 +519,27 @@ sglue_has_incl()
 ############################################################
 sglue_get_dest()
 {
+  local src="${1}"
+  local dest
   local line
 
   while IFS= read -r line; do
-    sglue_untag "${line}"
-  done <<< "$(${grep} "${SGLUE_TAG_DEST}" "${1}" 2> ${NIL})"
+    dest="$(sglue_untag "${line}")"
+    if [[ "${dest}" =~ ^\$ ]]; then
+      case "${dest%%/*}" in
+        \$BIN)
+          dest="${SGLUE_BIN}/${dest#*/}"
+        ;;
+        \$LIB)
+          dest="${SGLUE_LIB}/${dest#*/}"
+        ;;
+        \$SHARE)
+          dest="${SGLUE_SHARE}/${dest#*/}"
+        ;;
+      esac
+    fi
+    echo "${dest}"
+  done <<< "$(${grep} "${SGLUE_TAG_DEST}" "${src}" 2> ${NIL})"
 }
 
 ############################################################
@@ -597,6 +617,10 @@ sglue_chk DIR "${SGLUE_REPO_D}" "${SGLUE_SRC_D}" "${SGLUE_HELP_D}"
 ## PARSE OPTIONS
 ################################################################################
 
+SGLUE_BIN='/bin'
+SGLUE_LIB='/usr/lib'
+SGLUE_SHARE='/usr/share'
+
 SGLUE_ACTION='mk'
 SGLUE_TITLE='INSTALL'
 
@@ -610,11 +634,56 @@ while ((${#} > 0)); do
       echo "$(${cat} "${SGLUE_REPO_D}/install.help")"
       exit 0
     ;;
+    -b|--bin)
+      if [[ ${#} -eq 1 ]] || [[ "${2}" =~ ^- ]]; then
+        sglue_err VAL "missing bin PATH"
+      fi
+      if [[ ! "${2}" =~ ^/ ]]  || [[ ! -d "${2}" ]]; then
+        sglue_err VAL "invalid bin PATH \`${2}'"
+      fi
+      SGLUE_BIN="${2}"
+    ;;
+    --bin=*)
+      if [[ ! "${1#*=}" =~ ^/ ]]  || [[ ! -d "${1#*=}" ]]; then
+        sglue_err VAL "invalid bin PATH \`${1#*=}'"
+      fi
+      SGLUE_BIN="${1#*=}"
+    ;;
     -f|--force)
       SGLUE_FORCE=1
     ;;
+    -l|--lib)
+      if [[ ${#} -eq 1 ]] || [[ "${2}" =~ ^- ]]; then
+        sglue_err VAL "missing lib PATH"
+      fi
+      if [[ ! "${2}" =~ ^/ ]]  || [[ ! -d "${2}" ]]; then
+        sglue_err VAL "invalid lib PATH \`${2}'"
+      fi
+      SGLUE_LIB="${2}"
+    ;;
+    --lib=*)
+      if [[ ! "${1#*=}" =~ ^/ ]]  || [[ ! -d "${1#*=}" ]]; then
+        sglue_err VAL "invalid lib PATH \`${1#*=}'"
+      fi
+      SGLUE_LIB="${1#*=}"
+    ;;
     -q|--quiet)
       SGLUE_QUIET=1
+    ;;
+    -s|--share)
+      if [[ ${#} -eq 1 ]] || [[ "${2}" =~ ^- ]]; then
+        sglue_err VAL "missing share PATH"
+      fi
+      if [[ ! "${2}" =~ ^/ ]]  || [[ ! -d "${2}" ]]; then
+        sglue_err VAL "invalid share PATH \`${2}'"
+      fi
+      SGLUE_SHARE="${2}"
+    ;;
+    --share=*)
+      if [[ ! "${1#*=}" =~ ^/ ]]  || [[ ! -d "${1#*=}" ]]; then
+        sglue_err VAL "invalid share PATH \`${1#*=}'"
+      fi
+      SGLUE_SHARE="${1#*=}"
     ;;
     -x|--uninstall)
       SGLUE_ACTION='rm'
@@ -637,8 +706,8 @@ sglue_header
 ## DEFINE DEST DIRS
 ################################################################################
 
-readonly SGLUE_LIB_DEST='/lib/superglue'
-readonly SGLUE_HELP_DEST='/usr/share/superglue/help'
+readonly SGLUE_LIB_DEST="${SGLUE_LIB}/superglue"
+readonly SGLUE_HELP_DEST="${SGLUE_SHARE}/superglue/help"
 
 ################################################################################
 ## DEFINE MAKE METHODS

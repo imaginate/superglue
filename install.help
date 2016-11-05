@@ -3,8 +3,11 @@
 
   Options:
     -?|-h|--help    Print help info and exit.
+    -b|--bin=PATH    Override the default bin path, `/bin'.
     -f|--force      If a destination exists overwrite it.
+    -l|--lib=PATH    Override the default lib path, `/usr/lib'.
     -q|--quiet      Do not print any messages to `stdout'.
+    -s|--share=PATH  Override the default lib path, `/usr/share'.
     -x|--uninstall  Remove `superglue' files and directories.
 
   Exit Codes:
