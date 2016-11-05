@@ -1,5 +1,8 @@
 #!/bin/bash --posix
 #
+# @superglue
+# @version 0.1.0-alpha.6
+#
 # A bash superset that cleans the environment, defines helper references,
 # sources helper functions, and sources a user-defined SCRIPT.
 #
