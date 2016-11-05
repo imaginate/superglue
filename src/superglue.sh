@@ -62,22 +62,22 @@ readonly NIL='/dev/null'
 ## DEFINE PRIVATE FUNCS
 ################################################################################
 
-# @incl ../lib/_sgl_chk_cmd.sh
-# @incl ../lib/_sgl_clean_builtin.sh
-# @incl ../lib/_sgl_err.sh
-# @incl ../lib/_sgl_err_code.sh
-# @incl ../lib/_sgl_fail.sh
-# @incl ../lib/_sgl_get_color.sh
-# @incl ../lib/_sgl_get_func.sh
-# @incl ../lib/_sgl_help.sh
-# @incl ../lib/_sgl_parse_args.sh
-# @incl ../lib/_sgl_parse_init.sh
-# @incl ../lib/_sgl_unalias.sh
-# @incl ../lib/_sgl_unalias_each.sh
-# @incl ../lib/_sgl_unset_func.sh
-# @incl ../lib/_sgl_unset_funcs.sh
-# @incl ../lib/_sgl_version.sh
-# @incl ../lib/_sgl_which.sh
+# @incl ./incl/_sgl_chk_cmd.sh
+# @incl ./incl/_sgl_clean_builtin.sh
+# @incl ./incl/_sgl_err.sh
+# @incl ./incl/_sgl_err_code.sh
+# @incl ./incl/_sgl_fail.sh
+# @incl ./incl/_sgl_get_color.sh
+# @incl ./incl/_sgl_get_func.sh
+# @incl ./incl/_sgl_help.sh
+# @incl ./incl/_sgl_parse_args.sh
+# @incl ./incl/_sgl_parse_init.sh
+# @incl ./incl/_sgl_unalias.sh
+# @incl ./incl/_sgl_unalias_each.sh
+# @incl ./incl/_sgl_unset_func.sh
+# @incl ./incl/_sgl_unset_funcs.sh
+# @incl ./incl/_sgl_version.sh
+# @incl ./incl/_sgl_which.sh
 
 ################################################################################
 ## CLEAN BUILTINS
