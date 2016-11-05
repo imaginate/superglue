@@ -53,7 +53,7 @@ readonly SGL='superglue'
 ## DEFINE LIB DIRS
 ################################################################################
 
-readonly SGL_LIB='/lib/superglue'
+readonly SGL_LIB='/usr/lib/superglue'
 readonly SGL_HELP='/usr/share/superglue/help'
 
 ################################################################################
