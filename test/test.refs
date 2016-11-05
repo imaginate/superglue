@@ -9,7 +9,7 @@
 ################################################################################
 
 declare -r BIN='/bin'
-declare -r LIB='/lib/superglue'
+declare -r LIB='/usr/lib/superglue'
 declare -r HELP='/usr/share/superglue/help'
 
 ################################################################################
