@@ -1,9 +1,10 @@
 
-  ./install.sh [OPTION]
+  ./install.sh [...OPTION]
 
   Options:
     -?|-h|--help    Print help info and exit.
     -f|--force      If a destination exists overwrite it.
+    -q|--quiet      Do not print any messages to `stdout'.
     -x|--uninstall  Remove `superglue' files and directories.
 
   Exit Codes:

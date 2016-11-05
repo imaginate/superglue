@@ -1,13 +1,14 @@
 #!/bin/bash --posix
 #
-# Install `superglue' scripts `./src/**/*'.
+# Install `superglue' files, executables, and scripts located in `./src'.
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
 #
-# @use ./install.sh [OPTION]
+# @use ./install.sh [...OPTION]
 # @opt -?|-h|--help    Print help info and exit.
 # @opt -f|--force      If a destination exists overwrite it.
+# @opt -q|--quiet      Do not print any messages to `stdout'.
 # @opt -x|--uninstall  Remove `superglue' files and directories.
 # @exit
 #   0  PASS  A successful exit.
@@ -20,14 +21,16 @@
 #   7  SGL   A `superglue' script error.
 ################################################################################
 
-readonly SGLUE_ROW_LEN=36
-
 ################################################################################
 ## SECTIONS
 ## - CLEAN BUILTINS
 ## - DEFINE COLORS
+## - DEFINE ECHO
 ## - CHECK BASH VERSION
-## - DEFINE HELPERS
+## - DEFINE HELPER REFS
+## - DEFINE TAG PATTERNS
+## - DEFINE GEN HELPERS
+## - DEFINE TAG HELPERS
 ## - CHECK $0 VALUE
 ## - CHECK PERMISSIONS
 ## - DEFINE COMMANDS
@@ -35,22 +38,16 @@ readonly SGLUE_ROW_LEN=36
 ## - CHANGE DIRECTORY
 ## - DEFINE SRC PATHS
 ## - CHECK SRC PATHS
-## - DEFINE DEST PATHS
 ## - PARSE OPTIONS
 ## - PRINT HEADER
-## - MAKE DEST PATHS
+## - DEFINE DEST DIRS
+## - MAKE DEST DIRS
 ## - DEFINE METHODS
 ## - INSTALL COMMANDS
 ## - INSTALL FUNCTIONS
 ## - INSTALL HELP FILES
 ## - END INSTALL
 ################################################################################
-
-SGLUE_TITLE='INSTALL'
-SGLUE_HEADER=0
-
-[[ "${NIL}" == '/dev/null' ]] || NIL='/dev/null'
-if readonly NIL 2> /dev/null; then : ; else : ; fi
 
 ################################################################################
 ## CLEAN BUILTINS
@@ -65,7 +62,7 @@ if readonly NIL 2> /dev/null; then : ; else : ; fi
 ############################################################
 sglue_unset_func()
 {
-  if unset -f $1 2> ${NIL}; then
+  if unset -f $1 2> /dev/null; then
     return 0
   else
     return 0
@@ -117,25 +114,82 @@ if [[ -t 1 ]]; then
   SGLUE_GREEN="$(printf '%b' '\033[0;32m')"
 fi
 
+############################################################
+# @func mkgreen
+# @use mkgreen ...MSG
+# @val MSG  Can be any valid string.
+# @return
+#   0  PASS
+############################################################
+mkgreen()
+{
+  printf '%s' "${SGLUE_GREEN}${*}${SGLUE_UNCOLOR}"
+}
+
+############################################################
+# @func mkred
+# @use mkred ...MSG
+# @val MSG  Can be any valid string.
+# @return
+#   0  PASS
+############################################################
+mkred()
+{
+  printf '%s' "${SGLUE_RED}${*}${SGLUE_UNCOLOR}"
+}
+
+################################################################################
+## DEFINE ECHO
+################################################################################
+
+############################################################
+# @func echo
+# @use echo ...MSG
+# @val MSG  Can be any valid string.
+# @return
+#   0  PASS
+############################################################
+echo()
+{
+  printf "%s\n" "${*}"
+}
+
 ################################################################################
 ## CHECK BASH VERSION
 ################################################################################
 
 if [[ -z "${BASH_VERSINFO}" ]] || [[ ${BASH_VERSINFO[0]} -ne 4 ]]; then
-  printf "%s %s\n" "${SGLUE_RED}DEPENDENCY ERROR${SGLUE_UNCOLOR}" \
-    'bash version 4 required' 1>&2
+  echo "$(mkred DEPEND-ERROR) bash version 4 required" 1>&2
   exit 5
 fi
 
 ################################################################################
-## DEFINE HELPERS
+## DEFINE HELPER REFS
+################################################################################
+
+declare -ir SGLUE_ROW_LEN=36
+
+if readonly NIL='/dev/null' 2> /dev/null; then : ; else : ; fi
+
+################################################################################
+## DEFINE TAG PATTERNS
+################################################################################
+
+readonly SGLUE_TAG_SGL='^[[:blank:]]*#[[:blank:]]*@superglue[[:blank:]]\+'
+readonly SGLUE_TAG_VER='^[[:blank:]]*#[[:blank:]]*@version[[:blank:]]\+'
+readonly SGLUE_TAG_DEST='^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+'
+readonly SGLUE_TAG_INCL='^[[:blank:]]*#[[:blank:]]*@incl[[:blank:]]\+'
+readonly SGLUE_TAG_MODE='^[[:blank:]]*#[[:blank:]]*@mode[[:blank:]]\+'
+
+################################################################################
+## DEFINE GEN HELPERS
 ################################################################################
 
 ############################################################
 # Prints an error message and exits the process.
 #
 # @func sglue_err
-# @use sglue_err ERR MSG
+# @use sglue_err ERR ...MSG
 # @val ERR  Must be one of the below errors.
 #   `ERR'   An unknown error (exit= `1').
 #   `OPT'   An invalid option (exit= `2').
@@ -156,48 +210,47 @@ fi
 ############################################################
 sglue_err()
 {
-  local -r FN='sglue_err'
-  local title
   local -i code
+  local title
 
-  case "$1" in
+  case "${1}" in
     ERR)
       title='ERROR'
       code=1
-      ;;
+    ;;
     OPT)
       title='OPTION-ERROR'
       code=2
-      ;;
+    ;;
     VAL)
       title='VALUE-ERROR'
       code=3
-      ;;
+    ;;
     AUTH)
       title='AUTH-ERROR'
       code=4
-      ;;
+    ;;
     DPND)
       title='DEPEND-ERROR'
       code=5
-      ;;
+    ;;
     CHLD)
       title='CHILD-ERROR'
       code=6
-      ;;
+    ;;
     SGL)
       title='SUPERGLUE-ERROR'
       code=7
-      ;;
+    ;;
     *)
-      sglue_err SGL "invalid \`${FN}' ERR \`$1'"
-      ;;
+      sglue_err SGL "invalid \`sglue_err' ERR \`${1}'"
+    ;;
   esac
-  printf " %s  %s\n" "${SGLUE_RED}${title}${SGLUE_UNCOLOR}" "$2" 1>&2
-  [[ ${SGLUE_HEADER} -eq 1 ]] && sglue_footer
+
+  echo " $(mkred ${title}) ${*:2}" 1>&2
+  sglue_footer
   exit ${code}
 }
-readonly -f sglue_err
 
 ############################################################
 # Prints the valid executable path for a command. If no valid
@@ -216,18 +269,17 @@ readonly -f sglue_err
 ############################################################
 sglue_which()
 {
-  local cmd="$1"
+  local cmd="${1}"
 
-  if [[ -x "/bin/$1" ]]; then
-    cmd="/bin/$1"
-  elif [[ -x "/usr/bin/$1" ]]; then
-    cmd="/usr/bin/$1"
-  elif [[ -x "/usr/local/bin/$1" ]]; then
-    cmd="/usr/local/bin/$1"
+  if [[ -x "/bin/${1}" ]]; then
+    cmd="/bin/${1}"
+  elif [[ -x "/usr/bin/${1}" ]]; then
+    cmd="/usr/bin/${1}"
+  elif [[ -x "/usr/local/bin/${1}" ]]; then
+    cmd="/usr/local/bin/${1}"
   fi
   printf '%s' "${cmd}"
 }
-readonly -f sglue_which
 
 ############################################################
 # Checks the validity of a path. If the path is invalid an
@@ -246,7 +298,7 @@ readonly -f sglue_which
 sglue_chk()
 {
   local -r FN='sglue_chk'
-  local -r TYPE="$1"
+  local -r TYPE="${1}"
   local path
 
   shift
@@ -257,26 +309,25 @@ sglue_chk()
         [[ "${path}" =~ ^/ ]] || sglue_err DPND "could not find command \`${path}'"
         [[ -x "${path}" ]] || sglue_err DPND "invalid executable path \`${path}'"
       done
-      ;;
+    ;;
     DIR)
       for path in "$@"; do
         [[ -n "${path}" ]] || sglue_err SGL "invalid \`${FN}' PATH \`${path}'"
         [[ -d "${path}" ]] || sglue_err DPND "invalid directory path \`${path}'"
       done
-      ;;
+    ;;
     FILE)
       for path in "$@"; do
         [[ -n "${path}" ]] || sglue_err SGL "invalid \`${FN}' PATH \`${path}'"
         [[ -f "${path}" ]] || sglue_err DPND "invalid file path \`${path}'"
         [[ -r "${path}" ]] || sglue_err DPND "invalid readable path \`${path}'"
       done
-      ;;
+    ;;
     *)
       sglue_err SGL "invalid \`${FN}' TYPE \`${TYPE}'"
-      ;;
+    ;;
   esac
 }
-readonly -f sglue_chk
 
 ############################################################
 # Prints a row of dashes.
@@ -295,12 +346,11 @@ sglue_dashes()
   for ((i=0; i<len; i++)); do
     dashes="${dashes}-"
   done
-  printf "%s\n" "${dashes}"
+  echo "${dashes}"
 }
-readonly -f sglue_dashes
 
 ############################################################
-# Prints this scripts header.
+# Prints this script's header.
 #
 # @func sglue_header
 # @use sglue_header
@@ -309,16 +359,17 @@ readonly -f sglue_dashes
 ############################################################
 sglue_header()
 {
+  [[ ${SGLUE_QUIET} -eq 1 ]] && return 0
+
   sglue_dashes
-  printf "%s\n" "## START SUPERGLUE ${SGLUE_TITLE}"
+  echo "## START SUPERGLUE ${SGLUE_TITLE}"
   sglue_dashes
 
   SGLUE_HEADER=1
 }
-readonly -f sglue_header
 
 ############################################################
-# Prints this scripts footer.
+# Prints this script's footer.
 #
 # @func sglue_footer
 # @use sglue_footer
@@ -327,11 +378,162 @@ readonly -f sglue_header
 ############################################################
 sglue_footer()
 {
+  [[ ${SGLUE_QUIET}  -eq 1 ]] && return 0
+  [[ ${SGLUE_HEADER} -eq 1 ]] || return 0
+
   sglue_dashes
-  printf "%s\n" "## END SUPERGLUE ${SGLUE_TITLE}"
+  echo "## END SUPERGLUE ${SGLUE_TITLE}"
   sglue_dashes
 }
-readonly -f sglue_footer
+
+############################################################
+# Print a note of the current step.
+#
+# @func sglue_step
+# @use sglue_step ...DESCRIP
+# @return
+#   0  PASS
+############################################################
+sglue_step()
+{
+  local step="${*}"
+  local action
+
+  [[ ${SGLUE_QUIET} -eq 1 ]] && return 0
+
+  if [[ ${SGLUE_ACTION} == 'mk' ]]; then
+    action='Installing'
+  else
+    action='Uninstalling'
+  fi
+
+  echo " ${action} ${step}..."
+}
+
+############################################################
+# Print the final result.
+#
+# @func sglue_result
+# @use sglue_result
+# @return
+#   0  PASS
+############################################################
+sglue_result()
+{
+  local msg
+
+  [[ ${SGLUE_QUIET} -eq 1 ]] && return 0
+
+  if [[ ${SGLUE_ACTION} == 'mk' ]]; then
+    msg='Installation Success'
+  else
+    msg='Removal Complete'
+  fi
+
+  sglue_dashes
+  echo " $(mkgreen "${msg}")"
+}
+
+################################################################################
+## DEFINE TAG HELPERS
+################################################################################
+
+############################################################
+# Trims the tag and blank space from a line.
+#
+# @func sglue_untag
+# @use sglue_untag LINE
+# @return
+#   0  PASS
+############################################################
+sglue_untag()
+{
+  [[ -n "${1}" ]] || return 0
+
+  printf '%s' "${1}" | ${sed} \
+    -e 's/^[[:blank:]]*#[[:blank:]]*@[[:lower:]]\+[[:blank:]]\+//' \
+    -e 's/[[:blank:]]\+$//'
+}
+
+############################################################
+# @func sglue_has_sgl
+# @use sglue_has_sgl SRC
+# @val SRC  Must be a valid file path.
+# @return
+#   0  PASS
+#   1  FAIL
+############################################################
+sglue_has_sgl()
+{
+  if ${grep} "${SGLUE_TAG_SGL}" "${1}" > ${NIL} 2>&1; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+############################################################
+# @func sglue_has_dest
+# @use sglue_has_dest SRC
+# @val SRC  Must be a valid file path.
+# @return
+#   0  PASS
+#   1  FAIL
+############################################################
+sglue_has_dest()
+{
+  if ${grep} "${SGLUE_TAG_DEST}" "${1}" > ${NIL} 2>&1; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+############################################################
+# @func sglue_has_incl
+# @use sglue_has_incl SRC
+# @val SRC  Must be a valid file path.
+# @return
+#   0  PASS
+#   1  FAIL
+############################################################
+sglue_has_incl()
+{
+  if ${grep} "${SGLUE_TAG_INCL}" "${1}" > ${NIL} 2>&1; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+############################################################
+# @func sglue_get_dest
+# @use sglue_get_dest SRC
+# @val SRC  Must be a valid file path.
+# @return
+#   0  PASS
+############################################################
+sglue_get_dest()
+{
+  local line
+
+  while IFS= read -r line; do
+    sglue_untag "${line}"
+  done <<< "$(${grep} "${SGLUE_TAG_DEST}" "${1}" 2> ${NIL})"
+}
+
+############################################################
+# @func sglue_get_mode
+# @use sglue_get_mode SRC
+# @val SRC  Must be a valid file path.
+# @return
+#   0  PASS
+############################################################
+sglue_get_mode()
+{
+  sglue_untag "$(${grep} -m 1 "${SGLUE_TAG_MODE}" "${1}" 2> ${NIL})"
+  return 0
+}
 
 ################################################################################
 ## CHECK $0 VALUE
@@ -375,7 +577,7 @@ sglue_chk CMD ${cat} ${chmod} ${chown} ${cp} ${grep} ${mkdir} ${rm} ${sed}
 ## CHANGE DIRECTORY
 ################################################################################
 
-[[ "$0" =~ ^(\./)?install\.sh$ ]] || cd "${0%%/install.sh}"
+[[ "$0" =~ ^(\./)?install\.sh$ ]] || cd "${0%/*}"
 
 ################################################################################
 ## DEFINE SRC PATHS
@@ -383,69 +585,47 @@ sglue_chk CMD ${cat} ${chmod} ${chown} ${cp} ${grep} ${mkdir} ${rm} ${sed}
 
 readonly SGLUE_REPO_D="$(pwd -P)"
 readonly SGLUE_SRC_D="${SGLUE_REPO_D}/src"
-readonly SGLUE_CMD_D="${SGLUE_SRC_D}/bin"
-readonly SGLUE_LIB_D="${SGLUE_SRC_D}/lib"
 readonly SGLUE_HELP_D="${SGLUE_SRC_D}/help"
 
 ################################################################################
 ## CHECK SRC PATHS
 ################################################################################
 
-sglue_chk DIR "${SGLUE_REPO_D}" "${SGLUE_SRC_D}" "${SGLUE_CMD_D}" \
-  "${SGLUE_LIB_D}" "${SGLUE_HELP_D}"
-
-################################################################################
-## DEFINE DEST PATHS
-################################################################################
-
-readonly SGLUE_LIB_DEST='/lib/superglue'
-readonly SGLUE_HELP_DEST='/usr/share/superglue/help'
+sglue_chk DIR "${SGLUE_REPO_D}" "${SGLUE_SRC_D}" "${SGLUE_HELP_D}"
 
 ################################################################################
 ## PARSE OPTIONS
 ################################################################################
 
-SGLUE_FORCE=0
+SGLUE_ACTION='mk'
+SGLUE_TITLE='INSTALL'
 
-if [[ $# -gt 1 ]]; then
-  sglue_header
-  sglue_err OPT "only 1 OPTION allowed"
-fi
+declare -i SGLUE_HEADER=0
+declare -i SGLUE_QUIET=0
+declare -i SGLUE_FORCE=0
 
-if [[ $# -gt 0 ]]; then
-  case "$1" in
+while ((${#} > 0)); do
+  case "${1}" in
     -\?|-h|--help)
-      ${cat} "${SGLUE_REPO_D}/install.help"
-      printf "\n"
+      echo "$(${cat} "${SGLUE_REPO_D}/install.help")"
       exit 0
-      ;;
+    ;;
     -f|--force)
       SGLUE_FORCE=1
-      ;;
+    ;;
+    -q|--quiet)
+      SGLUE_QUIET=1
+    ;;
     -x|--uninstall)
+      SGLUE_ACTION='rm'
       SGLUE_TITLE='UNINSTALL'
-      sglue_header
-      # remove commands
-      printf " %s\n" 'Uninstalling commands...'
-      for SGLUE_CMD in sgl sglue superglue; do
-        SGLUE_CMD="/bin/${SGLUE_CMD}"
-        [[ -x "${SGLUE_CMD}" ]] && ${rm} -f "${SGLUE_CMD}"
-      done
-      # remove funcs
-      printf " %s\n" 'Uninstalling functions...'
-      [[ -d "${SGLUE_LIB_DEST}" ]] && ${rm} -rf "${SGLUE_LIB_DEST}"
-      # remove helps
-      printf " %s\n" 'Uninstalling help files...'
-      [[ -d "${SGLUE_HELP_DEST}" ]] && ${rm} -rf "${SGLUE_HELP_DEST}"
-      # end uninstall
-      sglue_footer
-      exit 0
-      ;;
+    ;;
     *)
-      sglue_err OPT "invalid OPTION \`$1'"
-      ;;
+      sglue_err OPT "invalid \`install.sh' OPTION \`${1}'"
+    ;;
   esac
-fi
+  shift
+done
 
 ################################################################################
 ## PRINT HEADER
@@ -454,206 +634,196 @@ fi
 sglue_header
 
 ################################################################################
-## MAKE DEST PATHS
+## DEFINE DEST DIRS
 ################################################################################
 
-[[ -d ${SGLUE_LIB_DEST}  ]] || ${mkdir} -m 0755 -p ${SGLUE_LIB_DEST}
-[[ -d ${SGLUE_HELP_DEST} ]] || ${mkdir} -m 0755 -p ${SGLUE_HELP_DEST}
+readonly SGLUE_LIB_DEST='/lib/superglue'
+readonly SGLUE_HELP_DEST='/usr/share/superglue/help'
 
 ################################################################################
-## DEFINE METHODS
+## DEFINE MAKE METHODS
 ################################################################################
 
 ############################################################
-# @func sglue_add_incl
-# @use sglue_add_incl SRC DEST
-# @val SRC   Must be a valid file path.
-# @val DEST  Must be a valid file path.
+# @func sglue_mk
+# @use sglue_mk SRC
+# @val SRC  Can be any type file path.
 # @return
 #   0  PASS
 ############################################################
-sglue_add_incl()
+sglue_mk()
 {
-  local -r src="$1"
-  local -r dest="$2"
-  local -r cwd="${src%/*}"
-  local incl
+  local src="${1}"
+  local mode
+  local path
+
+  if [[ -d "${src}" ]]; then
+    for path in "${src}"/*.sh; do
+      sglue_mk "${path}"
+    done
+  elif [[ -f "${src}" ]] && sglue_has_dest "${src}"; then
+    sglue_step "${src##*/src/}"
+    mode="$(sglue_get_mode "${src}")"
+    while IFS= read -r path; do
+      sglue_mk_dest "${src}" "${path}" "${mode}"
+    done <<< "$(sglue_get_dest "${src}")"
+  fi
+  return 0
+}
+
+############################################################
+# @func sglue_mk_dest
+# @use sglue_mk_dest SRC DEST MODE
+# @val DEST  Must be a valid file path.
+# @val MODE  Must be a valid file mode.
+# @val SRC   Must be a valid file path.
+# @return
+#   0  PASS
+############################################################
+sglue_mk_dest()
+{
+  local src="${1}"
+  local dest="${2}"
+  local mode="${3}"
+
+  [[ -n "${mode}" ]] || mode='0644'
+
+  if [[ ! "${dest}" =~ ^/[^/]+/.*[^/]$ ]] || [[ ! -d "${dest%/*}" ]]; then
+    sglue_err VAL "invalid DEST \`${dest}' in SRC \`${src}'"
+  fi
+  if [[ ! -f "${dest}" ]]; then
+    if [[ -d "${dest}" ]]; then
+      sglue_err VAL "a dir exists for DEST \`${dest}' in SRC \`${src}'"
+    fi
+    if [[ -a "${dest}" ]]; then
+      sglue_err VAL "a non-file exists for DEST \`${dest}' in SRC \`${src}'"
+    fi
+  elif [[ ${SGLUE_FORCE} -ne 1 ]]; then
+    sglue_err VAL "DEST \`${dest}' already exists (use \`--force' to overwrite)"
+  fi
+
+  ${cp} -T "${src}" "${dest}"
+  sglue_mk_incl "${src}" "${dest}"
+  ${chown} root:root "${dest}"
+  ${chmod} ${mode} "${dest}"
+}
+
+############################################################
+# @func sglue_mk_incl
+# @use sglue_mk_incl SRC DEST
+# @val DEST  Must be a valid file path.
+# @val SRC   Must be a valid file path.
+# @return
+#   0  PASS
+############################################################
+sglue_mk_incl()
+{
+  local src="${1}"
+  local dest="${2}"
+  local path
   local line
   local content
   local subline
-  local -r tag='^[[:blank:]]*#[[:blank:]]*@incl[[:blank:]]\+'
-  local -r space='[[:blank:]]\+$'
 
-  # check SRC for INCL
-  ${grep} "${tag}" "${src}" > /dev/null
-  RT=$?
-  [[ $RT -eq 1 ]] && return 0
-  [[ $RT -ne 0 ]] && sglue_err CHLD "\`@incl' \`${grep}' exited with \`$RT'"
+  sglue_has_incl "${dest}" || return 0
 
-  # process each INCL
   while IFS= read -r line; do
-    incl="$(printf '%s' "${line}" | ${sed} -e "s/${tag}//" -e "s/${space}//")"
-    [[ "${incl}" =~ ^/ ]] || incl="${cwd}/${incl}"
-    [[ -f "${incl}" ]] || sglue_err VAL "invalid INCL \`${incl}' in SRC \`${src}'"
+    path="$(sglue_untag "${line}")"
+    [[ "${path}" =~ ^/ ]] || path="${src%/*}/${path}"
+    if [[ ! -f "${path}" ]]; then
+      sglue_err VAL "invalid INCL path \`${path}' in SRC \`${src}'"
+    fi
     line="$(printf '%s' "${line}" | ${sed} -e 's/[]\/$*.^|[]/\\&/g')"
     content=''
     while IFS= read -r subline; do
       content="${content}${subline}\\n"
-    done <<EOF
-$(${sed} -e '1,6 d' -e 's/[\/&]/\\&/g' "${incl}")
-EOF
+    done <<< "$(${sed} -e '1,6 d' -e 's/[\/&]/\\&/g' "${path}")"
     ${sed} -i -e "s/${line}/${content}/" "${dest}"
-  done <<EOF
-$(/bin/grep "${tag}" "${src}")
-EOF
+  done <<< "$(${grep} "${SGLUE_TAG_INCL}" "${dest}" 2> ${NIL})"
 }
 
+################################################################################
+## DEFINE REMOVE METHODS
+################################################################################
+
 ############################################################
-# @func sglue_mk_cmd
-# @use sglue_mk_cmd SRC
-# @val SRC  Must be a valid file path.
+# @func sglue_rm
+# @use sglue_rm SRC
+# @val SRC  Can be any type file path.
 # @return
 #   0  PASS
 ############################################################
-sglue_mk_cmd()
+sglue_rm()
 {
-  local -r src="$1"
-  local dest
-  local parent
-  local -r tag='^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+'
-  local -r space='[[:blank:]]\+$'
+  local src="${1}"
+  local path
 
-  # check SRC for DEST
-  ${grep} "${tag}" "${src}" > /dev/null
-  RT=$?
-  [[ $RT -eq 1 ]] && sglue_err VAL "missing \`@dest DEST' in SRC \`$1'"
-  [[ $RT -ne 0 ]] && sglue_err CHLD "\`@dest' \`${grep}' exited with \`$RT'"
-
-  # process each DEST
-  while IFS= read -r dest; do
-    dest="$(printf '%s' "${dest}" | ${sed} -e "s/${tag}//" -e "s/${space}//")"
-    if [[ ! "${dest}" =~ ^(/.+)?/bin/[a-z]+$ ]]; then
-      sglue_err VAL "invalid DEST \`${dest}' in SRC \`${src}'"
-    fi
-    parent="$(printf '%s' "${dest}" | ${sed} -e 's|/[^/]\+$||')"
-    if [[ ! -d "${parent}" ]]; then
-      sglue_err VAL "invalid DEST \`${dest}' in SRC \`${src}'"
-    fi
-    if [[ -d "${dest}" ]]; then
-      sglue_err VAL "a dir for DEST \`${dest}' already exists in SRC \`${src}'"
-    fi
-    if [[ -f "${dest}" ]] && [[ ${SGLUE_FORCE} -ne 1 ]]; then
-      sglue_err VAL "DEST \`${dest}' already exists (use \`--force' to overwrite)"
-    fi
-    ${cp} "${src}" "${dest}"
-    ${chown} root:root "${dest}"
-    ${chmod} 0755 "${dest}"
-    sglue_add_incl "${src}" "${dest}"
-  done <<EOF
-$(/bin/grep "${tag}" "${src}")
-EOF
+  if [[ -d "${src}" ]]; then
+    for path in "${src}"/*.sh; do
+      sglue_rm "${path}"
+    done
+  elif [[ -f "${src}" ]] && sglue_has_dest "${src}"; then
+    sglue_step "${src##*/src/}"
+    while IFS= read -r path; do
+      sglue_rm_dest "${src}" "${path}"
+    done <<< "$(sglue_get_dest "${src}")"
+  fi
+  return 0
 }
 
 ############################################################
-# @func sglue_mk_lib
-# @use sglue_mk_lib SRC
-# @val SRC  Must be a valid file path.
+# @func sglue_rm_dest
+# @use sglue_rm_dest SRC DEST
+# @val DEST  Must be a valid file path.
+# @val SRC   Must be a valid file path.
 # @return
 #   0  PASS
 ############################################################
-sglue_mk_lib()
+sglue_rm_dest()
 {
-  local -r src="$1"
-  local dest
-  local -r tag='^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+'
-  local -r space='[[:blank:]]\+$'
+  local src="${1}"
+  local dest="${2}"
 
-  # check SRC for DEST
-  ${grep} "${tag}" "${src}" > /dev/null
-  RT=$?
-  [[ $RT -eq 1 ]] && sglue_err VAL "missing \`@dest DEST' in SRC \`$1'"
-  [[ $RT -ne 0 ]] && sglue_err CHLD "\`@dest' \`${grep}' exited with \`$RT'"
+  if [[ ! "${dest}" =~ ^/[^/]+/.*[^/]$ ]]; then
+    sglue_err VAL "invalid DEST \`${dest}' in SRC \`${src}'"
+  fi
 
-  # process each DEST
-  while IFS= read -r dest; do
-    dest="$(printf '%s' "${dest}" | ${sed} -e "s/${tag}//" -e "s/${space}//")"
-    if [[ ! "${dest}" =~ ^/lib/superglue/[a-z_]+$ ]]; then
-      sglue_err VAL "invalid DEST \`${dest}' in SRC \`${src}'"
-    fi
-    if [[ -d "${dest}" ]]; then
-      sglue_err VAL "a dir for DEST \`${dest}' already exists in SRC \`${src}'"
-    fi
-    if [[ -f "${dest}" ]] && [[ ${SGLUE_FORCE} -ne 1 ]]; then
-      sglue_err VAL "DEST \`${dest}' already exists (use \`--force' to overwrite)"
-    fi
-    ${cp} "${src}" "${dest}"
-    ${chown} root:root "${dest}"
-    ${chmod} 0644 "${dest}"
-  done <<EOF
-$(/bin/grep "${tag}" "${src}")
-EOF
-}
-
-############################################################
-# @func sglue_mk_help
-# @use sglue_mk_help SRC
-# @val SRC  Must be a valid file path.
-# @return
-#   0  PASS
-############################################################
-sglue_mk_help()
-{
-  local -r src="$1"
-  local -r dest="${SGLUE_HELP_DEST}/${src##*/}"
-
-  ${cp} "${src}" "${dest}"
-  ${chown} root:root "${dest}"
-  ${chmod} 0644 "${dest}"
+  [[ -f "${dest}" ]] && ${rm} "${dest}"
 }
 
 ################################################################################
-## INSTALL COMMANDS
+## RUN INSTALL
 ################################################################################
 
-printf " %s\n" 'Installing commands...'
+if [[ "${SGLUE_ACTION}" == 'mk' ]]; then
 
-for SGLUE_SRC in "${SGLUE_CMD_D}"/*.sh ; do
-  sglue_mk_cmd "${SGLUE_SRC}"
-done
+  sglue_step directories
+  [[ -d "${SGLUE_LIB_DEST}"  ]] || ${mkdir} -m 0755 -p "${SGLUE_LIB_DEST}"
+  [[ -d "${SGLUE_HELP_DEST}" ]] || ${mkdir} -m 0755 -p "${SGLUE_HELP_DEST}"
 
-################################################################################
-## INSTALL FUNCTIONS
-################################################################################
+  sglue_mk "${SGLUE_SRC_D}"
 
-printf " %s\n" 'Removing old functions...'
+  sglue_step help files
+  ${rm} -rf "${SGLUE_HELP_DEST}"
+  ${cp} -rt "${SGLUE_HELP_DEST%/*}" "${SGLUE_HELP_D}"
 
-${rm} -rf ${SGLUE_LIB_DEST}/*
+elif [[ "${SGLUE_ACTION}" == 'rm' ]]; then
 
-printf " %s\n" 'Installing new functions...'
+  sglue_rm "${SGLUE_SRC_D}"
 
-for SGLUE_SRC in "${SGLUE_LIB_D}"/sgl_*.sh ; do
-  sglue_mk_lib "${SGLUE_SRC}"
-done
+  sglue_step help files
+  [[ -d "${SGLUE_HELP_DEST}" ]] && ${rm} -rf "${SGLUE_HELP_DEST}"
 
-################################################################################
-## INSTALL HELP FILES
-################################################################################
+  sglue_step directories
+  [[ -d "${SGLUE_LIB_DEST}"     ]] && ${rm} -rf "${SGLUE_LIB_DEST}"
+  [[ -d "${SGLUE_HELP_DEST%/*}" ]] && ${rm} -rf "${SGLUE_HELP_DEST%/*}"
 
-printf " %s\n" 'Removing old help files...'
-
-${rm} -rf ${SGLUE_HELP_DEST}/*
-
-printf " %s\n" 'Installing new help files...'
-
-for SGLUE_SRC in "${SGLUE_HELP_D}"/* ; do
-  sglue_mk_help "${SGLUE_SRC}"
-done
+fi
 
 ################################################################################
 ## END INSTALL
 ################################################################################
 
-sglue_dashes
-printf " %s\n" "${SGLUE_GREEN}Installation Success${SGLUE_UNCOLOR}"
+sglue_result
 sglue_footer
 exit 0
