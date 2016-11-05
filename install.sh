@@ -727,7 +727,7 @@ sglue_mk()
   local path
 
   if [[ -d "${src}" ]]; then
-    for path in "${src}"/*.sh; do
+    for path in "${src}"/*; do
       sglue_mk "${path}"
     done
   elif [[ -f "${src}" ]] && sglue_has_dest "${src}"; then
@@ -828,7 +828,7 @@ sglue_rm()
   local path
 
   if [[ -d "${src}" ]]; then
-    for path in "${src}"/*.sh; do
+    for path in "${src}"/*; do
       sglue_rm "${path}"
     done
   elif [[ -f "${src}" ]] && sglue_has_dest "${src}"; then
