@@ -9,6 +9,7 @@
 # @dest /bin/sgl
 # @dest /bin/sglue
 # @dest /bin/superglue
+# @mode 0755
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
