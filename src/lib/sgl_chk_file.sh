@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# @dest /lib/superglue/sgl_chk_file
+# @dest $LIB/superglue/sgl_chk_file
 # @mode 0644
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)

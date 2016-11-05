@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# @dest /lib/superglue/sgl_color
+# @dest $LIB/superglue/sgl_color
 # @mode 0644
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)

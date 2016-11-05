@@ -6,9 +6,9 @@
 # A bash superset that cleans the environment, defines helper references,
 # sources helper functions, and sources a user-defined SCRIPT.
 #
-# @dest /bin/sgl
-# @dest /bin/sglue
-# @dest /bin/superglue
+# @dest $BIN/superglue
+# @dest $BIN/sglue
+# @dest $BIN/sgl
 # @mode 0755
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)

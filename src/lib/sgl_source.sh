@@ -1,12 +1,11 @@
 #!/bin/bash
 #
-# @dest /lib/superglue/sgl_source
+# @dest $LIB/superglue/sgl_source
 # @mode 0644
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
 #
-# @use . /lib/superglue/sgl_source
 # @return
 #   0  PASS
 ################################################################################
