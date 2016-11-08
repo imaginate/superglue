@@ -11,6 +11,19 @@
 declare -r BIN='/bin'
 declare -r LIB='/usr/lib/superglue'
 declare -r HELP='/usr/share/superglue/help'
+declare -r DUMMY="$(pwd -P)/dummy.sgl.d"
+declare -r DUMTMP="${DUMMY}/tmp"
+declare -r DUMTMP1="${DUMMY}/tmp1"
+declare -r DUMTMP2="${DUMMY}/tmp2"
+declare -r DUMTMP3="${DUMMY}/tmp3"
+
+declare -ar DUMDIRS=( \
+  "${DUMMY}"   \
+  "${DUMTMP}"  \
+  "${DUMTMP1}" \
+  "${DUMTMP2}" \
+  "${DUMTMP3}" \
+)
 
 ################################################################################
 ## DEFINE TITLES

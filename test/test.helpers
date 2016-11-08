@@ -5,6 +5,26 @@
 ################################################################################
 
 ############################################################
+# @func clean_tree
+# @use clean_tree DIR
+# @return
+#   0  PASS
+############################################################
+clean_tree()
+{
+  local path
+
+  for path in "${1}"/*; do
+    if [[ -d "${path}" ]]; then
+      clean_tree "${path}"
+    elif [[ -f "${path}" ]]; then
+      rm -f "${path}"
+    fi
+  done
+}
+declare -fr clean_tree
+
+############################################################
 # @func run_test
 # @use run_test SECTION
 # @return
@@ -14,9 +34,11 @@ run_test()
 {
   [[ -f "${1}.test" ]] || stop "invalid SECTION \`${1}' tests stopped"
 
+  clean_tree "${DUMMY}"
   ERRORS=()
   source "${1}.test"
   echo_result "${1}"
+  clean_tree "${DUMMY}"
 }
 declare -fr run_test
 
