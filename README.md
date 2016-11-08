@@ -549,19 +549,21 @@ Note that `SGL_QUIET` and `SGL_SILENT` do not disable printing the colored `MSG`
   Options:
     -B|--backup-ext=EXT   Override the usual backup file extension.
     -b|--backup[=CTRL]    Make a backup of each existing destination file.
-    -D|--defines=VARS     Define multiple VAR for each DEST to use.
-    -d|--define=VAR       Define one VAR for each DEST to use.
+    -D|--defines=VARS     Define multiple VAR for any TAG VALUE to use.
+    -d|--define=VAR       Define one VAR for any TAG VALUE to use.
     -E|--no-empty         Force SRC to contain at least one destination tag.
     -e|--empty            Allow SRC to not contain a destination tag.
     -F|--no-force         If destination exists do not overwrite it.
     -f|--force            If destination exists overwrite it.
     -H|--cmd-dereference  Follow command-line SRC symlinks.
     -h|-?|--help          Print help info and exit.
+    -I|--no-include       Disable `include' TAG processing and inserts.
     -K|--no-keep=ATTRS    Do not preserve the ATTRS.
     -k|--keep[=ATTRS]     Keep the ATTRS (default= `mode,ownership,timestamps').
     -L|--dereference      Always follow SRC symlinks.
     -l|--link             Hard link files instead of copying.
     -m|--mode=MODE        Set the file mode for each destination.
+    -N|--no-insert        Disable `var' TAG processing and inserts.
     -n|--no-clobber       If destination exists do not overwrite.
     -o|--owner=OWNER      Set the file owner for each destination.
     -P|--no-dereference   Never follow SRC symlinks.
@@ -600,13 +602,16 @@ Note that `SGL_QUIET` and `SGL_SILENT` do not disable printing the colored `MSG`
     REGEX  Can be any string. Refer to bash test `=~' operator for more details.
     SRC    Must be a valid file path. The SRC file must contain at least one
            `dest' TAG unless `--empty' is used and can contain one `mode' and
-           `own' TAG. Note that OPTION values take priority over TAG values.
+           `owner' TAG. Note that OPTION values take priority over TAG values.
     TAG    A TAG is defined within a SRC file's contents. It must be a one-line
            comment formatted as `# @TAG VALUE'. Spacing is optional except
            between TAG and VALUE. The TAG must be one of the options below.
-      `dest'  Formatted `# @dest DEST'.
-      `mode'  Formatted `# @mode MODE'.
-      `own'   Formatted `# @own OWNER'.
+      `dest'     Formatted `# @dest DEST'.
+      `include'  Formatted `# @include FILE'.
+      `mode'     Formatted `# @mode MODE'.
+      `owner'    Formatted `# @owner OWNER'.
+      `var'      Formatted `# @var KEY=VALUE'.
+      `version'  Formatted `# @version VERSION'.
     VAR    Must be a valid `KEY=VALUE' pair. The KEY must start with a character
            matching `[a-zA-Z_]', only contain characters `[a-zA-Z0-9_]', and end
            with a character matching `[a-zA-Z0-9]'.

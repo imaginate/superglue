@@ -17,19 +17,21 @@
 # @use sgl_mk_dest [...OPTION] ...SRC
 # @opt -B|--backup-ext=EXT   Override the usual backup file extension.
 # @opt -b|--backup[=CTRL]    Make a backup of each existing destination file.
-# @opt -D|--defines=VARS     Define multiple VAR for each DEST to use.
-# @opt -d|--define=VAR       Define one VAR for each DEST to use.
+# @opt -D|--defines=VARS     Define multiple VAR for any TAG VALUE to use.
+# @opt -d|--define=VAR       Define one VAR for any TAG VALUE to use.
 # @opt -E|--no-empty         Force SRC to contain at least one destination tag.
 # @opt -e|--empty            Allow SRC to not contain a destination tag.
 # @opt -F|--no-force         If destination exists do not overwrite it.
 # @opt -f|--force            If a destination exists overwrite it.
 # @opt -H|--cmd-dereference  Follow command-line SRC symlinks.
 # @opt -h|-?|--help          Print help info and exit.
+# @opt -I|--no-include       Disable `include' TAG processing and inserts.
 # @opt -K|--no-keep=ATTRS    Do not preserve the ATTRS.
 # @opt -k|--keep[=ATTRS]     Keep the ATTRS (default= `mode,ownership,timestamps').
 # @opt -L|--dereference      Always follow SRC symlinks.
 # @opt -l|--link             Hard link files instead of copying.
 # @opt -m|--mode=MODE        Set the file mode for each destination.
+# @opt -N|--no-insert        Disable `var' TAG processing and inserts.
 # @opt -n|--no-clobber       If destination exists do not overwrite.
 # @opt -o|--owner=OWNER      Set the file owner for each destination.
 # @opt -P|--no-dereference   Never follow SRC symlinks.
@@ -66,13 +68,16 @@
 # @val REGEX  Can be any string. Refer to bash test `=~' operator for more details.
 # @val SRC    Must be a valid file path. The SRC file must contain at least one
 #             `dest' TAG unless `--empty' is used and can contain one `mode' and
-#             `own' TAG. Note that OPTION values take priority over TAG values.
+#             `owner' TAG. Note that OPTION values take priority over TAG values.
 # @val TAG    A TAG is defined within a SRC file's contents. It must be a one-line
 #             comment formatted as `# @TAG VALUE'. Spacing is optional except
 #             between TAG and VALUE. The TAG must be one of the options below.
-#   `dest'  Formatted `# @dest DEST'.
-#   `mode'  Formatted `# @mode MODE'.
-#   `own'   Formatted `# @own OWNER'.
+#   `dest'     Formatted `# @dest DEST'.
+#   `include'  Formatted `# @include FILE'.
+#   `mode'     Formatted `# @mode MODE'.
+#   `owner'    Formatted `# @owner OWNER'.
+#   `var'      Formatted `# @var KEY=VALUE'.
+#   `version'  Formatted `# @version VERSION'.
 # @val VAR    Must be a valid `KEY=VALUE' pair. The KEY must start with a character
 #             matching `[a-zA-Z_]', only contain characters `[a-zA-Z0-9_]', and end
 #             with a character matching `[a-zA-Z0-9]'.
@@ -87,21 +92,26 @@ sgl_mk_dest()
 
   # tag patterns
   local -r dtag='^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+'
+  local -r itag='^[[:blank:]]*#[[:blank:]]*@include[[:blank:]]\+'
   local -r mtag='^[[:blank:]]*#[[:blank:]]*@mode[[:blank:]]\+'
-  local -r otag='^[[:blank:]]*#[[:blank:]]*@own[[:blank:]]\+'
+  local -r otag='^[[:blank:]]*#[[:blank:]]*@owner[[:blank:]]\+'
+  local -r vtag='^[[:blank:]]*#[[:blank:]]*@var[[:blank:]]\+'
+  local -r vertag='^[[:blank:]]*#[[:blank:]]*@version[[:blank:]]\+'
 
   # option flags
-  local -i silent
-  local -i quiet
-  local -i force
-  local -i empty
-  local regex
-  local mode
-  local own
+  local -i silent=${SGL_SILENT}
+  local -i quiet=${SGL_QUIET}
+  local -i empty=0
+  local -i force=0
+  local -i insert=1
+  local -i include=1
+  local mode=''
+  local owner=''
+  local regex='/[^/]+/[^/]+$'
 
   # parsed values
   local -a cp_opts
-  local -A vars
+  local -A tag_vars
 
   __sgl_mk_dest__args "$@"
   __sgl_mk_dest__opts "${_SGL_OPTS[@]}"
@@ -171,7 +181,7 @@ __sgl_mk_dest__has_key()
 {
   local _key
 
-  for _key in "${!vars[@]}"; do
+  for _key in "${!tag_vars[@]}"; do
     [[ "$1" == "${_key}" ]] && return 0
   done
   return 1
@@ -180,14 +190,89 @@ readonly -f __sgl_mk_dest__has_key
 
 ############################################################
 # @private
+# @func __sgl_mk_dest__set_key
+# @use __sgl_mk_dest__set_key LINE
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__set_key()
+{
+  local _line="${1}"
+
+  key="${val#*$}"
+
+  if [[ -z "${key}" ]]; then
+    _sgl_err VAL "invalid \`${FN}' KEY at LINE \`${_line}' in SRC \`${src}'"
+  fi
+
+  if [[ "${key}" =~ ^\{ ]]; then
+    if [[ ! "${key}" =~ \} ]]; then
+      key="\`${FN}' KEY \`\$${key%%\$*}'"
+      _sgl_err VAL "invalid ${key} at LINE \`${_line}' in SRC \`${src}'"
+    fi
+    key="${key#\{}"
+    key="${key%%\}*}"
+    if ! __sgl_mk_dest__chk_key "${key}"; then
+      key="\`${FN}' KEY \`\${${key}}'"
+      _sgl_err VAL "invalid ${key} at LINE \`${_line}' in SRC \`${src}'"
+    fi
+    if ! __sgl_mk_dest__has_key "${key}"; then
+      key="\`${FN}' KEY \`\${${key}}'"
+      _sgl_err VAL "undefined ${key} at LINE \`${_line}' in SRC \`${src}'"
+    fi
+  else
+    key="$(printf '%s' "${key}" | ${sed} -e 's/[^a-zA-Z0-9_].*$//')"
+    if ! __sgl_mk_dest__chk_key "${key}"; then
+      key="\`${FN}' KEY \`\$${key}'"
+      _sgl_err VAL "invalid ${key} at LINE \`${_line}' in SRC \`${src}'"
+    fi
+    if ! __sgl_mk_dest__has_key "${key}"; then
+      key="\`${FN}' KEY \`\$${key}'"
+      _sgl_err VAL "undefined ${key} at LINE \`${_line}' in SRC \`${src}'"
+    fi
+  fi
+}
+readonly -f __sgl_mk_dest__set_key
+
+############################################################
+# @private
+# @func __sgl_mk_dest__set_val
+# @use __sgl_mk_dest__set_val LINE
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__set_val()
+{
+  local _line="${1}"
+  local _val
+  local key
+
+  val="$(__sgl_mk_dest__trim_tag "${_line}")"
+
+  while [[ "${val}" =~ \$ ]]; do
+    __sgl_mk_dest__set_key "${_line}"
+    _val="${tag_vars[${key}]}"
+    [[ "${val#*$}" =~ ^\{ ]] && key="{${key}}"
+    key="\$${key}"
+    val="$(printf '%s' "${val}" | ${sed} -e "s/${key}/${_val}/")"
+  done
+}
+readonly -f __sgl_mk_dest__set_val
+
+############################################################
+# @private
 # @func __sgl_mk_dest__trim_tag
-# @use __sgl_mk_dest__trim_tag TAG LINE
+# @use __sgl_mk_dest__trim_tag LINE
 # @return
 #   0  PASS
 ############################################################
 __sgl_mk_dest__trim_tag()
 {
-  printf '%s' "${2}" | ${sed} -e "s/${1}//" -e 's/[[:blank:]]\+$//'
+  printf '%s' "${1}" | ${sed} \
+    -e 's/^[[:blank:]]*#[[:blank:]]*@[[:lower:]]\+[[:blank:]]\+//' \
+    -e 's/[[:blank:]]\+$//'
 }
 readonly -f __sgl_mk_dest__trim_tag
 
@@ -216,11 +301,13 @@ __sgl_mk_dest__args()
     '-f|--force'        0 \
     '-H|--cmd-dereference' 0 \
     '-h|-?|--help'      0 \
+    '-I|--no-include'   0 \
     '-K|--no-keep'      1 \
     '-k|--keep'         2 \
     '-L|--dereference'  0 \
     '-l|--link'         0 \
     '-m|--mode'         1 \
+    '-N|--no-insert'    0 \
     '-n|--no-clobber'   0 \
     '-o|--owner'        1 \
     '-P|--no-dereference' 0 \
@@ -256,14 +343,8 @@ __sgl_mk_dest__opts()
   local _opt
   local _val
 
-  # set default values
-  cp_opts=()
-  vars=(['HOME']="$(printf '%s' "${HOME}" | ${sed} -e 's/[\/&]/\\&/g')")
-  empty=0
-  force=0
-  regex='/[^/]+/[^/]+$'
-  quiet=${SGL_QUIET}
-  silent=${SGL_SILENT}
+  tag_vars=(['HOME']="$(printf '%s' "${HOME}" | ${sed} -e 's/[\/&]/\\&/g')")
+
   [[ ${SGL_QUIET_PARENT}  -eq 1 ]] && quiet=1
   [[ ${SGL_SILENT_PARENT} -eq 1 ]] && silent=1
 
@@ -326,6 +407,9 @@ __sgl_mk_dest__opt()
     -h|-\?|--help)
       _sgl_help sgl_mk_dest
       ;;
+    -I|--no-include)
+      include=0
+      ;;
     -K|--no-keep)
       __sgl_mk_dest__opt_K "$@"
       ;;
@@ -340,6 +424,9 @@ __sgl_mk_dest__opt()
       ;;
     -m|--mode)
       __sgl_mk_dest__opt_m "$@"
+      ;;
+    -N|--no-insert)
+      insert=0
       ;;
     -n|--no-clobber)
       force=0
@@ -459,10 +546,8 @@ __sgl_mk_dest__opt_D()
     if ! __sgl_mk_dest__chk_key "${_key}"; then
       _sgl_err VAL "invalid \`${FN}' \`${1}' VAR \`${_var}' KEY \`${_key}'"
     fi
-    vars["${_key}"]="$(printf '%s' "${_val}" | ${sed} -e 's/[\/&]/\\&/g')"
-  done <<EOF
-${3},
-EOF
+    tag_vars["${_key}"]="$(printf '%s' "${_val}" | ${sed} -e 's/[\/&]/\\&/g')"
+  done <<< "${3},"
 }
 readonly -f __sgl_mk_dest__opt_D
 
@@ -490,7 +575,7 @@ __sgl_mk_dest__opt_d()
     _sgl_err VAL "invalid \`${FN}' \`${1}' VAR \`${3}' KEY \`${_key}'"
   fi
 
-  vars["${_key}"]="$(printf '%s' "${_val}" | ${sed} -e 's/[\/&]/\\&/g')"
+  tag_vars["${_key}"]="$(printf '%s' "${_val}" | ${sed} -e 's/[\/&]/\\&/g')"
 }
 readonly -f __sgl_mk_dest__opt_d
 
@@ -522,9 +607,7 @@ __sgl_mk_dest__opt_K()
         _sgl_err VAL "invalid \`${FN}' \`${1}' ATTR \`${_attr}'"
         ;;
     esac
-  done <<EOF
-${3},
-EOF
+  done <<< "${3},"
 
   __sgl_mk_dest__add_cp_opt "--no-preserve=${3}"
 }
@@ -563,9 +646,7 @@ __sgl_mk_dest__opt_k()
         _sgl_err VAL "invalid \`${FN}' \`${1}' ATTR \`${_attr}'"
         ;;
     esac
-  done <<EOF
-${3},
-EOF
+  done <<< "${3},"
 
   __sgl_mk_dest__add_cp_opt "--preserve=${3}"
 }
@@ -606,7 +687,7 @@ __sgl_mk_dest__opt_o()
     _sgl_err VAL "invalid space in \`${FN}' \`${1}' OWNER \`${3}'"
   fi
 
-  own="$3"
+  owner="$3"
 }
 readonly -f __sgl_mk_dest__opt_o
 
@@ -644,10 +725,13 @@ readonly -f __sgl_mk_dest__vals
 ############################################################
 __sgl_mk_dest__val()
 {
-  local src="$1"
+  local src="${1}"
   local dst
+  local val
+  local -A src_vars
+  local _line
   local _mode
-  local _own
+  local _owner
 
   [[ -f "${src}" ]] || _sgl_err VAL "invalid path for \`${FN}' SRC \`${src}'"
 
@@ -657,6 +741,8 @@ __sgl_mk_dest__val()
     _sgl_err VAL "missing dest tag in \`${FN}' SRC \`${src}'"
   fi
 
+  __sgl_mk_dest__src_vars
+
   # set file mode
   if [[ -n "${mode}" ]]; then
     _mode="${mode}"
@@ -664,42 +750,86 @@ __sgl_mk_dest__val()
     if [[ "$(${grep} -c "${mtag}" "${src}" 2> ${NIL})" != '1' ]]; then
       _sgl_err VAL "only 1 mode tag allowed in \`${FN}' SRC \`${src}'"
     fi
-    _mode="$(${grep} "${mtag}" "${src}" 2> ${NIL})"
-    _mode="$(__sgl_mk_dest__trim_tag "${mtag}" "${_mode}")"
+    __sgl_mk_dest__set_val "$(${grep} "${mtag}" "${src}" 2> ${NIL})"
+    _mode="${val}"
     __sgl_mk_dest__chk_mode "${_mode}" \
       || _sgl_err VAL "invalid \`${FN}' SRC \`${src}' MODE \`${_mode}'"
   fi
 
   # set file owner
-  if [[ -n "${own}" ]]; then
-    _own="${own}"
+  if [[ -n "${owner}" ]]; then
+    _owner="${owner}"
   elif ${grep} "${otag}" "${src}" > ${NIL} 2>&1; then
     if [[ "$(${grep} -c "${otag}" "${src}" 2> ${NIL})" != '1' ]]; then
-      _sgl_err VAL "only 1 own tag allowed in \`${FN}' SRC \`${src}'"
+      _sgl_err VAL "only 1 owner tag allowed in \`${FN}' SRC \`${src}'"
     fi
-    _own="$(${grep} "${otag}" "${src}" 2> ${NIL})"
-    _own="$(__sgl_mk_dest__trim_tag "${otag}" "${_own}")"
-    if [[ "${_own}" =~ [[:space:]] ]]; then
-      _sgl_err VAL "invalid space in \`${FN}' SRC \`${src}' OWNER \`${_own}'"
+    __sgl_mk_dest__set_val "$(${grep} "${otag}" "${src}" 2> ${NIL})"
+    _owner="${val}"
+    if [[ "${_owner}" =~ [[:space:]] ]]; then
+      _sgl_err VAL "invalid space in \`${FN}' SRC \`${src}' OWNER \`${_owner}'"
     fi
   fi
 
   # parse each DEST
-  while IFS= read -r dst; do
-    __sgl_mk_dest__dst
+  while IFS= read -r _line; do
+    __sgl_mk_dest__dst "${_line}"
     __sgl_mk_dest__cp
+    __sgl_mk_dest__insert
+    __sgl_mk_dest__include
     __sgl_mk_dest__chmod "${_mode}"
-    __sgl_mk_dest__chown "${_own}"
-  done <<EOF
-$(${grep} "${dtag}" "${src}" 2> ${NIL})
-EOF
+    __sgl_mk_dest__chown "${_owner}"
+  done <<< "$(${grep} "${dtag}" "${src}" 2> ${NIL})"
 }
 readonly -f __sgl_mk_dest__val
 
 ############################################################
 # @private
+# @func __sgl_mk_dest__src_vars
+# @use __sgl_mk_dest__src_vars
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__src_vars()
+{
+  local _key
+  local _line
+
+  [[ ${insert} -eq 1 ]] || return 0
+
+  # parse VERSION
+  if ${grep} "${vertag}" "${src}" > ${NIL} 2>&1; then
+    if [[ "$(${grep} -c "${vertag}" "${src}" 2> ${NIL})" != '1' ]]; then
+      _sgl_err VAL "only 1 version tag allowed in \`${FN}' SRC \`${src}'"
+    fi
+    __sgl_mk_dest__set_val "$(${grep} "${vertag}" "${src}" 2> ${NIL})"
+    src_vars=(['VERSION']="$(printf '%s' "${val}" | ${sed} -e 's/[\/&]/\\&/g')")
+  fi
+
+  # parse each KEY=VALUE
+  if ${grep} "${vtag}" "${src}" > ${NIL} 2>&1; then
+    while IFS= read -r _line; do
+      __sgl_mk_dest__set_val "${_line}"
+      if [[ ! "${val}" =~ = ]]; then
+        val="\`${FN}' VALUE"
+        _sgl_err VAL "missing ${val} at LINE \`${_line}' in SRC \`${src}'"
+      fi
+      _key="${val%%=*}"
+      if ! __sgl_mk_dest__chk_key "${_key}"; then
+        _key="\`${FN}' KEY \`${_key}'"
+        _sgl_err VAL "invalid ${_key} at LINE \`${_line}' in SRC \`${src}'"
+      fi
+      val="${val#*=}"
+      src_vars["${_key}"]="$(printf '%s' "${val}" | ${sed} -e 's/[\/&]/\\&/g')"
+    done <<< "$(${grep} "${vtag}" "${src}" 2> ${NIL})"
+  fi
+}
+readonly -f __sgl_mk_dest__src_vars
+
+############################################################
+# @private
 # @func __sgl_mk_dest__dst
-# @use __sgl_mk_dest__dst
+# @use __sgl_mk_dest__dst LINE
 # @return
 #   0  PASS
 # @exit-on-error
@@ -709,62 +839,28 @@ __sgl_mk_dest__dst()
   local _key
   local _val
 
-  # trim dest tag and blank space from DEST
-  dst="$(__sgl_mk_dest__trim_tag "${dtag}" "${dst}")"
+  __sgl_mk_dest__set_val "${1}"
 
-  # replace vars in DEST
-  while [[ "${dst}" =~ \$ ]]; do
-    _key="${dst#*$}"
-    if [[ -z "${_key}" ]]; then
-      _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST \`${dst}'"
-    fi
-    if [[ "${_key}" =~ ^\{ ]]; then
-      if [[ ! "${_key}" =~ \} ]]; then
-        _key="KEY \`\$${_key%%\$*}'"
-        _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST \`${dst}' ${_key}"
-      fi
-      _key="${_key#\{}"
-      _key="${_key%%\}*}"
-      if ! __sgl_mk_dest__chk_key "${_key}"; then
-        _key="KEY \`\${${_key}}'"
-        _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST \`${dst}' ${_key}"
-      fi
-      if ! __sgl_mk_dest__has_key "${_key}"; then
-        _key="KEY \`\${${_key}}'"
-        _sgl_err VAL "undefined \`${FN}' SRC \`${src}' DEST \`${dst}' ${_key}"
-      fi
-      _val="${vars[${_key}]}"
-      _key='\${'"${_key}"'}'
-      dst="$(printf '%s' "${dst}" | ${sed} -e "s/${_key}/${_val}/")"
-    else
-      _key="$(printf '%s' "${_key}" | ${sed} -e 's/[^a-zA-Z0-9_].*$//')"
-      if ! __sgl_mk_dest__chk_key "${_key}"; then
-        _key="KEY \`\$${_key}'"
-        _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST \`${dst}' ${_key}"
-      fi
-      if ! __sgl_mk_dest__has_key "${_key}"; then
-        _key="KEY \`\$${_key}'"
-        _sgl_err VAL "undefined \`${FN}' SRC \`${src}' DEST \`${dst}' ${_key}"
-      fi
-      _val="${vars[${_key}]}"
-      _key='\$'"${_key}"
-      dst="$(printf '%s' "${dst}" | ${sed} -e "s/${_key}/${_val}/")"
-    fi
-  done
+  dst="${val}"
+  [[ "${dst}" =~ ^/ ]] || dst="${src%/*}/${dst}"
 
-  # check DEST
   if [[ ! "${dst}" =~ ${regex} ]] || [[ ! -d "${dst%/*}" ]]; then
-    _sgl_err VAL "invalid \`${FN}' SRC \`${src}' DEST \`${dst}'"
+    dst="\`${FN}' DEST \`${dst}'"
+    _sgl_err VAL "invalid ${dst} at LINE \`${1}' in SRC \`${src}'"
   fi
+
   if [[ ! -f "${dst}" ]]; then
     if [[ -d "${dst}" ]]; then
-      _sgl_err VAL "a dir already exists for DEST \`${dst}' in SRC \`${src}'"
+      dst="\`${FN}' DEST \`${dst}' at LINE \`${1}'"
+      _sgl_err VAL "a dir already exists for ${dst} in SRC \`${src}'"
     fi
     if [[ -a "${dst}" ]]; then
-      _sgl_err VAL "a non-file already exists for DEST \`${dst}' in SRC \`${src}'"
+      dst="\`${FN}' DEST \`${dst}' at LINE \`${1}'"
+      _sgl_err VAL "a non-file already exists for ${dst} in SRC \`${src}'"
     fi
   elif [[ ${force} -ne 1 ]]; then
-    _sgl_err VAL "DEST \`${dst}' already exists (use \`--force' to overwrite)"
+    dst="\`${FN}' DEST \`${dst}' at LINE \`${1}' in SRC \`${src}'"
+    _sgl_err VAL "a file already exists for ${dst} (use \`--force' to overwrite)"
   fi
 }
 readonly -f __sgl_mk_dest__dst
@@ -783,6 +879,71 @@ __sgl_mk_dest__cp()
     || _sgl_err CHLD "\`${cp}' in \`${FN}' exited with \`$?'"
 }
 readonly -f __sgl_mk_dest__cp
+
+############################################################
+# @private
+# @func __sgl_mk_dest__insert
+# @use __sgl_mk_dest__insert
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__insert()
+{
+  local _key
+  local _val
+
+  [[ ${insert} -eq 1 ]] || return 0
+
+  for _key in "${!src_vars[@]}"; do
+    _val="${src_vars[${_key}]}"
+    _key="^\([[:blank:]]*\)\([^#@].*\)\?@${_key}"
+    ${sed} -i -e "s/${_key}/\1\2${_val}/g" "${dst}" \
+      || _sgl_err CHLD "\`${sed}' in \`${FN}' exited with \`$?'"
+  done
+}
+readonly -f __sgl_mk_dest__insert
+
+############################################################
+# @private
+# @func __sgl_mk_dest__include
+# @use __sgl_mk_dest__include
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__include()
+{
+  local _line
+  local _path
+  local _content
+  local _subline
+
+  [[ ${include} -eq 1 ]] || return 0
+
+  if ${grep} "${itag}" "${src}" > ${NIL} 2>&1; then
+    while IFS= read -r _line; do
+
+      __sgl_mk_dest__set_val "${_line}"
+      _path="${val}"
+      [[ "${_path}" =~ ^/ ]] || _path="${src%/*}/${_path}"
+      if [[ ! -f "${_path}" ]]; then
+        _path="\`${FN}' FILE \`${_path}'"
+        _sgl_err VAL "invalid ${_path} at LINE \`${_line}' in SRC \`${src}'"
+      fi
+
+      _line="$(printf '%s' "${_line}" | ${sed} -e 's/[]\/$*.^|[]/\\&/g')"
+      _content=''
+      while IFS= read -r _subline; do
+        _content="${_content}${_subline}\\n"
+      done <<< "$(${sed} -e 's/[\/&]/\\&/g' "${_path}")"
+
+      ${sed} -i -e "s/${_line}/${_content}/" "${dst}"
+
+    done <<< "$(${grep} "${itag}" "${src}" 2> ${NIL})"
+  fi
+}
+readonly -f __sgl_mk_dest__include
 
 ############################################################
 # @private
