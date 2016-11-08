@@ -28,10 +28,11 @@ Superglue is a comprehensive bash library and wrapper designed for minimal kerne
   # @dest ${HOME}/destination.file
   # @dest $CUSTOM/destination.file
   # @mode 0755
-  # @own user:group
+  # @owner user:group
   # ...
+  # @include ../a/quasi/macro
   EOF
-  # run sgl_mk_dest which makes both destinations
+  # make both destinations
   sgl mk_dest --define='CUSTOM=/your/custom/path' "${src}"
   ```
 
