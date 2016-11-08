@@ -938,7 +938,7 @@ __sgl_mk_dest__include()
         _content="${_content}${_subline}\\n"
       done <<< "$(${sed} -e 's/[\/&]/\\&/g' "${_path}")"
 
-      ${sed} -i -e "s/${_line}/${_content}/" "${dst}"
+      ${sed} -i -e "s/${_line}/${_content%\\n}/" "${dst}"
 
     done <<< "$(${grep} "${itag}" "${src}" 2> ${NIL})"
   fi
