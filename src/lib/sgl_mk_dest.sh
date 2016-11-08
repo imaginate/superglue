@@ -17,7 +17,8 @@
 # @use sgl_mk_dest [...OPTION] ...SRC
 # @opt -B|--backup-ext=EXT   Override the usual backup file extension.
 # @opt -b|--backup[=CTRL]    Make a backup of each existing destination file.
-# @opt -d|--define=VARS      Define variables for each DEST to use.
+# @opt -D|--defines=VARS     Define multiple VAR for each DEST to use.
+# @opt -d|--define=VAR       Define one VAR for each DEST to use.
 # @opt -E|--no-empty         Force SRC to contain at least one destination tag.
 # @opt -e|--empty            Allow SRC to not contain a destination tag.
 # @opt -F|--no-force         If destination exists do not overwrite it.
@@ -73,8 +74,8 @@
 #   `mode'  Formatted `# @mode MODE'.
 #   `own'   Formatted `# @own OWNER'.
 # @val VAR    Must be a valid `KEY=VALUE' pair. The KEY must start with a character
-#             matching `[a-zA-Z_]', can only contain `[a-zA-Z0-9_]', and must end
-#             with `[a-zA-Z0-9]'. The VALUE must not contain a `,'.
+#             matching `[a-zA-Z_]', only contain characters `[a-zA-Z0-9_]', and end
+#             with a character matching `[a-zA-Z0-9]'.
 # @val VARS   Must be a list of one or more VAR separated by `,'.
 # @return
 #   0  PASS
@@ -207,6 +208,7 @@ __sgl_mk_dest__args()
   _sgl_parse_args "${FN}" \
     '-B|--backup-ext'   1 \
     '-b|--backup'       2 \
+    '-D|--defines'      1 \
     '-d|--define'       1 \
     '-E|--no-empty'     0 \
     '-e|--empty'        0 \
@@ -297,6 +299,9 @@ __sgl_mk_dest__opt()
       ;;
     -b|--backup)
       __sgl_mk_dest__opt_b "$@"
+      ;;
+    -D|--defines)
+      __sgl_mk_dest__opt_D "$@"
       ;;
     -d|--define)
       __sgl_mk_dest__opt_d "$@"
@@ -431,19 +436,19 @@ readonly -f __sgl_mk_dest__opt_b
 
 ############################################################
 # @private
-# @func __sgl_mk_dest__opt_d
-# @use __sgl_mk_dest__opt_d OPT BOOL VAL
+# @func __sgl_mk_dest__opt_D
+# @use __sgl_mk_dest__opt_D OPT BOOL VAL
 # @return
 #   0  PASS
 # @exit-on-error
 ############################################################
-__sgl_mk_dest__opt_d()
+__sgl_mk_dest__opt_D()
 {
   local _var
   local _key
   local _val
 
-  [[ -n "$3" ]] || _sgl_err VAL "missing \`${FN}' \`${1}' VARS"
+  [[ -n "${3}" ]] || _sgl_err VAL "missing \`${FN}' \`${1}' VARS"
 
   while IFS= read -r -d ',' _var; do
     if [[ ! "${_var}" =~ = ]]; then
@@ -458,6 +463,34 @@ __sgl_mk_dest__opt_d()
   done <<EOF
 ${3},
 EOF
+}
+readonly -f __sgl_mk_dest__opt_D
+
+############################################################
+# @private
+# @func __sgl_mk_dest__opt_d
+# @use __sgl_mk_dest__opt_d OPT BOOL VAL
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__opt_d()
+{
+  local _key
+  local _val
+
+  [[ -n "${3}" ]] || _sgl_err VAL "missing \`${FN}' \`${1}' VAR"
+
+  [[ "${3}" =~ = ]] || _sgl_err VAL "missing \`${FN}' \`${1}' VAR \`${3}' VALUE"
+
+  _key="${3%%=*}"
+  _val="${3#*=}"
+
+  if ! __sgl_mk_dest__chk_key "${_key}"; then
+    _sgl_err VAL "invalid \`${FN}' \`${1}' VAR \`${3}' KEY \`${_key}'"
+  fi
+
+  vars["${_key}"]="$(printf '%s' "${_val}" | ${sed} -e 's/[\/&]/\\&/g')"
 }
 readonly -f __sgl_mk_dest__opt_d
 

@@ -4,7 +4,8 @@
   Options:
     -B|--backup-ext=EXT   Override the usual backup file extension.
     -b|--backup[=CTRL]    Make a backup of each existing destination file.
-    -d|--define=VARS      Define variables for each DEST to use.
+    -D|--defines=VARS     Define multiple VAR for each DEST to use.
+    -d|--define=VAR       Define one VAR for each DEST to use.
     -E|--no-empty         Force SRC to contain at least one destination tag.
     -e|--empty            Allow SRC to not contain a destination tag.
     -F|--no-force         If destination exists do not overwrite it.
@@ -62,8 +63,8 @@
       `mode'  Formatted `# @mode MODE'.
       `own'   Formatted `# @own OWNER'.
     VAR    Must be a valid `KEY=VALUE' pair. The KEY must start with a character
-           matching `[a-zA-Z_]', can only contain `[a-zA-Z0-9_]', and must end
-           with `[a-zA-Z0-9]'. The VALUE must not contain a `,'.
+           matching `[a-zA-Z_]', only contain characters `[a-zA-Z0-9_]', and end
+           with a character matching `[a-zA-Z0-9]'.
     VARS   Must be a list of one or more VAR separated by `,'.
 
   Returns:
