@@ -37,6 +37,7 @@
 # @opt -P|--no-dereference   Never follow SRC symlinks.
 # @opt -Q|--silent           Disable `stderr' and `stdout' outputs.
 # @opt -q|--quiet            Disable `stdout' output.
+# @opt -r|--recursive        If SRC is a directory recursively process directories.
 # @opt -s|--symlink          Make symlinks instead of copying.
 # @opt -t|--test=REGEX       Test each DEST path against REGEX (uses bash `=~').
 # @opt -u|--update           Copy only when SRC is newer than DEST.
@@ -66,9 +67,11 @@
 # @val MODE   Must be a valid file mode.
 # @val OWNER  Must be a valid USER[:GROUP].
 # @val REGEX  Can be any string. Refer to bash test `=~' operator for more details.
-# @val SRC    Must be a valid file path. The SRC file must contain at least one
-#             `dest' TAG unless `--empty' is used and can contain one `mode' and
-#             `owner' TAG. Note that OPTION values take priority over TAG values.
+# @val SRC    Must be a valid file or directory path. If SRC is a directory each
+#             child file path is processed as a SRC. Each SRC file must contain at
+#             least one `dest' TAG (unless `--empty' is used), can contain one
+#             `mode', `owner', and `version' TAG, and can contain multiple `include'
+#             or `var' TAG. Note that OPTION values take priority over TAG values.
 # @val TAG    A TAG is defined within a SRC file's contents. It must be a one-line
 #             comment formatted as `# @TAG VALUE'. Spacing is optional except
 #             between TAG and VALUE. The TAG must be one of the options below.
@@ -101,6 +104,7 @@ sgl_mk_dest()
   # option flags
   local -i silent=${SGL_SILENT}
   local -i quiet=${SGL_QUIET}
+  local -i deep=0
   local -i empty=0
   local -i force=0
   local -i insert=1
@@ -313,6 +317,7 @@ __sgl_mk_dest__args()
     '-P|--no-dereference' 0 \
     '-Q|--silent'       0 \
     '-q|--quiet'        0 \
+    '-r|--recursive'    0 \
     '-s|--symlink'      0 \
     '-t|--test'         1 \
     '-u|--update'       0 \
@@ -443,6 +448,9 @@ __sgl_mk_dest__opt()
       ;;
     -q|--quiet)
       quiet=1
+      ;;
+    -r|--recursive)
+      deep=1
       ;;
     -s|--symlink)
       __sgl_mk_dest__add_cp_opt '--symbolic-link'
@@ -709,11 +717,59 @@ __sgl_mk_dest__vals()
 
   [[ $# -eq 0 ]] && _sgl_err VAL "missing \`${FN}' SRC"
 
-  for _src in "$@"; do
-    __sgl_mk_dest__val "${_src}"
+  for _src in "${@}"; do
+    if [[ -d "${_src}" ]]; then
+      if [[ ${deep} -eq 1 ]]; then
+        __sgl_mk_dest__dirs "${_src}"
+      else
+        __sgl_mk_dest__dir "${_src}"
+      fi
+    else
+      __sgl_mk_dest__val "${_src}"
+    fi
   done
 }
 readonly -f __sgl_mk_dest__vals
+
+############################################################
+# @private
+# @func __sgl_mk_dest__dir
+# @use __sgl_mk_dest__dir SRCDIR
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__dir()
+{
+  local _src
+
+  for _src in "${1}"/*; do
+    [[ -f "${_src}" ]] && __sgl_mk_dest__val "${_src}"
+  done
+}
+readonly -f __sgl_mk_dest__dir
+
+############################################################
+# @private
+# @func __sgl_mk_dest__dirs
+# @use __sgl_mk_dest__dirs SRCDIR
+# @return
+#   0  PASS
+# @exit-on-error
+############################################################
+__sgl_mk_dest__dirs()
+{
+  local _src
+
+  for _src in "${1}"/*; do
+    if [[ -d "${_src}" ]]; then
+      __sgl_mk_dest__dirs "${_src}"
+    elif [[ -f "${_src}" ]]; then
+      __sgl_mk_dest__val "${_src}"
+    fi
+  done
+}
+readonly -f __sgl_mk_dest__dirs
 
 ############################################################
 # @private

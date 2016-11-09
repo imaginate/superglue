@@ -24,6 +24,7 @@
     -P|--no-dereference   Never follow SRC symlinks.
     -Q|--silent           Disable `stderr' and `stdout' outputs.
     -q|--quiet            Disable `stdout' output.
+    -r|--recursive        If SRC is a directory recursively process directories.
     -s|--symlink          Make symlinks instead of copying.
     -t|--test=REGEX       Test each DEST path against REGEX (uses bash `=~').
     -u|--update           Copy only when SRC is newer than DEST.
@@ -55,9 +56,11 @@
     MODE   Must be a valid file mode.
     OWNER  Must be a valid USER[:GROUP].
     REGEX  Can be any string. Refer to bash test `=~' operator for more details.
-    SRC    Must be a valid file path. The SRC file must contain at least one
-           `dest' TAG unless `--empty' is used and can contain one `mode' and
-           `owner' TAG. Note that OPTION values take priority over TAG values.
+    SRC    Must be a valid file or directory path. If SRC is a directory each
+           child file path is processed as a SRC. Each SRC file must contain at
+           least one `dest' TAG (unless `--empty' is used), can contain one
+           `mode', `owner', and `version' TAG, and can contain multiple `include'
+           or `var' TAG. Note that OPTION values take priority over TAG values.
     TAG    A TAG is defined within a SRC file's contents. It must be a one-line
            comment formatted as `# @TAG VALUE'. Spacing is optional except
            between TAG and VALUE. The TAG must be one of the options below.
