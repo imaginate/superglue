@@ -27,7 +27,8 @@ cat <<'EOF' > "${src}"
 # @mode 0755
 #
 # @var RESULT=success
-# @var HOME=$HOME
+# @var HOME="$HOME"
+# @var USER='$USER'
 ##
 # @include ./include.sgl.file
 ##
@@ -38,6 +39,11 @@ if [[ '/path/to/@RESULT' != '/path/to/success' ]]; then
 fi
 
 if [[ "@HOME" != "$HOME" ]]; then
+  echo 'var tag failed'
+  exit 1
+fi
+
+if [[ '@USER' != '$USER' ]]; then
   echo 'var tag failed'
   exit 1
 fi
@@ -66,7 +72,8 @@ cat <<EOF > "${correct}"
 # @mode 0755
 #
 # @var RESULT=success
-# @var HOME=\$HOME
+# @var HOME="\$HOME"
+# @var USER='\$USER'
 ##
 #
 # INCLUDE
@@ -80,6 +87,11 @@ if [[ '/path/to/success' != '/path/to/success' ]]; then
 fi
 
 if [[ "$HOME" != "\$HOME" ]]; then
+  echo 'var tag failed'
+  exit 1
+fi
+
+if [[ '\$USER' != '\$USER' ]]; then
   echo 'var tag failed'
   exit 1
 fi
