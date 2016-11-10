@@ -348,7 +348,7 @@ __sgl_mk_dest__opts()
   local _opt
   local _val
 
-  tag_vars=(['HOME']="$(printf '%s' "${HOME}" | ${sed} -e 's/[\/&]/\\&/g')")
+  tag_vars=(['HOME']="$(_sgl_escape_val "${HOME}")")
 
   [[ ${SGL_QUIET_PARENT}  -eq 1 ]] && quiet=1
   [[ ${SGL_SILENT_PARENT} -eq 1 ]] && silent=1
@@ -554,7 +554,7 @@ __sgl_mk_dest__opt_D()
     if ! __sgl_mk_dest__chk_key "${_key}"; then
       _sgl_err VAL "invalid \`${FN}' \`${1}' VAR \`${_var}' KEY \`${_key}'"
     fi
-    tag_vars["${_key}"]="$(printf '%s' "${_val}" | ${sed} -e 's/[\/&]/\\&/g')"
+    tag_vars["${_key}"]="$(_sgl_escape_val "${_val}")"
   done <<< "${3},"
 }
 readonly -f __sgl_mk_dest__opt_D
@@ -583,7 +583,7 @@ __sgl_mk_dest__opt_d()
     _sgl_err VAL "invalid \`${FN}' \`${1}' VAR \`${3}' KEY \`${_key}'"
   fi
 
-  tag_vars["${_key}"]="$(printf '%s' "${_val}" | ${sed} -e 's/[\/&]/\\&/g')"
+  tag_vars["${_key}"]="$(_sgl_escape_val "${_val}")"
 }
 readonly -f __sgl_mk_dest__opt_d
 
@@ -849,6 +849,7 @@ readonly -f __sgl_mk_dest__val
 __sgl_mk_dest__src_vars()
 {
   local _key
+  local _val
   local _line
 
   [[ ${insert} -eq 1 ]] || return 0
@@ -859,24 +860,36 @@ __sgl_mk_dest__src_vars()
       _sgl_err VAL "only 1 version tag allowed in \`${FN}' SRC \`${src}'"
     fi
     __sgl_mk_dest__set_val "$(${grep} "${vertag}" "${src}" 2> ${NIL})"
-    src_vars=(['VERSION']="$(printf '%s' "${val}" | ${sed} -e 's/[\/&]/\\&/g')")
+    src_vars=(['VERSION']="$(_sgl_escape_val "${val}")")
   fi
 
   # parse each KEY=VALUE
   if ${grep} "${vtag}" "${src}" > ${NIL} 2>&1; then
+    local -r squote='^[^=]+=[[:blank:]]*'"'"
+    local -r dquote='^"'
     while IFS= read -r _line; do
       __sgl_mk_dest__set_val "${_line}"
       if [[ ! "${val}" =~ = ]]; then
-        val="\`${FN}' VALUE"
-        _sgl_err VAL "missing ${val} at LINE \`${_line}' in SRC \`${src}'"
+        _val="\`${FN}' VALUE"
+        _sgl_err VAL "missing ${_val} at LINE \`${_line}' in SRC \`${src}'"
       fi
-      _key="${val%%=*}"
+      _key="$(printf '%s' "${val%%=*}" | ${sed} -e 's/[[:blank:]]\+$//')"
       if ! __sgl_mk_dest__chk_key "${_key}"; then
         _key="\`${FN}' KEY \`${_key}'"
         _sgl_err VAL "invalid ${_key} at LINE \`${_line}' in SRC \`${src}'"
       fi
-      val="${val#*=}"
-      src_vars["${_key}"]="$(printf '%s' "${val}" | ${sed} -e 's/[\/&]/\\&/g')"
+      if [[ "${_line}" =~ ${squote} ]]; then
+        _val="$(printf '%s' "${_line#*=}" | ${sed} -e 's/^[[:blank:]]\+//')"
+        _val="${_val#'}"
+        _val="${_val%'}"
+      else
+        _val="$(printf '%s' "${val#*=}" | ${sed} -e 's/^[[:blank:]]\+//')"
+        if [[ "${_val}" =~ ${dquote} ]]; then
+          _val="${_val#\"}"
+          _val="${_val%\"}"
+        fi
+      fi
+      src_vars["${_key}"]="$(_sgl_escape_val "${_val}")"
     done <<< "$(${grep} "${vtag}" "${src}" 2> ${NIL})"
   fi
 }
@@ -973,13 +986,11 @@ __sgl_mk_dest__include()
   local _line
   local _path
   local _content
-  local _subline
 
   [[ ${include} -eq 1 ]] || return 0
 
   if ${grep} "${itag}" "${src}" > ${NIL} 2>&1; then
     while IFS= read -r _line; do
-
       __sgl_mk_dest__set_val "${_line}"
       _path="${val}"
       [[ "${_path}" =~ ^/ ]] || _path="${src%/*}/${_path}"
@@ -987,15 +998,9 @@ __sgl_mk_dest__include()
         _path="\`${FN}' FILE \`${_path}'"
         _sgl_err VAL "invalid ${_path} at LINE \`${_line}' in SRC \`${src}'"
       fi
-
-      _line="$(printf '%s' "${_line}" | ${sed} -e 's/[]\/$*.^|[]/\\&/g')"
-      _content=''
-      while IFS= read -r _subline; do
-        _content="${_content}${_subline}\\n"
-      done <<< "$(${sed} -e 's/[\/&]/\\&/g' "${_path}")"
-
-      ${sed} -i -e "s/${_line}/${_content%\\n}/" "${dst}"
-
+      _line="$(_sgl_escape_key "${_line}")"
+      _content="$(_sgl_escape_cont "${_path}")"
+      ${sed} -i -e "s/${_line}/${_content}/" "${dst}"
     done <<< "$(${grep} "${itag}" "${src}" 2> ${NIL})"
   fi
 }
