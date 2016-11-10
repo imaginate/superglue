@@ -868,21 +868,27 @@ __sgl_mk_dest__src_vars()
     local -r squote='^[^=]+=[[:blank:]]*'"'"
     local -r dquote='^"'
     while IFS= read -r _line; do
-      __sgl_mk_dest__set_val "${_line}"
-      if [[ ! "${val}" =~ = ]]; then
-        _val="\`${FN}' VALUE"
-        _sgl_err VAL "missing ${_val} at LINE \`${_line}' in SRC \`${src}'"
-      fi
-      _key="$(printf '%s' "${val%%=*}" | ${sed} -e 's/[[:blank:]]\+$//')"
-      if ! __sgl_mk_dest__chk_key "${_key}"; then
-        _key="\`${FN}' KEY \`${_key}'"
-        _sgl_err VAL "invalid ${_key} at LINE \`${_line}' in SRC \`${src}'"
-      fi
       if [[ "${_line}" =~ ${squote} ]]; then
         _val="$(printf '%s' "${_line#*=}" | ${sed} -e 's/^[[:blank:]]\+//')"
-        _val="${_val#'}"
-        _val="${_val%'}"
+        _val="$(printf '%s' "${_val#\'}" | ${sed} -e 's/[[:blank:]]\+$//')"
+        _val="${_val%\'}"
+        __sgl_mk_dest__set_val "${_line%%=*}"
+        _key="${val}"
+        if ! __sgl_mk_dest__chk_key "${_key}"; then
+          _key="\`${FN}' KEY \`${_key}'"
+          _sgl_err VAL "invalid ${_key} at LINE \`${_line}' in SRC \`${src}'"
+        fi
       else
+        __sgl_mk_dest__set_val "${_line}"
+        if [[ ! "${val}" =~ = ]]; then
+          _val="\`${FN}' VALUE"
+          _sgl_err VAL "missing ${_val} at LINE \`${_line}' in SRC \`${src}'"
+        fi
+        _key="$(printf '%s' "${val%%=*}" | ${sed} -e 's/[[:blank:]]\+$//')"
+        if ! __sgl_mk_dest__chk_key "${_key}"; then
+          _key="\`${FN}' KEY \`${_key}'"
+          _sgl_err VAL "invalid ${_key} at LINE \`${_line}' in SRC \`${src}'"
+        fi
         _val="$(printf '%s' "${val#*=}" | ${sed} -e 's/^[[:blank:]]\+//')"
         if [[ "${_val}" =~ ${dquote} ]]; then
           _val="${_val#\"}"
