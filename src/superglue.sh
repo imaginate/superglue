@@ -70,6 +70,10 @@ readonly NIL='/dev/null'
 # @incl ./incl/_sgl_clean_builtin.sh
 # @incl ./incl/_sgl_err.sh
 # @incl ./incl/_sgl_err_code.sh
+# @incl ./incl/_sgl_escape_cont.sh
+# @incl ./incl/_sgl_escape_key.sh
+# @incl ./incl/_sgl_escape_val.sh
+# @incl ./incl/_sgl_escape_vals.sh
 # @incl ./incl/_sgl_fail.sh
 # @incl ./incl/_sgl_get_color.sh
 # @incl ./incl/_sgl_get_func.sh
