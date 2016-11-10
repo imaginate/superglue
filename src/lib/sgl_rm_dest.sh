@@ -273,7 +273,7 @@ __sgl_rm_dest__opts()
   local _opt
   local _val
 
-  tag_vars=(['HOME']="$(printf '%s' "${HOME}" | ${sed} -e 's/[\/&]/\\&/g')")
+  tag_vars=(['HOME']="$(_sgl_escape_val "${HOME}")")
 
   [[ ${SGL_QUIET_PARENT}  -eq 1 ]] && quiet=1
   [[ ${SGL_SILENT_PARENT} -eq 1 ]] && silent=1
@@ -378,7 +378,7 @@ __sgl_rm_dest__opt_D()
     if ! __sgl_rm_dest__chk_key "${_key}"; then
       _sgl_err VAL "invalid \`${FN}' \`${1}' VAR \`${_var}' KEY \`${_key}'"
     fi
-    tag_vars["${_key}"]="$(printf '%s' "${_val}" | ${sed} -e 's/[\/&]/\\&/g')"
+    tag_vars["${_key}"]="$(_sgl_escape_val "${_val}")"
   done <<< "${3},"
 }
 readonly -f __sgl_rm_dest__opt_D
@@ -407,7 +407,7 @@ __sgl_rm_dest__opt_d()
     _sgl_err VAL "invalid \`${FN}' \`${1}' VAR \`${3}' KEY \`${_key}'"
   fi
 
-  tag_vars["${_key}"]="$(printf '%s' "${_val}" | ${sed} -e 's/[\/&]/\\&/g')"
+  tag_vars["${_key}"]="$(_sgl_escape_val "${_val}")"
 }
 readonly -f __sgl_rm_dest__opt_d
 
