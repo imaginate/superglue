@@ -348,7 +348,12 @@ __sgl_mk_dest__opts()
   local _opt
   local _val
 
-  tag_vars=(['HOME']="$(_sgl_escape_val "${HOME}")")
+  tag_vars=( \
+    ['HOME']="$(_sgl_escape_val "${HOME}")" \
+    ['EUID']="$(_sgl_escape_val "${EUID}")" \
+    ['UID']="$(_sgl_escape_val "${UID}")"   \
+    ['USER']="$(_sgl_escape_val "${USER}")" \
+  )
 
   [[ ${SGL_QUIET_PARENT}  -eq 1 ]] && quiet=1
   [[ ${SGL_SILENT_PARENT} -eq 1 ]] && silent=1
