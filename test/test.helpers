@@ -84,6 +84,6 @@ declare -fr stop
 throw()
 {
   ERRORS+=("$*")
-  $((++FAILED))
+  : $((++FAILED))
 }
 declare -frx throw
