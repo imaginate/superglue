@@ -187,9 +187,7 @@ sgl_cp()
               _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
               ;;
           esac
-        done <<EOF
-"${val},"
-EOF
+        done <<< "${val},"
         opts[${#opts[@]}]="--no-preserve=${val}"
         ;;
       -k|--keep)
@@ -211,9 +209,7 @@ EOF
                 _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
                 ;;
             esac
-          done <<EOF
-"${val},"
-EOF
+          done <<< "${val},"
           opts[${#opts[@]}]="--preserve=${val}"
         else
           opts[${#opts[@]}]='--preserve'
