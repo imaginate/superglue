@@ -135,9 +135,7 @@ sgl_parse_args()
               else
                 _sgl_err VAL "invalid \`${FN}' OPT \`${opt}'"
               fi
-            done <<EOF
-${opt}|
-EOF
+            done <<< "${opt}|"
           done
           ;;
         --prg|--program)
@@ -240,9 +238,7 @@ EOF
                   else
                     _sgl_err VAL "invalid \`${FN}' OPT \`${opt}'"
                   fi
-                done <<EOF
-${opt}|
-EOF
+                done <<< "${opt}|"
               done
             fi
             ;;

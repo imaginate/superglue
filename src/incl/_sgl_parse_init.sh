@@ -65,9 +65,8 @@ _sgl_parse_init()
       else
         _sgl_err SGL "invalid \`${FN}' OPT \`${opt}'"
       fi
-    done <<EOF
-$1|
-EOF
+    done <<< "${1}|"
+
     # next OPT/VAL
     shift 2
   done

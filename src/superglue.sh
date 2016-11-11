@@ -1,7 +1,7 @@
 #!/bin/bash --posix
 #
 # @superglue
-# @version 0.1.0-alpha.9
+# @version 0.1.0-alpha.10
 #
 # A bash superset that cleans the environment, defines helper references,
 # sources helper functions, and sources a user-defined SCRIPT.
@@ -46,7 +46,7 @@
 #   7  SGL   A `superglue' script error.
 ################################################################################
 
-readonly SGL_VERSION='0.1.0-alpha.9'
+readonly SGL_VERSION='0.1.0-alpha.10'
 readonly SGL='superglue'
 
 ################################################################################
