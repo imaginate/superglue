@@ -631,7 +631,7 @@ declare -i SGLUE_FORCE=0
 while ((${#} > 0)); do
   case "${1}" in
     -\?|-h|--help)
-      echo "$(${cat} "${SGLUE_REPO_D}/install.help")"
+      ${cat} "${SGLUE_REPO_D}/install.help"
       exit 0
     ;;
     -b|--bin)

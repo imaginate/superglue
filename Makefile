@@ -33,7 +33,7 @@ force: install-force
 
 h: help
 help:
-	@cat ./Makefile.help && printf "\n"
+	@cat ./Makefile.help
 
 i: install
 install:
