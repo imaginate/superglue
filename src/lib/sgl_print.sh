@@ -4,7 +4,7 @@
 # @mode 0644
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
-# @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
+# @copyright 2017 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
 #
 # @use sgl_source print
 # @return

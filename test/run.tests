@@ -3,7 +3,7 @@
 # Run `superglue' unit tests.
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
-# @copyright 2016 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
+# @copyright 2017 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
 #
 # @use ./run.tests [...SECTION]
 # @val SECTION  Must be a `./SECTION.test' file. If undefined all tests are ran.
