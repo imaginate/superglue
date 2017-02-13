@@ -14,14 +14,7 @@
 ############################################################
 _sgl_is_path()
 {
-  local path="${1%/}"
-  local name="${path##*/}"
-
-  if [[ -n "${name}" ]]      && \
-     [[ "${name}" != '*' ]]  && \
-     [[ "${name}" != '.*' ]] && \
-     [[ -a "${path}" ]]
-  then
+  if _sgl_is_name "${1}" && [[ -a "${1}" ]]; then
     return 0
   fi
   return 1
