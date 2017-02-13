@@ -13,8 +13,8 @@
 ############################################################
 _sgl_unalias_each()
 {
-  while [[ $# -gt 0 ]]; do
-    _sgl_unalias $1
+  while [[ ${#} -gt 0 ]]; do
+    _sgl_unalias ${1}
     shift
   done
 }

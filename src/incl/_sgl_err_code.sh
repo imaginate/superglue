@@ -9,13 +9,13 @@
 # @use _sgl_err_code ERR
 # @val ERR  Must be an error from the below options or any valid integer in the
 #           range of `1' to `126'.
-#   `MISC'  An unknown error.
-#   `OPT'   An invalid option.
-#   `VAL'   An invalid or missing value.
-#   `AUTH'  A permissions error.
-#   `DPND'  A dependency error.
-#   `CHLD'  A child process exited unsuccessfully.
-#   `SGL'   A `superglue' script error.
+#   `ERR|MISC'  An unknown error.
+#   `OPT'       An invalid option.
+#   `VAL'       An invalid or missing value.
+#   `AUTH'      A permissions error.
+#   `DPND'      A dependency error.
+#   `CHLD'      A child process exited unsuccessfully.
+#   `SGL'       A `superglue' script error.
 # @return
 #   0  PASS
 ############################################################
@@ -23,8 +23,8 @@ _sgl_err_code()
 {
   local -i code=0
 
-  case "$1" in
-    MISC)
+  case "${1}" in
+    ERR|MISC)
       code=1
       ;;
     OPT)
@@ -46,8 +46,8 @@ _sgl_err_code()
       code=7
       ;;
     *)
-      if [[ "$1" =~ ^[1-9][0-9]?[0-9]?$ ]] && [[ $1 -lt 127 ]]; then
-        code=$1
+      if [[ "${1}" =~ ^[1-9][0-9]{,2}$ ]] && [[ ${1} -lt 127 ]]; then
+        code=${1}
       fi
       ;;
   esac

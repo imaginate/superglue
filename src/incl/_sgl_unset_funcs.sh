@@ -13,8 +13,8 @@
 ############################################################
 _sgl_unset_funcs()
 {
-  while [[ $# -gt 0 ]]; do
-    _sgl_unset_func $1
+  while [[ ${#} -gt 0 ]]; do
+    _sgl_unset_func ${1}
     shift
   done
 }

@@ -13,10 +13,9 @@
 ############################################################
 _sgl_unalias()
 {
-  if unalias $1 2> ${NIL} ; then
-    return 0
-  else
+  if unalias ${1} 2> ${NIL}; then
     return 0
   fi
+  return 0
 }
 readonly -f _sgl_unalias

@@ -23,7 +23,7 @@
 ############################################################
 _sgl_get_color()
 {
-  case "$1" in
+  case "${1}" in
     black|Black|BLACK)
       printf '%s' "${SGL_BLACK}"
       ;;

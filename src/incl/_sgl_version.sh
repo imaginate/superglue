@@ -12,7 +12,7 @@
 ############################################################
 _sgl_version()
 {
-  printf "%s\n" "superglue v${SGL_VERSION}"
+  printf '%s\n' "superglue v${SGL_VERSION}"
   exit 0
 }
 readonly -f _sgl_version

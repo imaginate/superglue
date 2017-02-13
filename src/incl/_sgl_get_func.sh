@@ -14,16 +14,18 @@
 ############################################################
 _sgl_get_func()
 {
-  local func="$1"
+  local func="${1}"
 
   if [[ ! "${func}" =~ ^[a-z_]+$ ]]; then
     printf '%s' "${func}"
     return 1
   fi
 
-  [[ "${func}" =~ ^sgl_ ]] || func="sgl_$1"
+  if [[ ! "${func}" =~ ^sgl_ ]]; then
+    func="sgl_${1}"
+  fi
 
-  if [[ ! -f "${SGL_LIB}/${func}" ]]; then
+  if ! _sgl_is_read "${SGL_LIB}/${func}"; then
     printf '%s' "${func}"
     return 1
   fi
