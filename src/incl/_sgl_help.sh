@@ -29,7 +29,7 @@ _sgl_help()
 
   path="${dir}/${name}"
 
-  if ! _sgl_is_file "${path}"; then
+  if ! _sgl_is_read "${path}"; then
     _sgl_err 0 DPND "missing help file \`${path}' - reinstall \`${SGL}'"
   fi
 
