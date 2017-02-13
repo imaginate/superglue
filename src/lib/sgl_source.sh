@@ -122,96 +122,52 @@ sgl_source()
 
   # source each FUNC
   for func in "${funcs[@]}"; do
-    if declare -F ${func} > ${NIL}; then
-      :
-    else
-      . ${SGL_LIB}/${func}
+    if ! declare -F ${func} > ${NIL}; then
+      . "${SGL_LIB}/${func}"
     fi
-    if [[ ${SGL_ALIAS} -eq 1 ]]; then
+    if [[ "${SGL_ALIAS}" == '1' ]]; then
       case ${func} in
         sgl_chk_cmd)
-          chk_cmd()
-          {
-            sgl_chk_cmd "$@"
-          }
+          chk_cmd() { sgl_chk_cmd "$@"; }
           ;;
         sgl_chk_dir)
-          chk_dir()
-          {
-            sgl_chk_dir "$@"
-          }
+          chk_dir() { sgl_chk_dir "$@"; }
           ;;
         sgl_chk_exit)
-          chk_exit()
-          {
-            sgl_chk_exit "$@"
-          }
+          chk_exit() { sgl_chk_exit "$@"; }
           ;;
         sgl_chk_file)
-          chk_file()
-          {
-            sgl_chk_file "$@"
-          }
+          chk_file() { sgl_chk_file "$@"; }
           ;;
         sgl_chk_uid)
-          chk_uid()
-          {
-            sgl_chk_uid "$@"
-          }
+          chk_uid() { sgl_chk_uid "$@"; }
           ;;
         sgl_color)
-          color()
-          {
-            sgl_color "$@"
-          }
+          color() { sgl_color "$@"; }
           ;;
         sgl_cp)
-          cp()
-          {
-            sgl_cp "$@"
-          }
+          cp() { sgl_cp "$@"; }
           ;;
         sgl_err)
-          err()
-          {
-            sgl_err "$@"
-          }
+          err() { sgl_err "$@"; }
           ;;
         sgl_mk_dest)
-          mk_dest()
-          {
-            sgl_mk_dest "$@"
-          }
+          mk_dest() { sgl_mk_dest "$@"; }
           ;;
         sgl_parse_args)
-          parse_args()
-          {
-            sgl_parse_args "$@"
-          }
+          parse_args() { sgl_parse_args "$@"; }
           ;;
         sgl_print)
-          print()
-          {
-            sgl_print "$@"
-          }
+          print() { sgl_print "$@"; }
           ;;
         sgl_rm_dest)
-          rm_dest()
-          {
-            sgl_rm_dest "$@"
-          }
+          rm_dest() { sgl_rm_dest "$@"; }
           ;;
         sgl_set_color)
-          set_color()
-          {
-            sgl_set_color "$@"
-          }
+          set_color() { sgl_set_color "$@"; }
           ;;
         sgl_source)
-          source()
-          {
-            sgl_source "$@"
-          }
+          source() { sgl_source "$@"; }
           ;;
       esac
     fi
