@@ -8,20 +8,37 @@
 # @func _sgl_help
 # @use _sgl_help CMD|FUNC
 # @val CMD   Must be a valid `superglue' command.
-# @val FUNC  Must be a valid `superglue' function. The `sgl_' prefix is optional.
+# @val FUNC  Must be a valid `superglue' function.
 # @exit
 #   0  PASS
 ############################################################
 _sgl_help()
 {
-  local file="${SGL_HELP}/$1"
+  local name="${1}"
+  local dir="${SGL_HELP}"
+  local path
+  local -i rt
 
-  [[ "$1" =~ ^(sgl|sglue)$ ]] && file="${SGL_HELP}/superglue"
+  if ! _sgl_is_dir "${dir}"; then
+    _sgl_err 0 DPND "missing help dir \`${dir}' - reinstall \`${SGL}'"
+  fi
 
-  [[ -d ${SGL_HELP} ]] || _sgl_err DPND "missing help dir - reinstall \`${SGL}'"
-  [[ -f ${file} ]] || _sgl_err DPND "missing \`${file}' - reinstall \`${SGL}'"
+  if [[ "${name}" == 'sgl' ]] || [[ "${name}" == 'sglue' ]]; then
+    name='superglue'
+  fi
 
-  ${cat} ${file}
+  path="${dir}/${name}"
+
+  if ! _sgl_is_file "${path}"; then
+    _sgl_err 0 DPND "missing help file \`${path}' - reinstall \`${SGL}'"
+  fi
+
+  ${cat} -- "${path}"
+  rt=${?}
+  if [[ ${rt} -ne 0 ]]; then
+    _sgl_err 0 CHLD "\`${cat} -- \"${path}\"' exited with \`${rt}'"
+  fi
+
   exit 0
 }
 readonly -f _sgl_help
