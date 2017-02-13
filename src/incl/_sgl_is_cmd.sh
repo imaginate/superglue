@@ -10,10 +10,11 @@
 # @val CMD  Should be a valid path to an executable.
 # @return
 #   0  PASS
+#   1  FAIL
 ############################################################
 _sgl_is_cmd()
 {
-  if _sgl_is_path "${1}" && [[ -x "${1}" ]]; then
+  if _sgl_is_read "${1}" && [[ -x "${1}" ]]; then
     return 0
   fi
   return 1
