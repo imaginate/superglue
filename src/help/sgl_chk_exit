@@ -17,13 +17,13 @@
     CODE  Must be an integer in the range of `0' to `255'.
     ERR   Must be an error from the below options or any valid integer in the
           range of `1' to `126'.
-      `MISC'  An unknown error (exit= `1').
-      `OPT'   An invalid option (exit= `2').
-      `VAL'   An invalid or missing value (exit= `3').
-      `AUTH'  A permissions error (exit= `4').
-      `DPND'  A dependency error (exit= `5').
-      `CHLD'  A child process exited unsuccessfully (exit= `6').
-      `SGL'   A `superglue' script error (exit= `7').
+      `ERR|MISC'  An unknown error (exit= `1').
+      `OPT'       An invalid option (exit= `2').
+      `VAL'       An invalid or missing value (exit= `3').
+      `AUTH'      A permissions error (exit= `4').
+      `DPND'      A dependency error (exit= `5').
+      `CHLD'      A child process exited unsuccessfully (exit= `6').
+      `SGL'       A `superglue' script error (exit= `7').
     MSG   Can be any string. The patterns, `CMD', `PRG', and `CODE', are
           substituted with the proper values. The default MSG is:
             ``CMD'[ in `PRG'] exited with `CODE''
@@ -32,3 +32,4 @@
   Returns:
     0  PASS  CODE is zero.
     1  FAIL  CODE is non-zero.
+
