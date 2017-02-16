@@ -1,15 +1,19 @@
 
+  A bash superset that cleans the environment, defines helper references,
+  sources helper functions, and optionally sources a user-defined SCRIPT.
+
   sgl|sglue|superglue [...OPTION] FUNC [...FUNC_ARG]
   sgl|sglue|superglue [...OPTION] SCRIPT [...SCRIPT_ARG]
 
   Options:
-    -a|--alias           Enable function names without `sgl_' prefixes for each sourced FUNC.
+    -a|--alias           Enable function names without `sgl_' prefixes
+                         for each sourced FUNC.
     -C|--no-color        Disable ANSI output coloring for terminals.
     -c|--color           Enable ANSI output coloring for non-terminals.
-    -D|--silent-child    Disable `stderr' and `stdout' outputs for child processes.
+    -D|--silent-child    Disable `stderr' and `stdout' for child processes.
     -d|--quiet-child     Disable `stdout' output for child processes.
     -h|-?|--help[=FUNC]  Print help info and exit.
-    -P|--silent-parent   Disable `stderr' and `stdout' outputs for parent process.
+    -P|--silent-parent   Disable `stderr' and `stdout' for parent process.
     -p|--quiet-parent    Disable `stdout' output for parent process.
     -Q|--silent          Disable `stderr' and `stdout' outputs.
     -q|--quiet           Disable `stdout' output.
@@ -21,8 +25,10 @@
     -|--                 End the options.
 
   Values:
-    FUNC    Must be a valid `superglue' function. The `sgl_' prefix is optional.
-    FUNCS   Must be a list of 1 or more FUNC using `,', `|', or ` ' to separate each.
+    FUNC    Must be a valid `superglue' function. The `sgl_' prefix
+            is optional.
+    FUNCS   Must be a list of 1 or more FUNC using `,', `|', or ` '
+            to separate each.
     SCRIPT  Must be a valid file path to a `superglue' script.
 
   Functions:
@@ -43,10 +49,11 @@
 
   Exit Codes:
     0  PASS  A successful exit.
-    1  MISC  An unknown error.
+    1  ERR   An unknown error.
     2  OPT   An invalid option.
     3  VAL   An invalid or missing value.
     4  AUTH  A permissions error.
     5  DPND  A dependency error.
     6  CHLD  A child process exited unsuccessfully.
     7  SGL   A `superglue' script error.
+

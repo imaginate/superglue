@@ -16,13 +16,14 @@
 #
 # @use sgl|sglue|superglue [...OPTION] FUNC [...FUNC_ARG]
 # @use sgl|sglue|superglue [...OPTION] SCRIPT [...SCRIPT_ARG]
-# @opt -a|--alias           Enable function names without `sgl_' prefixes for each sourced FUNC.
+# @opt -a|--alias           Enable function names without `sgl_' prefixes
+#                           for each sourced FUNC.
 # @opt -C|--no-color        Disable ANSI output coloring for terminals.
 # @opt -c|--color           Enable ANSI output coloring for non-terminals.
-# @opt -D|--silent-child    Disable `stderr' and `stdout' outputs for child processes.
+# @opt -D|--silent-child    Disable `stderr' and `stdout' for child processes.
 # @opt -d|--quiet-child     Disable `stdout' output for child processes.
 # @opt -h|-?|--help[=FUNC]  Print help info and exit.
-# @opt -P|--silent-parent   Disable `stderr' and `stdout' outputs for parent process.
+# @opt -P|--silent-parent   Disable `stderr' and `stdout' for parent process.
 # @opt -p|--quiet-parent    Disable `stdout' output for parent process.
 # @opt -Q|--silent          Disable `stderr' and `stdout' outputs.
 # @opt -q|--quiet           Disable `stdout' output.
@@ -32,12 +33,14 @@
 # @opt -v|--version         Print version info and exit.
 # @opt -x|--xtrace          Enables bash `xtrace' option.
 # @opt -|--                 End the options.
-# @val FUNC    Must be a valid `superglue' function. The `sgl_' prefix is optional.
-# @val FUNCS   Must be a list of 1 or more FUNC using `,', `|', or ` ' to separate each.
+# @val FUNC    Must be a valid `superglue' function. The `sgl_' prefix
+#              is optional.
+# @val FUNCS   Must be a list of 1 or more FUNC using `,', `|', or ` '
+#              to separate each.
 # @val SCRIPT  Must be a valid file path to a `superglue' script.
 # @exit
 #   0  PASS  A successful exit.
-#   1  MISC  An unknown error.
+#   1  ERR   An unknown error.
 #   2  OPT   An invalid option.
 #   3  VAL   An invalid or missing value.
 #   4  AUTH  A permissions error.
@@ -66,26 +69,30 @@ readonly NIL='/dev/null'
 ## DEFINE PRIVATE FUNCS
 ################################################################################
 
-# @incl ./incl/_sgl_chk_cmd.sh
-# @incl ./incl/_sgl_clean_builtin.sh
-# @incl ./incl/_sgl_err.sh
-# @incl ./incl/_sgl_err_code.sh
-# @incl ./incl/_sgl_escape_cont.sh
-# @incl ./incl/_sgl_escape_key.sh
-# @incl ./incl/_sgl_escape_val.sh
-# @incl ./incl/_sgl_escape_vals.sh
-# @incl ./incl/_sgl_fail.sh
-# @incl ./incl/_sgl_get_color.sh
-# @incl ./incl/_sgl_get_func.sh
-# @incl ./incl/_sgl_help.sh
-# @incl ./incl/_sgl_parse_args.sh
-# @incl ./incl/_sgl_parse_init.sh
-# @incl ./incl/_sgl_unalias.sh
-# @incl ./incl/_sgl_unalias_each.sh
-# @incl ./incl/_sgl_unset_func.sh
-# @incl ./incl/_sgl_unset_funcs.sh
-# @incl ./incl/_sgl_version.sh
-# @incl ./incl/_sgl_which.sh
+# @include ./include/_sgl_chk_cmd.sh
+# @include ./include/_sgl_chk_core.sh
+# @include ./include/_sgl_clean_builtin.sh
+# @include ./include/_sgl_err.sh
+# @include ./include/_sgl_get_quiet.sh
+# @include ./include/_sgl_get_silent.sh
+# @include ./include/_sgl_help.sh
+# @include ./include/_sgl_is_cmd.sh
+# @include ./include/_sgl_is_dir.sh
+# @include ./include/_sgl_is_file.sh
+# @include ./include/_sgl_is_func.sh
+# @include ./include/_sgl_is_name.sh
+# @include ./include/_sgl_is_path.sh
+# @include ./include/_sgl_is_read.sh
+# @include ./include/_sgl_is_set.sh
+# @include ./include/_sgl_match_func.sh
+# @include ./include/_sgl_parse_init.sh
+# @include ./include/_sgl_prefix.sh
+# @include ./include/_sgl_unalias.sh
+# @include ./include/_sgl_unalias_each.sh
+# @include ./include/_sgl_unset_func.sh
+# @include ./include/_sgl_unset_funcs.sh
+# @include ./include/_sgl_version.sh
+# @include ./include/_sgl_which.sh
 
 ################################################################################
 ## CLEAN BUILTINS
@@ -97,16 +104,36 @@ _sgl_clean_builtin
 ## CHECK BASH VERSION
 ################################################################################
 
-if [[ -z "${BASH_VERSINFO}" ]] || [[ ${BASH_VERSINFO[0]} -ne 4 ]]; then
-  _sgl_err DPND "bash version 4 required"
+if [[ -z "${BASH_VERSINFO}" ]] || [[ "${BASH_VERSINFO[0]}" != '4' ]]; then
+  _sgl_err 0 DPND "bash version 4 required"
 fi
 
 ################################################################################
-## CHECK CORE LIB DIRS
+## DEFINE SGL FUNCS
 ################################################################################
 
-[[ -d ${SGL_LIB}  ]] || _sgl_err DPND "missing lib dir - reinstall \`${SGL}'"
-[[ -d ${SGL_HELP} ]] || _sgl_err DPND "missing help dir - reinstall \`${SGL}'"
+declare -ar SGL_FUNCS=( \
+  sgl_chk_cmd    \
+  sgl_chk_dir    \
+  sgl_chk_exit   \
+  sgl_chk_file   \
+  sgl_chk_uid    \
+  sgl_color      \
+  sgl_cp         \
+  sgl_err        \
+  sgl_mk_dest    \
+  sgl_parse_args \
+  sgl_print      \
+  sgl_rm_dest    \
+  sgl_set_color  \
+  sgl_source     )
+
+################################################################################
+## CHECK CORE PATHS
+################################################################################
+
+_sgl_chk_core "${SGL_LIB}" "${SGL_FUNCS[@]}"
+_sgl_chk_core "${SGL_HELP}" 'superglue' "${SGL_FUNCS[@]}"
 
 ################################################################################
 ## DEFINE COMMANDS
@@ -160,6 +187,12 @@ SGL_COLOR_OFF=0
 SGL_COLOR_ON=0
 
 ################################################################################
+## DEFINE NEWLINE REF
+################################################################################
+
+readonly NEWLINE="$(printf '\n')"
+
+################################################################################
 ## PARSE ARGS
 ################################################################################
 
@@ -179,17 +212,13 @@ _sgl_parse_init          \
   '-V|--verbose'       0 \
   '-v|--version'       0 \
   '-x|--xtrace'        0 \
-  -- "$@"
+  -- "${@}"
 
 ################################################################################
 ## LOAD SOURCE FUNCTION
 ################################################################################
 
-if [[ -f "${SGL_LIB}/sgl_source" ]]; then
-  . "${SGL_LIB}/sgl_source"
-else
-  _sgl_err DPND "missing core func \`sgl_source' - reinstall \`${SGL}'"
-fi
+. "${SGL_LIB}/sgl_source"
 
 ################################################################################
 ## PARSE OPTS
@@ -204,106 +233,135 @@ SGL_SILENT=0
 SGL_QUIET=0
 SGL_VERBOSE=0
 
-len=${#__SGL_OPTS[@]}
-for ((i=0; i<len; i++)); do
-  opt="${__SGL_OPTS[${i}]}"
-  case "${opt}" in
-    -a|--alias)
-      SGL_ALIAS=1
-      ;;
-    -C|--no-color)
-      SGL_COLOR_OFF=1
-      SGL_COLOR_ON=0
-      ;;
-    -c|--color)
-      SGL_COLOR_OFF=0
-      SGL_COLOR_ON=1
-      ;;
-    -D|--silent-child)
-      SGL_SILENT_CHILD=1
-      ;;
-    -d|--quiet-child)
-      SGL_QUIET_CHILD=1
-      ;;
-    -h|-\?|--help)
-      if [[ ${__SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
-        func="$(_sgl_get_func "${__SGL_OPT_VALS[${i}]}")"
-        [[ $? -eq 0 ]] || _sgl_err VAL "invalid \`${SGL}' FUNC \`${func}'"
-        _sgl_help "${func}"
-      else
-        _sgl_help superglue
-      fi
-      ;;
-    -P|--silent-parent)
-      SGL_SILENT_PARENT=1
-      ;;
-    -p|--quiet-parent)
-      SGL_QUIET_PARENT=1
-      ;;
-    -Q|--silent)
-      SGL_SILENT=1
-      ;;
-    -q|--quiet)
-      SGL_QUIET=1
-      ;;
-    -S|--source-all)
-      sgl_source '*'
-      ;;
-    -s|--source)
-      val="${__SGL_OPT_VALS[${i}]}"
-      val="$(printf '%s' "${val}" | ${sed} -e 's/[,\|]/ /g')"
-      re='^[a-z_ \*]+$'
-      [[ "${val}" =~ ${re} ]] || _sgl_err VAL "invalid \`${val}' FUNCS"
-      if [[ "${val}" =~ \  ]]; then
-        if [[ "${val}" =~ \* ]]; then
-          arr=()
-          while IFS= read -r -d ' ' func; do
-            arr[${#arr[@]}]="${func}"
-          done <<< "${val} "
-          sgl_source "${arr[@]}"
-          unset -v arr
+if [[ ${#__SGL_OPTS[@]} -gt 0 ]]; then
+  declare -i __I=0
+  declare __OPT
+  declare __VAL
+  for __OPT in "${__SGL_OPTS[@]}"; do
+    case "${__OPT}" in
+      -a|--alias)
+        SGL_ALIAS=1
+        ;;
+      -C|--no-color)
+        SGL_COLOR_OFF=1
+        SGL_COLOR_ON=0
+        ;;
+      -c|--color)
+        SGL_COLOR_OFF=0
+        SGL_COLOR_ON=1
+        ;;
+      -D|--silent-child)
+        SGL_SILENT_CHILD=1
+        ;;
+      -d|--quiet-child)
+        SGL_QUIET_CHILD=1
+        ;;
+      -h|-\?|--help)
+        if [[ ${__SGL_OPT_BOOL[${__I}]} -eq 1 ]]; then
+          __VAL="$(_sgl_prefix "${__SGL_OPT_VALS[${__I}]}")"
+          if ! _sgl_is_func "${__VAL}"; then
+            _sgl_err $(_sgl_get_silent) VAL \
+              "invalid \`${SGL}' FUNC \`${__VAL}'"
+          fi
+          _sgl_help "${__VAL}"
         else
-          sgl_source ${val}
+          _sgl_help superglue
         fi
-      else
-        sgl_source "${val}"
-      fi
-      unset -v val
-      unset -v re
-      ;;
-    -V|--verbose)
-      SGL_VERBOSE=1
-      ;;
-    -v|--version)
-      _sgl_version
-      ;;
-    -x|--xtrace)
-      set -x
-      ;;
-    *)
-      _sgl_err SGL "invalid parsed \`${SGL}' OPTION \`${opt}'"
-      ;;
-  esac
-done
-unset -v opt
-unset -v len
-unset -v i
+        ;;
+      -P|--silent-parent)
+        SGL_SILENT_PARENT=1
+        ;;
+      -p|--quiet-parent)
+        SGL_QUIET_PARENT=1
+        ;;
+      -Q|--silent)
+        SGL_SILENT=1
+        ;;
+      -q|--quiet)
+        SGL_QUIET=1
+        ;;
+      -S|--source-all)
+        sgl_source '*'
+        ;;
+      -s|--source)
+        declare __RE='^[a-z*]+[a-z_ ,|*]*$'
+        __VAL="${__SGL_OPT_VALS[${__I}]}"
+        if [[ ! "${__VAL}" =~ ${__RE} ]]; then
+          _sgl_err $(_sgl_get_silent) VAL \
+            "invalid \`${SGL}' FUNCS \`${__VAL}'"
+        fi
+        unset -v __RE
+        declare -a __FUNCS=()
+        declare __FUNC
+        __VAL="$(printf '%s' "${__VAL}" | ${sed} -e 's/[,|]/ /g')"
+        __VAL="${__VAL% }"
+        while IFS= read -r -d ' ' __FUNC; do
+          __FUNC="$(_sgl_prefix "${__FUNC}")"
+          if ! _sgl_match_func "${__FUNC}"; do
+            _sgl_err $(_sgl_get_silent) VAL \
+              "invalid \`${SGL}' FUNC \`${__FUNC}' in FUNCS \`${__VAL}'"
+          fi
+          __FUNCS[${#__FUNCS[@]}]="${__FUNC}"
+        done <<< "${__VAL} "
+        sgl_source "${__FUNCS[@]}"
+        unset -v __FUNC
+        unset -v __FUNCS
+        ;;
+      -V|--verbose)
+        SGL_VERBOSE=1
+        ;;
+      -v|--version)
+        _sgl_version
+        ;;
+      -x|--xtrace)
+        set -x
+        ;;
+      *)
+        _sgl_err $(_sgl_get_silent) SGL \
+          "invalid parsed \`${SGL}' OPTION \`${__OPT}'"
+        ;;
+    esac
+    : $(( ++__I ))
+  done
+  unset -v __I
+  unset -v __OPT
+  unset -v __VAL
+fi
+
+################################################################################
+## PARSE ARGS
+################################################################################
+
+if [[ ${#__SGL_VALS[@]} -eq 0 ]]; then
+  _sgl_err $(_sgl_get_silent) VAL "missing \`${SGL}' FUNC|SCRIPT"
+fi
+
+declare -a SGL_ARGS=()
+
+if [[ ${#__SGL_VALS[@]} -gt 1 ]]; then
+  declare __ARG
+  for __ARG in "${__SGL_VALS[@]:1}"; do
+    SGL_ARGS[${#SGL_ARGS[@]}]="${__ARG}"
+  done
+  unset -v __ARG
+fi
+
+readonly -a SGL_ARGS
 
 ################################################################################
 ## PARSE FUNC
 ################################################################################
 
-[[ ${#__SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`${SGL}' FUNC|SCRIPT"
-
-SGL_FUNC="$(_sgl_get_func "${__SGL_VALS[0]}")"
-[[ $? -eq 0 ]] || SGL_FUNC=''
+SGL_FUNC="$(_sgl_prefix "${__SGL_VALS[0]}")"
+if ! _sgl_is_func "${SGL_FUNC}"; then
+  SGL_FUNC=''
+fi
 readonly SGL_FUNC
 
 if [[ -n "${SGL_FUNC}" ]]; then
-  __SGL_VALS[0]="${SGL_FUNC}"
   sgl_source ${SGL_FUNC}
-  "${__SGL_VALS[@]}"
-  exit $?
+  ${SGL_FUNC} "${SGL_ARGS[@]}"
+  exit ${?}
 fi
 
 ################################################################################
@@ -312,18 +370,10 @@ fi
 
 readonly SGL_SCRIPT="${__SGL_VALS[0]}"
 
-if [[ ! -f "${SGL_SCRIPT}" ]]; then
-  _sgl_err VAL "invalid \`${SGL}' SCRIPT path \`${SGL_SCRIPT}'"
+if ! _sgl_is_read "${SGL_SCRIPT}"; then
+  _sgl_err $(_sgl_get_silent) VAL \
+    "invalid \`${SGL}' file path SCRIPT \`${SGL_SCRIPT}'"
 fi
 
-declare -a SGL_ARGS
-len=${#__SGL_VALS[@]}
-for ((i=1; i<len; i++)); do
-  SGL_ARGS[${#SGL_ARGS[@]}]="${__SGL_VALS[${i}]}"
-done
-readonly -a SGL_ARGS
-unset -v len
-unset -v i
-
-. "${__SGL_VALS[@]}"
-exit $?
+. "${SGL_SCRIPT}" "${SGL_ARGS[@]}"
+exit ${?}
