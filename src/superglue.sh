@@ -73,6 +73,7 @@ readonly NIL='/dev/null'
 # @include ./include/_sgl_chk_core.sh
 # @include ./include/_sgl_clean_builtin.sh
 # @include ./include/_sgl_err.sh
+# @include ./include/_sgl_fail.sh
 # @include ./include/_sgl_get_quiet.sh
 # @include ./include/_sgl_get_silent.sh
 # @include ./include/_sgl_help.sh
@@ -85,6 +86,7 @@ readonly NIL='/dev/null'
 # @include ./include/_sgl_is_read.sh
 # @include ./include/_sgl_is_set.sh
 # @include ./include/_sgl_match_func.sh
+# @include ./include/_sgl_parse_args.sh
 # @include ./include/_sgl_parse_init.sh
 # @include ./include/_sgl_prefix.sh
 # @include ./include/_sgl_unalias.sh
