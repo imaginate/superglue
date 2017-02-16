@@ -13,21 +13,22 @@
     -|--                    End the options.
 
   Values:
-    ERR  Must be an error from the below options or any valid integer in the
-         range of `1' to `126'.
-      `MISC'  An unknown error (exit= `1').
-      `OPT'   An invalid option (exit= `2').
-      `VAL'   An invalid or missing value (exit= `3').
-      `AUTH'  A permissions error (exit= `4').
-      `DPND'  A dependency error (exit= `5').
-      `CHLD'  A child process exited unsuccessfully (exit= `6').
-      `SGL'   A `superglue' script error (exit= `7').
-    MSG  Can be any string. The patterns, `UID' and `PRG', are substituted
-         with the proper values. The default MSG is:
+    ERR  Must be an error from the below options or any valid integer
+         in the range of `1' to `126'.
+      `ERR|MISC'  An unknown error (exit= `1').
+      `OPT'       An invalid option (exit= `2').
+      `VAL'       An invalid or missing value (exit= `3').
+      `AUTH'      A permissions error (exit= `4').
+      `DPND'      A dependency error (exit= `5').
+      `CHLD'      A child process exited unsuccessfully (exit= `6').
+      `SGL'       A `superglue' script error (exit= `7').
+    MSG  Can be any string. The patterns, `UID', `EUID', and `PRG', are
+         substituted with the proper values. The default MSG is:
            `invalid user permissions[ for `PRG']'
     PRG  Can be any string.
     UID  Must be an integer in the range of `0' to `60000'.
 
   Returns:
-    0  PASS  Current effective user matches a UID.
-    1  FAIL  Current effective user does not match a UID.
+    0  PASS  Current effective user id matches a UID.
+    1  FAIL  Current effective user id does not match a UID.
+

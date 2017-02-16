@@ -23,23 +23,23 @@
 # @opt -v|--version            Print version info and exit.
 # @opt -x|--exit[=ERR]         Exit on check fail (default= `AUTH').
 # @opt -|--                    End the options.
-# @val ERR  Must be an error from the below options or any valid integer in the
-#           range of `1' to `126'.
-#   `MISC'  An unknown error (exit= `1').
-#   `OPT'   An invalid option (exit= `2').
-#   `VAL'   An invalid or missing value (exit= `3').
-#   `AUTH'  A permissions error (exit= `4').
-#   `DPND'  A dependency error (exit= `5').
-#   `CHLD'  A child process exited unsuccessfully (exit= `6').
-#   `SGL'   A `superglue' script error (exit= `7').
-# @val MSG  Can be any string. The patterns, `UID' and `PRG', are substituted
-#           with the proper values. The default MSG is:
+# @val ERR  Must be an error from the below options or any valid integer
+#           in the range of `1' to `126'.
+#   `ERR|MISC'  An unknown error (exit= `1').
+#   `OPT'       An invalid option (exit= `2').
+#   `VAL'       An invalid or missing value (exit= `3').
+#   `AUTH'      A permissions error (exit= `4').
+#   `DPND'      A dependency error (exit= `5').
+#   `CHLD'      A child process exited unsuccessfully (exit= `6').
+#   `SGL'       A `superglue' script error (exit= `7').
+# @val MSG  Can be any string. The patterns, `UID', `EUID', and `PRG', are
+#           substituted with the proper values. The default MSG is:
 #             `invalid user permissions[ for `PRG']'
 # @val PRG  Can be any string.
 # @val UID  Must be an integer in the range of `0' to `60000'.
 # @return
-#   0  PASS  Current effective user matches a UID.
-#   1  FAIL  Current effective user does not match a UID.
+#   0  PASS  Current effective user id matches a UID.
+#   1  FAIL  Current effective user id does not match a UID.
 ############################################################
 sgl_chk_uid()
 {
@@ -47,8 +47,8 @@ sgl_chk_uid()
   local -i i
   local -i len
   local -i code=0
-  local -i quiet=${SGL_QUIET}
-  local -i silent=${SGL_SILENT}
+  local -i quiet=0
+  local -i silent=0
   local -i invert=0
   local -i pass
   local uid
@@ -57,8 +57,15 @@ sgl_chk_uid()
   local prg
   local opt
 
+  if [[ "${SGL_QUIET}" == '1' ]] || [[ "${SGL_QUIET_PARENT}" == '1' ]]; then
+    quiet=1
+  fi
+  if [[ "${SGL_SILENT}" == '1' ]] || [[ "${SGL_SILENT_PARENT}" == '1' ]]; then
+    silent=1
+  fi
+
   # parse each argument
-  _sgl_parse_args "${FN}"  \
+  _sgl_parse_args ${silent} "${FN}" \
     '-h|-?|--help'       0 \
     '-i|--invert'        0 \
     '-m|--msg|--message' 1 \
@@ -67,15 +74,15 @@ sgl_chk_uid()
     '-q|--quiet'         0 \
     '-v|--version'       0 \
     '-x|--exit'          2 \
-    -- "$@"
+    -- "${@}"
 
   # parse each OPTION
   len=${#_SGL_OPTS[@]}
-  for ((i=0; i<len; i++)); do
+  for (( i=0; i<len; i++ )); do
     opt="${_SGL_OPTS[${i}]}"
     case "${opt}" in
       -h|-\?|--help)
-        _sgl_help sgl_chk_uid
+        _sgl_help ${FN}
         ;;
       -i|--invert)
         invert=1
@@ -96,62 +103,66 @@ sgl_chk_uid()
         _sgl_version
         ;;
       -x|--exit)
-        [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]] && err="${_SGL_OPT_VALS[${i}]}"
+        if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
+          err="${_SGL_OPT_VALS[${i}]}"
+        fi
         code=$(_sgl_err_code "${err}")
-        [[ ${code} -eq 0 ]] && _sgl_err VAL "invalid \`${FN}' ERR \`${err}'"
+        if [[ ${code} -eq 0 ]]; then
+          _sgl_err ${silent} VAL "invalid \`${FN}' ERR \`${err}'"
+        fi
         ;;
       *)
-        _sgl_err SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
+        _sgl_err ${silent} SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
         ;;
     esac
   done
 
   # catch invalid EUID
   if [[ ! "${EUID}" =~ ^[0-9]+$ ]] || [[ ${EUID} -gt 60000 ]]; then
-    _sgl_err CHLD "invalid \$EUID \`${EUID}'"
+    _sgl_err ${silent} CHLD "invalid \$EUID \`${EUID}'"
   fi
 
   # catch invalid UID
   len=${#_SGL_VALS[@]}
-  [[ ${len} -gt 0 ]] || _sgl_err VAL "missing \`${FN}' UID"
-  for ((i=0; i<len; i++)); do
+  if [[ ${len} -eq 0 ]]; then
+    _sgl_err ${silent} VAL "missing a UID for \`${FN}'"
+  fi
+  for (( i=0; i<len; i++ )); do
     uid="${_SGL_VALS[${i}]}"
     if [[ ! "${uid}" =~ ^[0-9]+$ ]] || [[ ${uid} -gt 60000 ]]; then
-      _sgl_err VAL "invalid \`${FN}' UID \`${uid}'"
+      _sgl_err ${silent} VAL "invalid \`${FN}' UID \`${uid}'"
     fi
   done
 
   # check each UID
-  if [[ ${invert} -eq 1 ]]; then
-    pass=1
-    for ((i=0; i<len; i++)); do
-      [[ ${_SGL_VALS[${i}]} -ne ${EUID} ]] && continue
-      pass=0
-      uid=${_SGL_VALS[${i}]}
-      break
-    done
-  else
-    uid=''
-    pass=0
-    for ((i=0; i<len; i++)); do
-      [[ ${_SGL_VALS[${i}]} -ne ${EUID} ]] && continue
-      if [[ -n "${uid}" ]]; then
-        uid="${uid}|${_SGL_VALS[${i}]}"
-      else
-        uid="${_SGL_VALS[${i}]}"
-      fi
+  uid=''
+  pass=0
+  for (( i=0; i<len; i++ )); do
+    if [[ -n "${uid}" ]]; then
+      uid="${uid}|${_SGL_VALS[${i}]}"
+    else
+      uid="${_SGL_VALS[${i}]}"
+    fi
+    if [[ ${_SGL_VALS[${i}]} -eq ${EUID} ]]; then
       pass=1
-      break
-    done
+    fi
+  done
+  if [[ ${invert} -eq 1 ]]; then
+    if [[ ${pass} -eq 0 ]]; then
+      return 0
+    fi
+  elif [[ ${pass} -eq 1 ]]; then
+    return 0
   fi
-  [[ ${pass} -eq 1 ]] && return 0
 
   # build error message
-  if [[ ${silent} -ne 1 ]] && [[ ${SGL_SILENT_PARENT} -ne 1 ]]; then
+  if [[ ${silent} -ne 1 ]]; then
     if [[ -n "${prg}" ]]; then
       if [[ -n "${msg}" ]]; then
-        msg="$(printf '%s' "${msg}" | ${sed} -e "s|PRG|${prg}|g" \
-          -e "s/UID/${uid}/g")"
+        prg="$(_sgl_escape_val "${prg}")"
+        uid="$(_sgl_escape_val "${uid}")"
+        msg="$(printf '%s' "${msg}" | ${sed} -e "s/PRG/${prg}/g" \
+          -e "s/UID/${uid}/g" -e "s/EUID/${EUID}/g")"
       else
         msg="invalid user permissions for \`${prg}'"
       fi
@@ -162,12 +173,16 @@ sgl_chk_uid()
 
   # exit process
   if [[ ${code} -ne 0 ]]; then
-    [[ -n "${msg}" ]] && _sgl_err ${err} "${msg}"
+    if [[ -n "${msg}" ]]; then
+      _sgl_err ${silent} ${err} "${msg}"
+    fi
     exit ${code}
   fi
 
   # print error
-  [[ -n "${msg}" ]] && _sgl_fail MISC "${msg}"
+  if [[ -n "${msg}" ]]; then
+    _sgl_fail ${err} "${msg}"
+  fi
 
   return 1
 }
