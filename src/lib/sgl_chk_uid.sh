@@ -180,3 +180,15 @@ sgl_chk_uid()
   return 1
 }
 readonly -f sgl_chk_uid
+
+if ! _sgl_is_set _sgl_err_code; then
+  # @include ../include/_sgl_err_code.sh
+fi
+
+if ! _sgl_is_set _sgl_escape_val; then
+  # @include ../include/_sgl_escape_val.sh
+fi
+
+if ! _sgl_is_set _sgl_escape_vals; then
+  # @include ../include/_sgl_escape_vals.sh
+fi

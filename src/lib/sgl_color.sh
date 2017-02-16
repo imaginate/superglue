@@ -175,3 +175,7 @@ sgl_color()
   return 0
 }
 readonly -f sgl_color
+
+if ! _sgl_is_set _sgl_get_color; then
+  # @include ../include/_sgl_get_color.sh
+fi
