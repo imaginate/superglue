@@ -182,7 +182,7 @@ if readonly NIL='/dev/null' 2> /dev/null; then : ; else : ; fi
 readonly SGLUE_TAG_SGL='^[[:blank:]]*#[[:blank:]]*@superglue[[:blank:]]\+'
 readonly SGLUE_TAG_VER='^[[:blank:]]*#[[:blank:]]*@version[[:blank:]]\+'
 readonly SGLUE_TAG_DEST='^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+'
-readonly SGLUE_TAG_INCL='^[[:blank:]]*#[[:blank:]]*@incl[[:blank:]]\+'
+readonly SGLUE_TAG_INCL='^[[:blank:]]*#[[:blank:]]*@include[[:blank:]]\+'
 readonly SGLUE_TAG_MODE='^[[:blank:]]*#[[:blank:]]*@mode[[:blank:]]\+'
 
 ################################################################################
