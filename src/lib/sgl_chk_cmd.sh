@@ -46,20 +46,13 @@ sgl_chk_cmd()
   local -i i
   local -i len
   local -i code=0
-  local -i quiet=0
-  local -i silent=0
+  local -i quiet=$(_sgl_get_quiet)
+  local -i silent=$(_sgl_get_silent)
   local cmd
   local err=DPND
   local msg
   local prg
   local opt
-
-  if [[ "${SGL_QUIET}" == '1' ]] || [[ "${SGL_QUIET_PARENT}" == '1' ]]; then
-    quiet=1
-  fi
-  if [[ "${SGL_SILENT}" == '1' ]] || [[ "${SGL_SILENT_PARENT}" == '1' ]]; then
-    silent=1
-  fi
 
   # parse each argument
   _sgl_parse_args ${silent} "${FN}" \
