@@ -25,8 +25,8 @@
 # @opt -|--                    End the options.
 # @val CMD   Can be any string. The default is `a command'.
 # @val CODE  Must be an integer in the range of `0' to `255'.
-# @val ERR   Must be an error from the below options or any valid integer in the
-#            range of `1' to `126'.
+# @val ERR   Must be an error from the below options or any valid integer
+#            in the range of `1' to `126'.
 #   `ERR|MISC'  An unknown error (exit= `1').
 #   `OPT'       An invalid option (exit= `2').
 #   `VAL'       An invalid or missing value (exit= `3').
@@ -36,11 +36,11 @@
 #   `SGL'       A `superglue' script error (exit= `7').
 # @val MSG   Can be any string. The patterns, `CMD', `PRG', and `CODE', are
 #            substituted with the proper values. The default MSG is:
-#              ``CMD'[ in `PRG'] exited with `CODE''
+#              `CMD'[ in `PRG'] exited with `CODE'
 # @val PRG   Can be any string.
 # @return
-#   0  PASS  CODE is zero.
-#   1  FAIL  CODE is non-zero.
+#   0  PASS  The exit CODE is zero.
+#   1  FAIL  The exit CODE is non-zero.
 ############################################################
 sgl_chk_exit()
 {

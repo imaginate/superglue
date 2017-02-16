@@ -23,8 +23,8 @@
 # @opt -x|--exit[=ERR]         Exit on check fail (default= `DPND').
 # @opt -|--                    End the options.
 # @val DIR  A valid directory path.
-# @val ERR  Must be an error from the below options or any valid integer in the
-#           range of `1' to `126'.
+# @val ERR  Must be an error from the below options or any valid integer
+#           in the range of `1' to `126'.
 #   `ERR|MISC'  An unknown error (exit= `1').
 #   `OPT'       An invalid option (exit= `2').
 #   `VAL'       An invalid or missing value (exit= `3').
@@ -34,7 +34,7 @@
 #   `SGL'       A `superglue' script error (exit= `7').
 # @val MSG  Can be any string. The patterns, `DIR' and `PRG', are substituted
 #           with the proper values. The default MSG is:
-#             `invalid [`PRG' ]directory path `DIR''
+#             invalid [`PRG' ]directory path `DIR'
 # @val PRG  Can be any string.
 # @return
 #   0  PASS  Each DIR is a valid directory path.

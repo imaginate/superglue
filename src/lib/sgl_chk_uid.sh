@@ -34,7 +34,7 @@
 #   `SGL'       A `superglue' script error (exit= `7').
 # @val MSG  Can be any string. The patterns, `UID', `EUID', and `PRG', are
 #           substituted with the proper values. The default MSG is:
-#             `invalid user permissions[ for `PRG']'
+#             invalid user permissions[ for `PRG']
 # @val PRG  Can be any string.
 # @val UID  Must be an integer in the range of `0' to `60000'.
 # @return

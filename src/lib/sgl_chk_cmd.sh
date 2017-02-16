@@ -23,8 +23,8 @@
 # @opt -x|--exit[=ERR]         Exit on check fail (default= `DPND').
 # @opt -|--                    End the options.
 # @val CMD  A valid file path to an executable binary.
-# @val ERR  Must be an error from the below options or any valid integer in the
-#           range of `1' to `126'.
+# @val ERR  Must be an error from the below options or any valid integer
+#           in the range of `1' to `126'.
 #   `ERR|MISC'  An unknown error (exit= `1').
 #   `OPT'       An invalid option (exit= `2').
 #   `VAL'       An invalid or missing value (exit= `3').
@@ -34,11 +34,11 @@
 #   `SGL'       A `superglue' script error (exit= `7').
 # @val MSG  Can be any string. The patterns, `CMD' and `PRG', are substituted
 #           with the proper values. The default MSG is:
-#             `invalid executable path `CMD'[ for `PRG']'
+#             invalid executable path `CMD'[ for `PRG']
 # @val PRG  Can be any string.
 # @return
-#   0  PASS  CMD is a valid file path to an executable binary.
-#   1  FAIL  CMD is not a valid file path to an executable binary.
+#   0  PASS  Each CMD is a valid file path to an executable.
+#   1  FAIL  A CMD is not a valid file path to an executable.
 ############################################################
 sgl_chk_cmd()
 {

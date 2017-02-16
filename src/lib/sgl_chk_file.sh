@@ -22,8 +22,8 @@
 # @opt -v|--version            Print version info and exit.
 # @opt -x|--exit[=ERR]         Exit on check fail (default= `DPND').
 # @opt -|--                    End the options.
-# @val ERR   Must be an error from the below options or any valid integer in the
-#            range of `1' to `126'.
+# @val ERR   Must be an error from the below options or any valid integer
+#            in the range of `1' to `126'.
 #   `ERR|MISC'  An unknown error (exit= `1').
 #   `OPT'       An invalid option (exit= `2').
 #   `VAL'       An invalid or missing value (exit= `3').
@@ -34,7 +34,7 @@
 # @val FILE  A valid file path.
 # @val MSG   Can be any string. The patterns, `FILE' and `PRG', are substituted
 #            with the proper values. The default MSG is:
-#              `invalid [`PRG' ]file path `FILE''
+#              invalid [`PRG' ]file path `FILE'
 # @val PRG   Can be any string.
 # @return
 #   0  PASS  Each FILE is a valid file path.
