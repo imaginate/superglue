@@ -16,8 +16,10 @@
 _sgl_get_quiet()
 {
   if [[ "${SGL_QUIET}" == '1' ]] || [[ "${SGL_QUIET_PARENT}" == '1' ]]; then
+    printf '%s' '1'
     return 1
   fi
+  printf '%s' '0'
   return 0
 }
 readonly -f _sgl_get_quiet
