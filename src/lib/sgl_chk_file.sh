@@ -19,6 +19,7 @@
 # @opt -p|--prg|--program=PRG  Include the parent PRG in the fail message.
 # @opt -Q|--silent             Disable `stderr' and `stdout' outputs.
 # @opt -q|--quiet              Disable `stdout' output.
+# @opt -r|--read|--readable    Require each FILE to be readable.
 # @opt -v|--version            Print version info and exit.
 # @opt -x|--exit[=ERR]         Exit on check fail (default= `DPND').
 # @opt -|--                    End the options.
@@ -46,6 +47,7 @@ sgl_chk_file()
   local -i i
   local -i len
   local -i code=0
+  local -i read=0
   local -i quiet=0
   local -i silent=0
   local file
@@ -63,13 +65,14 @@ sgl_chk_file()
 
   # parse each argument
   _sgl_parse_args ${silent} "${FN}" \
-    '-h|-?|--help'       0 \
-    '-m|--msg|--message' 1 \
-    '-p|--prg|--program' 1 \
-    '-Q|--silent'        0 \
-    '-q|--quiet'         0 \
-    '-v|--version'       0 \
-    '-x|--exit'          2 \
+    '-h|-?|--help'         0 \
+    '-m|--msg|--message'   1 \
+    '-p|--prg|--program'   1 \
+    '-Q|--silent'          0 \
+    '-q|--quiet'           0 \
+    '-r|--read|--readable' 0 \
+    '-v|--version'         0 \
+    '-x|--exit'            2 \
     -- "${@}"
 
   # parse each OPTION
@@ -91,6 +94,9 @@ sgl_chk_file()
         ;;
       -q|--quiet)
         quiet=1
+        ;;
+      -r|--read|--readable)
+        read=1
         ;;
       -v|--version)
         _sgl_version
@@ -131,7 +137,11 @@ sgl_chk_file()
 
   # parse FILE
   for file in "${_SGL_VALS[@]}"; do
-    if _sgl_is_file "${file}"; then
+    if [[ ${read} -eq 1 ]]; then
+      if _sgl_is_read "${file}"; then
+        continue
+      fi
+    elif _sgl_is_file "${file}"; then
       continue
     fi
     if [[ -n "${msg}" ]]; then
