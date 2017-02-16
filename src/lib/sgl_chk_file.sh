@@ -24,21 +24,21 @@
 # @opt -|--                    End the options.
 # @val ERR   Must be an error from the below options or any valid integer in the
 #            range of `1' to `126'.
-#   `MISC'  An unknown error (exit= `1').
-#   `OPT'   An invalid option (exit= `2').
-#   `VAL'   An invalid or missing value (exit= `3').
-#   `AUTH'  A permissions error (exit= `4').
-#   `DPND'  A dependency error (exit= `5').
-#   `CHLD'  A child process exited unsuccessfully (exit= `6').
-#   `SGL'   A `superglue' script error (exit= `7').
+#   `ERR|MISC'  An unknown error (exit= `1').
+#   `OPT'       An invalid option (exit= `2').
+#   `VAL'       An invalid or missing value (exit= `3').
+#   `AUTH'      A permissions error (exit= `4').
+#   `DPND'      A dependency error (exit= `5').
+#   `CHLD'      A child process exited unsuccessfully (exit= `6').
+#   `SGL'       A `superglue' script error (exit= `7').
 # @val FILE  A valid file path.
 # @val MSG   Can be any string. The patterns, `FILE' and `PRG', are substituted
 #            with the proper values. The default MSG is:
 #              `invalid [`PRG' ]file path `FILE''
 # @val PRG   Can be any string.
 # @return
-#   0  PASS
-#   1  FAIL
+#   0  PASS  Each FILE is a valid file path.
+#   1  FAIL  A FILE is not a valid file path.
 ############################################################
 sgl_chk_file()
 {
@@ -46,16 +46,23 @@ sgl_chk_file()
   local -i i
   local -i len
   local -i code=0
-  local -i quiet=${SGL_QUIET}
-  local -i silent=${SGL_SILENT}
+  local -i quiet=0
+  local -i silent=0
   local file
   local err=DPND
   local msg
   local prg
   local opt
 
+  if [[ "${SGL_QUIET}" == '1' ]] || [[ "${SGL_QUIET_PARENT}" == '1' ]]; then
+    quiet=1
+  fi
+  if [[ "${SGL_SILENT}" == '1' ]] || [[ "${SGL_SILENT_PARENT}" == '1' ]]; then
+    silent=1
+  fi
+
   # parse each argument
-  _sgl_parse_args "${FN}"  \
+  _sgl_parse_args ${silent} "${FN}" \
     '-h|-?|--help'       0 \
     '-m|--msg|--message' 1 \
     '-p|--prg|--program' 1 \
@@ -63,15 +70,15 @@ sgl_chk_file()
     '-q|--quiet'         0 \
     '-v|--version'       0 \
     '-x|--exit'          2 \
-    -- "$@"
+    -- "${@}"
 
   # parse each OPTION
   len=${#_SGL_OPTS[@]}
-  for ((i=0; i<len; i++)); do
+  for (( i=0; i<len; i++ )); do
     opt="${_SGL_OPTS[${i}]}"
     case "${opt}" in
       -h|-\?|--help)
-        _sgl_help sgl_chk_file
+        _sgl_help ${FN}
         ;;
       -m|--msg|--message)
         msg="${_SGL_OPT_VALS[${i}]}"
@@ -89,24 +96,31 @@ sgl_chk_file()
         _sgl_version
         ;;
       -x|--exit)
-        [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]] && err="${_SGL_OPT_VALS[${i}]}"
+        if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
+          err="${_SGL_OPT_VALS[${i}]}"
+        fi
         code=$(_sgl_err_code "${err}")
-        [[ ${code} -eq 0 ]] && _sgl_err VAL "invalid \`${FN}' ERR \`${err}'"
+        if [[ ${code} -eq 0 ]]; then
+          _sgl_err ${silent} VAL "invalid \`${FN}' ERR \`${err}'"
+        fi
         ;;
       *)
-        _sgl_err SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
+        _sgl_err ${silent} SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
         ;;
     esac
   done
 
   # catch missing FILE
-  [[ ${#_SGL_VALS[@]} -gt 0 ]] || _sgl_err VAL "missing \`${FN}' FILE"
+  if [[ ${#_SGL_VALS[@]} -eq 0 ]]; then
+    _sgl_err ${silent} VAL "missing a FILE for \`${FN}'"
+  fi
 
   # build error message
-  if [[ ${silent} -ne 1 ]] && [[ ${SGL_SILENT_PARENT} -ne 1 ]]; then
+  if [[ ${silent} -ne 1 ]]; then
     if [[ -n "${prg}" ]]; then
       if [[ -n "${msg}" ]]; then
-        msg="$(printf '%s' "${msg}" | ${sed} -e "s|PRG|${prg}|g")"
+        prg="$(_sgl_escape_val "${prg}")"
+        msg="$(printf '%s' "${msg}" | ${sed} -e "s/PRG/${prg}/g")"
       else
         msg="invalid \`${prg}' file path \`FILE'"
       fi
@@ -117,14 +131,22 @@ sgl_chk_file()
 
   # parse FILE
   for file in "${_SGL_VALS[@]}"; do
-    [[ -n "${file}" ]] || _sgl_err VAL "empty \`${FN}' FILE"
-    [[ -f "${file}" ]] && continue
-    if [[ -n "${msg}" ]]; then
-      msg="$(printf '%s' "${msg}" | ${sed} -e "s|FILE|${file}|g")"
-      [[ ${code} -eq 0 ]] || _sgl_err ${err} "${msg}"
-      _sgl_fail MISC "${msg}"
+    if _sgl_is_file "${file}"; then
+      continue
     fi
-    [[ ${code} -eq 0 ]] || exit ${code}
+    if [[ -n "${msg}" ]]; then
+      file="$(_sgl_escape_val "${file}")"
+      msg="$(printf '%s' "${msg}" | ${sed} -e "s/FILE/${file}/g")"
+      if [[ ${code} -eq 0 ]]; then
+        if [[ ${silent} -ne 1 ]]; then
+          _sgl_fail ${err} "${msg}"
+        fi
+      else
+        _sgl_err ${silent} ${err} "${msg}"
+      fi
+    elif [[ ${code} -ne 0 ]]; then
+      exit ${code}
+    fi
     return 1
   done
   return 0

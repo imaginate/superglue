@@ -14,13 +14,13 @@
   Values:
     ERR   Must be an error from the below options or any valid integer in the
           range of `1' to `126'.
-      `MISC'  An unknown error (exit= `1').
-      `OPT'   An invalid option (exit= `2').
-      `VAL'   An invalid or missing value (exit= `3').
-      `AUTH'  A permissions error (exit= `4').
-      `DPND'  A dependency error (exit= `5').
-      `CHLD'  A child process exited unsuccessfully (exit= `6').
-      `SGL'   A `superglue' script error (exit= `7').
+      `ERR|MISC'  An unknown error (exit= `1').
+      `OPT'       An invalid option (exit= `2').
+      `VAL'       An invalid or missing value (exit= `3').
+      `AUTH'      A permissions error (exit= `4').
+      `DPND'      A dependency error (exit= `5').
+      `CHLD'      A child process exited unsuccessfully (exit= `6').
+      `SGL'       A `superglue' script error (exit= `7').
     FILE  A valid file path.
     MSG   Can be any string. The patterns, `FILE' and `PRG', are substituted
           with the proper values. The default MSG is:
@@ -28,5 +28,6 @@
     PRG   Can be any string.
 
   Returns:
-    0  PASS
-    1  FAIL
+    0  PASS  Each FILE is a valid file path.
+    1  FAIL  A FILE is not a valid file path.
+
