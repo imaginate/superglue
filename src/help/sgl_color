@@ -1,9 +1,14 @@
 
+  Easily print a colored message to `stdout'.
+
   sgl_color [...OPTION] COLOR ...MSG
 
   Options:
     -d|--delim=DELIM  Use DELIM to deliminate each MSG.
     -h|-?|--help      Print help info and exit.
+    -l|--loud         Do not disable `stdout' output.
+    -N|--newline      Do print a trailing newline.
+    -n|--no-newline   Do not print a trailing newline (default).
     -Q|--silent       Disable `stderr' and `stdout' outputs.
     -q|--quiet        Disable `stdout' output.
     -v|--version      Print version info and exit.
@@ -21,7 +26,19 @@
       `white'
       `yellow'
     DELIM  Can be any string. By default DELIM is ` '.
-    MSG    Can be any string. May be provided via a piped `stdin'.
+    MSG    Can be any string. If no MSG is provided or only
+           one MSG equal to `-' is provided then MSG must
+           be provided via `stdin'.
 
   Returns:
     0  PASS
+
+  Exits (on error only):
+    1  ERR   An unknown error.
+    2  OPT   An invalid option.
+    3  VAL   An invalid or missing value.
+    4  AUTH  A permissions error.
+    5  DPND  A dependency error.
+    6  CHLD  A child process exited unsuccessfully.
+    7  SGL   A `superglue' script error.
+
