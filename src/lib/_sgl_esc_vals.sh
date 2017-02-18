@@ -1,17 +1,22 @@
-#!/bin/bash --posix
+# @dest $LIB/superglue/_sgl_esc_vals
+# @mode 0644
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2017 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
+#
+# @use _sgl_source esc_vals
+# @return
+#   0  PASS
 ################################################################################
 
 ############################################################
-# @func _sgl_escape_vals
-# @use _sgl_escape_vals VAL
+# @func _sgl_esc_vals
+# @use _sgl_esc_vals VAL
 # @val VAL  Must be a multi-line value for sed replacement.
 # @return
 #   0  PASS
 ############################################################
-_sgl_escape_vals()
+_sgl_esc_vals()
 {
   local line
   local val
@@ -21,4 +26,4 @@ _sgl_escape_vals()
   done <<< "$(printf '%s' "${1}" | ${sed} -e 's/[\/&]/\\&/g')"
   printf '%s' "${val%\\n}"
 }
-readonly -f _sgl_escape_vals
+readonly -f _sgl_esc_vals

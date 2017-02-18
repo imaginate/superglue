@@ -11,7 +11,7 @@
 #   0  PASS
 ################################################################################
 
-_sgl_source err get_color get_quiet get_silent help is_set parse_args version
+_sgl_source err get_color get_quiet get_silent help parse_args version
 
 ############################################################
 # Easily print a colored message to `stdout'.
@@ -177,7 +177,3 @@ sgl_color()
   return 0
 }
 readonly -f sgl_color
-
-if ! _sgl_is_set _sgl_get_color; then
-  # @include ../include/_sgl_get_color.sh
-fi

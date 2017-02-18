@@ -11,8 +11,8 @@
 #   0  PASS
 ################################################################################
 
-_sgl_source err err_code escape_val escape_vals fail get_quiet get_silent help \
-  is_dir is_set parse_args version
+_sgl_source err err_code esc_val fail get_quiet get_silent help is_dir \
+  parse_args version
 
 ############################################################
 # @func sgl_chk_dir
@@ -115,7 +115,7 @@ sgl_chk_dir()
   if [[ ${silent} -ne 1 ]]; then
     if [[ -n "${prg}" ]]; then
       if [[ -n "${msg}" ]]; then
-        prg="$(_sgl_escape_val "${prg}")"
+        prg="$(_sgl_esc_val "${prg}")"
         msg="$(printf '%s' "${msg}" | ${sed} -e "s/PRG/${prg}/g")"
       else
         msg="invalid \`${prg}' directory path \`DIR'"
@@ -131,7 +131,7 @@ sgl_chk_dir()
       continue
     fi
     if [[ -n "${msg}" ]]; then
-      dir="$(_sgl_escape_val "${dir}")"
+      dir="$(_sgl_esc_val "${dir}")"
       msg="$(printf '%s' "${msg}" | ${sed} -e "s/DIR/${dir}/g")"
       if [[ ${code} -eq 0 ]]; then
         if [[ ${silent} -ne 1 ]]; then

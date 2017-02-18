@@ -11,8 +11,8 @@
 #   0  PASS
 ################################################################################
 
-_sgl_source err err_code escape_val escape_vals fail get_quiet get_silent help \
-  is_set parse_args version
+_sgl_source err err_code esc_val fail get_quiet get_silent help parse_args \
+  version
 
 ############################################################
 # @func sgl_chk_exit
@@ -131,15 +131,15 @@ sgl_chk_exit()
   if [[ ${silent} -ne 1 ]]; then
     if [[ -n "${prg}" ]]; then
       if [[ -n "${msg}" ]]; then
-        prg="$(_sgl_escape_val "${prg}")"
-        cmd="$(_sgl_escape_val "${cmd}")"
+        prg="$(_sgl_esc_val "${prg}")"
+        cmd="$(_sgl_esc_val "${cmd}")"
         msg="$(printf '%s' "${msg}" | ${sed} -e "s/CMD/${cmd}/g" \
           -e "s/PRG/${prg}/g" -e "s/CODE/${code}/g")"
       else
         msg="\`${cmd}' in \`${prg}' exited with \`${code}'"
       fi
     elif [[ -n "${msg}" ]]; then
-      cmd="$(_sgl_escape_val "${cmd}")"
+      cmd="$(_sgl_esc_val "${cmd}")"
       msg="$(printf '%s' "${msg}" | ${sed} -e "s/CMD/${cmd}/g" \
         -e "s/CODE/${code}/g")"
     else

@@ -349,10 +349,10 @@ __sgl_mk_dest__opts()
   local _val
 
   tag_vars=( \
-    ['HOME']="$(_sgl_escape_val "${HOME}")" \
-    ['EUID']="$(_sgl_escape_val "${EUID}")" \
-    ['UID']="$(_sgl_escape_val "${UID}")"   \
-    ['USER']="$(_sgl_escape_val "${USER}")" \
+    ['HOME']="$(_sgl_esc_val "${HOME}")" \
+    ['EUID']="$(_sgl_esc_val "${EUID}")" \
+    ['UID']="$(_sgl_esc_val "${UID}")"   \
+    ['USER']="$(_sgl_esc_val "${USER}")" \
   )
 
   [[ ${SGL_QUIET_PARENT}  -eq 1 ]] && quiet=1
@@ -559,7 +559,7 @@ __sgl_mk_dest__opt_D()
     if ! __sgl_mk_dest__chk_key "${_key}"; then
       _sgl_err VAL "invalid \`${FN}' \`${1}' VAR \`${_var}' KEY \`${_key}'"
     fi
-    tag_vars["${_key}"]="$(_sgl_escape_val "${_val}")"
+    tag_vars["${_key}"]="$(_sgl_esc_val "${_val}")"
   done <<< "${3},"
 }
 readonly -f __sgl_mk_dest__opt_D
@@ -588,7 +588,7 @@ __sgl_mk_dest__opt_d()
     _sgl_err VAL "invalid \`${FN}' \`${1}' VAR \`${3}' KEY \`${_key}'"
   fi
 
-  tag_vars["${_key}"]="$(_sgl_escape_val "${_val}")"
+  tag_vars["${_key}"]="$(_sgl_esc_val "${_val}")"
 }
 readonly -f __sgl_mk_dest__opt_d
 
@@ -865,7 +865,7 @@ __sgl_mk_dest__src_vars()
       _sgl_err VAL "only 1 version tag allowed in \`${FN}' SRC \`${src}'"
     fi
     __sgl_mk_dest__set_val "$(${grep} "${vertag}" "${src}" 2> ${NIL})"
-    src_vars=(['VERSION']="$(_sgl_escape_val "${val}")")
+    src_vars=(['VERSION']="$(_sgl_esc_val "${val}")")
   fi
 
   # parse each KEY=VALUE
@@ -900,7 +900,7 @@ __sgl_mk_dest__src_vars()
           _val="${_val%\"}"
         fi
       fi
-      src_vars["${_key}"]="$(_sgl_escape_val "${_val}")"
+      src_vars["${_key}"]="$(_sgl_esc_val "${_val}")"
     done <<< "$(${grep} "${vtag}" "${src}" 2> ${NIL})"
   fi
 }
@@ -1009,8 +1009,8 @@ __sgl_mk_dest__include()
         _path="\`${FN}' FILE \`${_path}'"
         _sgl_err VAL "invalid ${_path} at LINE \`${_line}' in SRC \`${src}'"
       fi
-      _line="$(_sgl_escape_key "${_line}")"
-      _content="$(_sgl_escape_cont "${_path}")"
+      _line="$(_sgl_esc_key "${_line}")"
+      _content="$(_sgl_esc_cont "${_path}")"
       ${sed} -i -e "s/${_line}/${_content}/" "${dst}"
     done <<< "$(${grep} "${itag}" "${src}" 2> ${NIL})"
   fi

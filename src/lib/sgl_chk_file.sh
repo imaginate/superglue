@@ -11,8 +11,8 @@
 #   0  PASS
 ################################################################################
 
-_sgl_source err err_code escape_val escape_vals fail get_quiet get_silent help \
-  is_file is_read is_set parse_args version
+_sgl_source err err_code esc_val fail get_quiet get_silent help is_file \
+  is_read parse_args version
 
 ############################################################
 # @func sgl_chk_file
@@ -121,7 +121,7 @@ sgl_chk_file()
   if [[ ${silent} -ne 1 ]]; then
     if [[ -n "${prg}" ]]; then
       if [[ -n "${msg}" ]]; then
-        prg="$(_sgl_escape_val "${prg}")"
+        prg="$(_sgl_esc_val "${prg}")"
         msg="$(printf '%s' "${msg}" | ${sed} -e "s/PRG/${prg}/g")"
       else
         msg="invalid \`${prg}' file path \`FILE'"
@@ -141,7 +141,7 @@ sgl_chk_file()
       continue
     fi
     if [[ -n "${msg}" ]]; then
-      file="$(_sgl_escape_val "${file}")"
+      file="$(_sgl_esc_val "${file}")"
       msg="$(printf '%s' "${msg}" | ${sed} -e "s/FILE/${file}/g")"
       if [[ ${code} -eq 0 ]]; then
         if [[ ${silent} -ne 1 ]]; then

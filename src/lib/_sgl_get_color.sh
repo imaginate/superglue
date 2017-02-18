@@ -1,7 +1,12 @@
-#!/bin/bash --posix
+# @dest $LIB/superglue/_sgl_get_color
+# @mode 0644
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2017 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
+#
+# @use _sgl_source get_color
+# @return
+#   0  PASS
 ################################################################################
 
 ############################################################

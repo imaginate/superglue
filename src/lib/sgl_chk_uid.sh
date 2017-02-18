@@ -11,8 +11,8 @@
 #   0  PASS
 ################################################################################
 
-_sgl_source err err_code escape_val escape_vals fail get_quiet get_silent help \
-  is_set parse_args version
+_sgl_source err err_code esc_val fail get_quiet get_silent help parse_args \
+  version
 
 ############################################################
 # @func sgl_chk_uid
@@ -155,8 +155,8 @@ sgl_chk_uid()
   if [[ ${silent} -ne 1 ]]; then
     if [[ -n "${prg}" ]]; then
       if [[ -n "${msg}" ]]; then
-        prg="$(_sgl_escape_val "${prg}")"
-        uid="$(_sgl_escape_val "${uid}")"
+        prg="$(_sgl_esc_val "${prg}")"
+        uid="$(_sgl_esc_val "${uid}")"
         msg="$(printf '%s' "${msg}" | ${sed} -e "s/PRG/${prg}/g" \
           -e "s/UID/${uid}/g" -e "s/EUID/${EUID}/g")"
       else
