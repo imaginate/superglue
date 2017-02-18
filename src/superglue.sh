@@ -89,6 +89,7 @@ readonly NIL='/dev/null'
 # @include ./include/_sgl_parse_args.sh
 # @include ./include/_sgl_parse_init.sh
 # @include ./include/_sgl_prefix.sh
+# @include ./include/_sgl_source.sh
 # @include ./include/_sgl_unalias.sh
 # @include ./include/_sgl_unalias_each.sh
 # @include ./include/_sgl_unset_func.sh
