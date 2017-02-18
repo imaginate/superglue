@@ -11,6 +11,8 @@
 #   0  PASS
 ################################################################################
 
+_sgl_source err get_color get_quiet get_silent help is_set parse_args version
+
 ############################################################
 # Easily print a colored message to `stdout'.
 #

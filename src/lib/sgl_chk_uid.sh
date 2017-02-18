@@ -11,6 +11,9 @@
 #   0  PASS
 ################################################################################
 
+_sgl_source err err_code escape_val escape_vals fail get_quiet get_silent help \
+  is_set parse_args version
+
 ############################################################
 # @func sgl_chk_uid
 # @use sgl_chk_uid [...OPTION] ...UID
@@ -180,15 +183,3 @@ sgl_chk_uid()
   return 1
 }
 readonly -f sgl_chk_uid
-
-if ! _sgl_is_set _sgl_err_code; then
-  # @include ../include/_sgl_err_code.sh
-fi
-
-if ! _sgl_is_set _sgl_escape_val; then
-  # @include ../include/_sgl_escape_val.sh
-fi
-
-if ! _sgl_is_set _sgl_escape_vals; then
-  # @include ../include/_sgl_escape_vals.sh
-fi
