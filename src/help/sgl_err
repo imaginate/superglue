@@ -2,14 +2,15 @@
   sgl_err [...OPTION] ERR ...MSG
 
   Options:
+    -b|--no-color             Disable colored TITLE or MSG outputs.
     -C|--color-title[=COLOR]  Color TITLE with COLOR (default= `red').
     -c|--color[-msg][=COLOR]  Color MSG with COLOR (default= `red').
     -D|--delim-title=DELIM    Deliminate TITLE and MSG with DELIM.
     -d|--delim[-msg]=DELIM    Deliminate each MSG with DELIM.
-    -E|--no-escape            Do not evaluate escapes in MSG.
+    -E|--no-escape            Do not evaluate escapes in MSG (default).
     -e|--escape               Do evaluate escapes in MSG.
     -h|-?|--help              Print help info and exit.
-    -N|--no-color             Disable colored TITLE or MSG outputs.
+    -N|--newline              Do print a trailing newline (default).
     -n|--no-newline           Do not print a trailing newline.
     -P|--child                Mark this error as one for a child process.
     -p|--parent               Mark this error as one for a parent process.
@@ -36,6 +37,7 @@
     DELIM  Can be any string. The default is ` '.
     ERR    Must be an error from the below options or any valid integer
            in the range of `1' to `126'.
+      `ERR'   An unknown error (exit= `1').
       `MISC'  An unknown error (exit= `1').
       `OPT'   An invalid option (exit= `2').
       `VAL'   An invalid or missing value (exit= `3').
@@ -43,14 +45,17 @@
       `DPND'  A dependency error (exit= `5').
       `CHLD'  A child process exited unsuccessfully (exit= `6').
       `SGL'   A `superglue' script error (exit= `7').
-    MSG    Can be any string. May be provided via a piped `stdin'.
+    MSG    Can be any string. If no MSG is provided or only
+           one MSG equal to `-' is provided then MSG must
+           be provided via `stdin'.
     TITLE  Can be any string.
 
-  Exit Codes:
-    1  MISC  An unknown error.
+  Exits:
+    1  ERR   An unknown error.
     2  OPT   An invalid option.
     3  VAL   An invalid or missing value.
     4  AUTH  A permissions error.
     5  DPND  A dependency error.
     6  CHLD  A child process exited unsuccessfully.
     7  SGL   A `superglue' script error.
+
