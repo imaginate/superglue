@@ -303,14 +303,9 @@ sgl_err()
 
   # parse each MSG
   if [[ ${fromstdin} -eq 1 ]]; then
-    if [[ -p /dev/stdin ]]; then
-      msg="$(${cat} /dev/stdin)"
-    elif [[ -p /dev/fd/0 ]]; then
-      msg="$(${cat} /dev/fd/0)"
     if ! read -t 0 val; then
       _sgl_err VAL "missing \`${FN}' MSG"
     fi
-    msg=''
     while IFS= read -r val; do
       if [[ -n "${msg}" ]]; then
         msg="${msg}${NEWLINE}${val}"
