@@ -57,7 +57,7 @@ sgl_color()
   local -i len
   local -i loud=0
   local -i quiet=$(_sgl_get_quiet)
-  local -i silent=$(_sgl_get_silent)
+  local -i silent=$(_sgl_get_silent PRT)
   local -i newline=0
   local -i fromstdin=0
   local color

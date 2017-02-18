@@ -47,7 +47,7 @@ sgl_chk_cmd()
   local -i len
   local -i code=0
   local -i quiet=$(_sgl_get_quiet)
-  local -i silent=$(_sgl_get_silent)
+  local -i silent=$(_sgl_get_silent PRT)
   local cmd
   local err=DPND
   local msg

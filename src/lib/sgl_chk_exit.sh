@@ -50,7 +50,7 @@ sgl_chk_exit()
   local -i code=0
   local -i xcode=0
   local -i quiet=$(_sgl_get_quiet)
-  local -i silent=$(_sgl_get_silent)
+  local -i silent=$(_sgl_get_silent PRT)
   local cmd='a command'
   local err=CHLD
   local msg
