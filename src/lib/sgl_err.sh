@@ -9,17 +9,21 @@
 #   0  PASS
 ################################################################################
 
+_sgl_source err get_color get_quiet get_silent get_verbose help is_color \
+  is_true parse_args version
+
 ############################################################
 # @func sgl_err
 # @use sgl_err [...OPTION] ERR ...MSG
+# @opt -b|--no-color             Disable colored TITLE or MSG outputs.
 # @opt -C|--color-title[=COLOR]  Color TITLE with COLOR (default= `red').
 # @opt -c|--color[-msg][=COLOR]  Color MSG with COLOR (default= `red').
 # @opt -D|--delim-title=DELIM    Deliminate TITLE and MSG with DELIM.
 # @opt -d|--delim[-msg]=DELIM    Deliminate each MSG with DELIM.
-# @opt -E|--no-escape            Do not evaluate escapes in MSG.
+# @opt -E|--no-escape            Do not evaluate escapes in MSG (default).
 # @opt -e|--escape               Do evaluate escapes in MSG.
 # @opt -h|-?|--help              Print help info and exit.
-# @opt -N|--no-color             Disable colored TITLE or MSG outputs.
+# @opt -N|--newline              Do print a trailing newline (default).
 # @opt -n|--no-newline           Do not print a trailing newline.
 # @opt -P|--child                Mark this error as one for a child process.
 # @opt -p|--parent               Mark this error as one for a parent process.
@@ -44,17 +48,20 @@
 # @val DELIM  Can be any string. The default is ` '.
 # @val ERR    Must be an error from the below options or any valid integer
 #             in the range of `1' to `126'.
-#   `MISC'  An unknown error (exit= `1').
+#   `ERR'   An unknown error (exit= `1').
+#   `MISC'  A general error (exit= `1').
 #   `OPT'   An invalid option (exit= `2').
 #   `VAL'   An invalid or missing value (exit= `3').
 #   `AUTH'  A permissions error (exit= `4').
 #   `DPND'  A dependency error (exit= `5').
 #   `CHLD'  A child process exited unsuccessfully (exit= `6').
 #   `SGL'   A `superglue' script error (exit= `7').
-# @val MSG    Can be any string. May be provided via a piped `stdin'.
+# @val MSG    Can be any string. If no MSG is provided or only
+#             one MSG equal to `-' is provided then MSG must
+#             be provided via `stdin'.
 # @val TITLE  Can be any string.
 # @exit
-#   1  MISC  An unknown error.
+#   1  ERR   An unknown error.
 #   2  OPT   An invalid option.
 #   3  VAL   An invalid or missing value.
 #   4  AUTH  A permissions error.
@@ -65,7 +72,7 @@
 sgl_err()
 {
   local -r FN='sgl_err'
-  local -i i
+  local -i i=0
   local -i len
   local -i ret=0
   local -i code=0
@@ -73,9 +80,10 @@ sgl_err()
   local -i escape=0
   local -i newline=1
   local -i override=0
-  local -i quiet=${SGL_QUIET}
-  local -i silent=${SGL_SILENT}
-  local -i verbose=${SGL_VERBOSE}
+  local -i quiet=$(_sgl_get_quiet)
+  local -i silent=$(_sgl_get_silent)
+  local -i verbose=$(_sgl_get_verbose)
+  local -i fromstdin=0
   local tcolor="$(_sgl_get_color red)"
   local mcolor
   local tdelim=' '
@@ -88,116 +96,123 @@ sgl_err()
   local val
 
   # parse each argument
-  _sgl_parse_args "${FN}" \
-    '-C|--color-title'  2 \
+  _sgl_parse_args ${FN} \
+    '-b|--no-color'          0 \
+    '-C|--color-title'       2 \
     '-c|--color|--color-msg' 2 \
-    '-D|--delim-title'  1 \
+    '-D|--delim-title'       1 \
     '-d|--delim|--delim-msg' 1 \
-    '-E|--no-escape'    0 \
-    '-e|--escape'       0 \
-    '-h|-?|--help'      0 \
-    '-N|--no-color'     0 \
-    '-n|--no-newline'   0 \
-    '-P|--child'        0 \
-    '-p|--parent'       0 \
-    '-Q|--silent'       0 \
-    '-q|--quiet'        0 \
-    '-r|--return'       0 \
-    '-T|--no-title'     0 \
-    '-t|--title'        1 \
-    '-V|--verbose'      0 \
-    '-v|--version'      0 \
-    -- "$@"
+    '-E|--no-escape'         0 \
+    '-e|--escape'            0 \
+    '-h|-?|--help'           0 \
+    '-N|--newline'           0 \
+    '-n|--no-newline'        0 \
+    '-P|--child'             0 \
+    '-p|--parent'            0 \
+    '-Q|--silent'            0 \
+    '-q|--quiet'             0 \
+    '-r|--return'            0 \
+    '-T|--no-title'          0 \
+    '-t|--title'             1 \
+    '-V|--verbose'           0 \
+    '-v|--version'           0 \
+    -- "${@}"
 
   # parse each OPTION
-  len=${#_SGL_OPTS[@]}
-  for ((i=0; i<len; i++)); do
-    opt="${_SGL_OPTS[${i}]}"
-    case "${opt}" in
-      -C|--color-title)
-        if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
-          val="${_SGL_OPT_VALS[${i}]}"
-          tcolor="$(_sgl_get_color "${val}")"
-          if [[ $? -ne 0 ]]; then
-            _sgl_err VAL "invalid \`${FN}' \`${opt}' COLOR \`${val}'"
+  if [[ ${#_SGL_OPTS[@]} -gt 0 ]]; then
+    for opt in "${_SGL_OPTS[@]}"; do
+      case "${opt}" in
+        -b|--no-color)
+          tcolor=''
+          mcolor=''
+          ;;
+        -C|--color-title)
+          if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
+            val="${_SGL_OPT_VALS[${i}]}"
+            if ! _sgl_is_color "${val}"; then
+              _sgl_err VAL "invalid \`${FN}' \`${opt}' COLOR \`${val}'"
+            fi
+            tcolor="$(_sgl_get_color "${val}")"
+          else
+            tcolor="$(_sgl_get_color red)"
           fi
-        else
-          tcolor="$(_sgl_get_color red)"
-        fi
-        ;;
-      -c|--color|--color-msg)
-        if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
-          val="${_SGL_OPT_VALS[${i}]}"
-          mcolor="$(_sgl_get_color "${val}")"
-          if [[ $? -ne 0 ]]; then
-            _sgl_err VAL "invalid \`${FN}' \`${opt}' COLOR \`${val}'"
+          ;;
+        -c|--color|--color-msg)
+          if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
+            val="${_SGL_OPT_VALS[${i}]}"
+            if ! _sgl_is_color "${val}"; then
+              _sgl_err VAL "invalid \`${FN}' \`${opt}' COLOR \`${val}'"
+            fi
+            mcolor="$(_sgl_get_color "${val}")"
+          else
+            mcolor="$(_sgl_get_color red)"
           fi
-        else
-          mcolor="$(_sgl_get_color red)"
-        fi
-        ;;
-      -D|--delim-title)
-        tdelim="${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -d|--delim|--delim-msg)
-        mdelim="${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -E|--no-escape)
-        escape=0
-        ;;
-      -e|--escape)
-        escape=1
-        ;;
-      -h|-\?|--help)
-        _sgl_help sgl_err
-        ;;
-      -N|--no-color)
-        tcolor=''
-        mcolor=''
-        ;;
-      -n|--no-newline)
-        newline=0
-        ;;
-      -P|--child)
-        child=1
-        ;;
-      -p|--parent)
-        child=0
-        ;;
-      -Q|--silent)
-        silent=1
-        ;;
-      -q|--quiet)
-        quiet=1
-        ;;
-      -r|--return)
-        ret=1
-        ;;
-      -T|--no-title)
-        title=''
-        override=1
-        ;;
-      -t|--title)
-        title="${_SGL_OPT_VALS[${i}]}"
-        override=1
-        ;;
-      -V|--verbose)
-        verbose=1
-        ;;
-      -v|--version)
-        _sgl_version
-        ;;
-      *)
-        _sgl_err SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
-        ;;
-    esac
-  done
+          ;;
+        -D|--delim-title)
+          tdelim="${_SGL_OPT_VALS[${i}]}"
+          ;;
+        -d|--delim|--delim-msg)
+          mdelim="${_SGL_OPT_VALS[${i}]}"
+          ;;
+        -E|--no-escape)
+          escape=0
+          ;;
+        -e|--escape)
+          escape=1
+          ;;
+        -h|-\?|--help)
+          _sgl_help ${FN}
+          ;;
+        -N|--newline)
+          newline=1
+          ;;
+        -n|--no-newline)
+          newline=0
+          ;;
+        -P|--child)
+          child=1
+          ;;
+        -p|--parent)
+          child=0
+          ;;
+        -Q|--silent)
+          silent=1
+          ;;
+        -q|--quiet)
+          quiet=1
+          ;;
+        -r|--return)
+          ret=1
+          ;;
+        -T|--no-title)
+          title=''
+          override=1
+          ;;
+        -t|--title)
+          title="${_SGL_OPT_VALS[${i}]}"
+          override=1
+          ;;
+        -V|--verbose)
+          verbose=1
+          ;;
+        -v|--version)
+          _sgl_version
+          ;;
+        *)
+          _sgl_err SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
+          ;;
+      esac
+      i=$(( i + 1 ))
+    done
+  fi
 
   # save values length
   len=${#_SGL_VALS[@]}
 
   # save ERR ref
-  [[ ${len} -gt 0 ]] && err="${_SGL_VALS[0]}"
+  if [[ ${len} -gt 0 ]]; then
+    err="${_SGL_VALS[0]}"
+  fi
 
   # update process level
   if [[ ${child} -eq -1 ]] && [[ "${err}" == 'CHLD' ]]; then
@@ -206,70 +221,105 @@ sgl_err()
 
   # update quiet and silent
   if [[ ${child} -eq 1 ]]; then
-    [[ ${SGL_SILENT_CHILD} -eq 1 ]] && silent=1
-    [[ ${SGL_QUIET_CHILD}  -eq 1 ]] && quiet=1
+    if [[ ${quiet} -ne 1 ]]; then
+      quiet=$(_sgl_get_quiet CHLD)
+    fi
+    if [[ ${silent} -ne 1 ]]; then
+      silent=$(_sgl_get_silent CHLD)
+    fi
   else
-    [[ ${SGL_SILENT_PARENT} -eq 1 ]] && silent=1
-    [[ ${SGL_QUIET_PARENT}  -eq 1 ]] && quiet=1
+    if [[ ${quiet} -ne 1 ]]; then
+      quiet=$(_sgl_get_quiet PRT)
+    fi
+    if [[ ${silent} -ne 1 ]]; then
+      silent=$(_sgl_get_silent PRT)
+    fi
   fi
 
   # parse ERR
   if [[ ${len} -eq 0 ]]; then
-    [[ ${silent} -eq 1 ]] && _sgl_err VAL
     _sgl_err VAL "missing \`${FN}' ERR"
   fi
   case "${err}" in
-    MISC)
-      [[ ${override} -eq 0 ]] && title='ERROR'
+    ERR|MISC)
+      if [[ ${override} -eq 0 ]]; then
+        title='ERROR'
+      fi
       code=1
       ;;
     OPT)
-      [[ ${override} -eq 0 ]] && title='OPTION ERROR'
+      if [[ ${override} -eq 0 ]]; then
+        title='OPTION ERROR'
+      fi
       code=2
       ;;
     VAL)
-      [[ ${override} -eq 0 ]] && title='VALUE ERROR'
+      if [[ ${override} -eq 0 ]]; then
+        title='VALUE ERROR'
+      fi
       code=3
       ;;
     AUTH)
-      [[ ${override} -eq 0 ]] && title='AUTHORITY ERROR'
+      if [[ ${override} -eq 0 ]]; then
+        title='AUTHORITY ERROR'
+      fi
       code=4
       ;;
     DPND)
-      [[ ${override} -eq 0 ]] && title='DEPENDENCY ERROR'
+      if [[ ${override} -eq 0 ]]; then
+        title='DEPENDENCY ERROR'
+      fi
       code=5
       ;;
     CHLD)
-      [[ ${override} -eq 0 ]] && title='CHILD ERROR'
+      if [[ ${override} -eq 0 ]]; then
+        title='CHILD ERROR'
+      fi
       code=6
       ;;
     SGL)
-      [[ ${override} -eq 0 ]] && title='SUPERGLUE ERROR'
+      if [[ ${override} -eq 0 ]]; then
+        title='SUPERGLUE ERROR'
+      fi
       code=7
       ;;
     *)
-      if [[ ! "${err}" =~ ^[1-9][0-9]?[0-9]?$ ]] || [[ ${err} -gt 126 ]]; then
-        [[ ${silent} -eq 1 ]] && _sgl_err VAL
+      if [[ ! "${err}" =~ ^[1-9][0-9]{,2}$ ]] || [[ ${err} -gt 126 ]]; then
         _sgl_err VAL "invalid \`${FN}' ERR \`${err}'"
       fi
-      [[ ${override} -eq 0 ]] && title='ERROR'
+      if [[ ${override} -eq 0 ]]; then
+        title='ERROR'
+      fi
       code=${err}
       ;;
   esac
 
-  # parse each MSG
+  # check if MSG is provided via `stdin'
   if [[ ${len} -eq 1 ]]; then
+    fromstdin=1
+  elif [[ ${len} -eq 2 ]] && [[ "${_SGL_VALS[1]}" == '-' ]]; then
+    fromstdin=1
+  fi
+
+  # parse each MSG
+  if [[ ${fromstdin} -eq 1 ]]; then
     if [[ -p /dev/stdin ]]; then
       msg="$(${cat} /dev/stdin)"
     elif [[ -p /dev/fd/0 ]]; then
       msg="$(${cat} /dev/fd/0)"
-    else
-      [[ ${silent} -eq 1 ]] && _sgl_err VAL
+    if ! read -t 0 val; then
       _sgl_err VAL "missing \`${FN}' MSG"
     fi
+    msg=''
+    while IFS= read -r val; do
+      if [[ -n "${msg}" ]]; then
+        msg="${msg}${NEWLINE}${val}"
+      else
+        msg="${val}"
+      fi
+    done
   else
-    for ((i=1; i<len; i++)); do
-      val="${_SGL_VALS[${i}]}"
+    for val in "${_SGL_VALS[@]:1}"; do
       if [[ -n "${val}" ]]; then
         if [[ -n "${msg}" ]]; then
           msg="${msg}${mdelim}${val}"
@@ -282,18 +332,18 @@ sgl_err()
 
   # color TITLE
   if [[ -n "${tcolor}" ]] && [[ -n "${title}" ]]; then
-    if [[ ${SGL_COLOR_ON} -eq 1 ]]; then
+    if _sgl_is_true "${SGL_COLOR_ON}"; then
       title="${tcolor}${title}${SGL_UNCOLOR}"
-    elif [[ ${SGL_COLOR_OFF} -ne 1 ]] && [[ -t 1 ]]; then
+    elif ! _sgl_is_true "${SGL_COLOR_OFF}" && [[ -t 1 ]]; then
       title="${tcolor}${title}${SGL_UNCOLOR}"
     fi
   fi
 
   # color MSG
   if [[ -n "${mcolor}" ]] && [[ -n "${msg}" ]]; then
-    if [[ ${SGL_COLOR_ON} -eq 1 ]]; then
+    if _sgl_is_true "${SGL_COLOR_ON}"; then
       msg="${mcolor}${msg}${SGL_UNCOLOR}"
-    elif [[ ${SGL_COLOR_OFF} -ne 1 ]] && [[ -t 1 ]]; then
+    elif ! _sgl_is_true "${SGL_COLOR_OFF}" && [[ -t 1 ]]; then
       msg="${mcolor}${msg}${SGL_UNCOLOR}"
     fi
   fi
@@ -313,7 +363,9 @@ sgl_err()
   else
     format='%s'
   fi
-  [[ ${newline} -eq 1 ]] && format="${format}\n"
+  if [[ ${newline} -eq 1 ]]; then
+    format="${format}\n"
+  fi
 
   # print the error MSG
   if [[ ${silent} -ne 1 ]]; then
@@ -325,7 +377,9 @@ sgl_err()
     fi
   fi
 
-  [[ ${ret} -eq 1 ]] && return ${code}
+  if [[ ${ret} -eq 1 ]]; then
+    return ${code}
+  fi
   exit ${code}
 }
 readonly -f sgl_err
