@@ -79,6 +79,7 @@ readonly NIL='/dev/null'
 # @include ./include/_sgl_help.sh
 # @include ./include/_sgl_is_cmd.sh
 # @include ./include/_sgl_is_dir.sh
+# @include ./include/_sgl_is_false.sh
 # @include ./include/_sgl_is_file.sh
 # @include ./include/_sgl_is_func.sh
 # @include ./include/_sgl_is_name.sh
