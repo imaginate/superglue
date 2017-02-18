@@ -26,7 +26,7 @@ _sgl_source()
     fi
     path="${SGL_LIB}/${func}"
     if ! _sgl_is_read "${path}"; then
-      _sgl_err 0 DPND "missing core file \`${path}' - reinstall \`${SGL}'"
+      _sgl_err DPND "missing core file \`${path}' - reinstall \`${SGL}'"
     fi
     . "${path}"
   done

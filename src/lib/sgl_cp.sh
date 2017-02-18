@@ -76,15 +76,13 @@ _sgl_source chk_exit err get_quiet get_silent help is_dir is_file parse_args \
 sgl_cp()
 {
   local -r FN='sgl_cp'
-  local -i i
-  local -i len
-  local -i ret
+  local -i i=0
+  local -i len=0
   local -i force=0
   local -i target=0
   local -i quiet=$(_sgl_get_quiet PRT)
   local -i silent=$(_sgl_get_silent PRT)
-  local -a opts
-  local -a dests
+  local -a opts=()
   local attr
   local mode
   local own
@@ -94,7 +92,7 @@ sgl_cp()
   local dest
 
   # parse each argument
-  _sgl_parse_args ${silent} ${FN} \
+  _sgl_parse_args ${FN} \
     '-B|--backup-ext'      1 \
     '-b|--backup'          2 \
     '-D|--no-dest-dir'     0 \
@@ -123,89 +121,65 @@ sgl_cp()
     -- "${@}"
 
   # parse each OPTION
-  len=${#_SGL_OPTS[@]}
-  opts=()
-  for (( i=0; i<len; i++ )); do
-    opt="${_SGL_OPTS[${i}]}"
-    case "${opt}" in
-      -B|--backup-ext)
-        val="${_SGL_OPT_VALS[${i}]}"
-        if [[ -z "${val}" ]] || [[ "${val}" =~ [[:space:]] ]]; then
-          _sgl_err ${silent} VAL "invalid \`${FN}' \`${opt}' EXT \`${val}'"
-        fi
-        opts[${#opts[@]}]="--suffix=${val}"
-        ;;
-      -b|--backup)
-        if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
+  if [[ ${#_SGL_OPTS[@]} -gt 0 ]]; then
+    for opt in "${_SGL_OPTS[@]}"; do
+      case "${opt}" in
+        -B|--backup-ext)
           val="${_SGL_OPT_VALS[${i}]}"
-          case "${val}" in
-            none|off)     ;;
-            numbered|t)   ;;
-            existing|nil) ;;
-            simple|never) ;;
-            *)
-              _sgl_err ${silent} VAL "invalid \`${FN}' CTRL \`${val}'"
-              ;;
-          esac
-          opts[${#opts[@]}]="--backup=${val}"
-        else
-          opts[${#opts[@]}]='--backup'
-        fi
-        ;;
-      -D|--no-dest-dir)
-        target=2
-        dest=''
-        opts[${#opts[@]}]='--no-target-directory'
-        ;;
-      -d|--dest-dir)
-        target=1
-        val="${_SGL_OPT_VALS[${i}]}"
-        if ! _sgl_is_dir "${val}"; then
-          _sgl_err ${silent} VAL "invalid \`${FN}' DEST_DIR \`${val}'"
-        fi
-        dest="${val}"
-        opts[${#opts[@]}]="--target-directory=${val}"
-        ;;
-      -F|--no-force)
-        force=0
-        opts[${#opts[@]}]='--no-clobber'
-        ;;
-      -f|--force)
-        force=1
-        opts[${#opts[@]}]='--force'
-        ;;
-      -H|--cmd-dereference)
-        opts[${#opts[@]}]='-H'
-        ;;
-      -h|-\?|--help)
-        _sgl_help ${FN}
-        ;;
-      -K|--no-keep)
-        val="${_SGL_OPT_VALS[${i}]}"
-        if [[ -z "${val}" ]] || [[ ! "${val}" =~ ^[a-z]+(,[a-z]+)*$ ]]; then
-          _sgl_err ${silent} VAL "invalid \`${FN}' \`${opt}' ATTRS \`${val}'"
-        fi
-        while IFS= read -r -d ',' attr; do
-          case "${attr}" in
-            mode)       ;;
-            ownership)  ;;
-            timestamps) ;;
-            context)    ;;
-            links)      ;;
-            xattr)      ;;
-            all)        ;;
-            *)
-              _sgl_err ${silent} VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
-              ;;
-          esac
-        done <<< "${val},"
-        opts[${#opts[@]}]="--no-preserve=${val}"
-        ;;
-      -k|--keep)
-        if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
+          if [[ -z "${val}" ]] || [[ "${val}" =~ [[:space:]] ]]; then
+            _sgl_err VAL "invalid \`${FN}' \`${opt}' EXT \`${val}'"
+          fi
+          opts[${#opts[@]}]="--suffix=${val}"
+          ;;
+        -b|--backup)
+          if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
+            val="${_SGL_OPT_VALS[${i}]}"
+              case "${val}" in
+              none|off)     ;;
+              numbered|t)   ;;
+              existing|nil) ;;
+              simple|never) ;;
+              *)
+                _sgl_err VAL "invalid \`${FN}' CTRL \`${val}'"
+                ;;
+            esac
+            opts[${#opts[@]}]="--backup=${val}"
+          else
+            opts[${#opts[@]}]='--backup'
+          fi
+          ;;
+        -D|--no-dest-dir)
+          target=2
+          dest=''
+          opts[${#opts[@]}]='--no-target-directory'
+          ;;
+        -d|--dest-dir)
+          target=1
+          val="${_SGL_OPT_VALS[${i}]}"
+          if ! _sgl_is_dir "${val}"; then
+            _sgl_err VAL "invalid \`${FN}' DEST_DIR \`${val}'"
+          fi
+          dest="${val}"
+          opts[${#opts[@]}]="--target-directory=${val}"
+          ;;
+        -F|--no-force)
+          force=0
+          opts[${#opts[@]}]='--no-clobber'
+          ;;
+        -f|--force)
+          force=1
+          opts[${#opts[@]}]='--force'
+          ;;
+        -H|--cmd-dereference)
+          opts[${#opts[@]}]='-H'
+          ;;
+        -h|-\?|--help)
+          _sgl_help ${FN}
+          ;;
+        -K|--no-keep)
           val="${_SGL_OPT_VALS[${i}]}"
           if [[ -z "${val}" ]] || [[ ! "${val}" =~ ^[a-z]+(,[a-z]+)*$ ]]; then
-            _sgl_err ${silent} VAL "invalid \`${FN}' \`${opt}' ATTRS \`${val}'"
+            _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTRS \`${val}'"
           fi
           while IFS= read -r -d ',' attr; do
             case "${attr}" in
@@ -217,88 +191,112 @@ sgl_cp()
               xattr)      ;;
               all)        ;;
               *)
-                _sgl_err ${silent} VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
+                _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
                 ;;
             esac
           done <<< "${val},"
-          opts[${#opts[@]}]="--preserve=${val}"
-        else
-          opts[${#opts[@]}]='--preserve'
-        fi
-        ;;
-      -L|--dereference)
-        opts[${#opts[@]}]='-L'
-        ;;
-      -l|--link)
-        opts[${#opts[@]}]='--link'
-        ;;
-      -m|--mode)
-        val="${_SGL_OPT_VALS[${i}]}"
-        if [[ -z "${val}" ]] || [[ "${val}" =~ [[:space:]] ]]; then
-          _sgl_err ${silent} VAL "invalid \`${FN}' \`${opt}' MODE \`${val}'"
-        fi
-        mode="${val}"
-        ;;
-      -n|--no-clobber)
-        force=0
-        opts[${#opts[@]}]='--no-clobber'
-        ;;
-      -o|--owner)
-        val="${_SGL_OPT_VALS[${i}]}"
-        if [[ -z "${val}" ]] || [[ "${val}" =~ [[:space:]] ]]; then
-          _sgl_err ${silent} VAL "invalid \`${FN}' \`${opt}' OWNER \`${val}'"
-        fi
-        own="${val}"
-        ;;
-      -P|--no-dereference)
-        opts[${#opts[@]}]='-P'
-        ;;
-      -Q|--silent)
-        silent=1
-        ;;
-      -q|--quiet)
-        quiet=1
-        ;;
-      -r|--recursive)
-        opts[${#opts[@]}]='-R'
-        ;;
-      -s|--symlink)
-        opts[${#opts[@]}]='--symbolic-link'
-        ;;
-      -u|--update)
-        opts[${#opts[@]}]='--update'
-        ;;
-      -V|--verbose)
-        opts[${#opts[@]}]='--verbose'
-        ;;
-      -v|--version)
-        _sgl_version
-        ;;
-      -w|--warn)
-        force=1
-        opts[${#opts[@]}]='--interactive'
-        ;;
-      -x|--one-file-system)
-        opts[${#opts[@]}]='--one-file-system'
-        ;;
-      *)
-        _sgl_err ${silent} SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
-        ;;
-    esac
-  done
+          opts[${#opts[@]}]="--no-preserve=${val}"
+          ;;
+        -k|--keep)
+          if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
+            val="${_SGL_OPT_VALS[${i}]}"
+            if [[ -z "${val}" ]] || [[ ! "${val}" =~ ^[a-z]+(,[a-z]+)*$ ]]; then
+              _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTRS \`${val}'"
+            fi
+            while IFS= read -r -d ',' attr; do
+              case "${attr}" in
+                mode)       ;;
+                ownership)  ;;
+                timestamps) ;;
+                context)    ;;
+                links)      ;;
+                xattr)      ;;
+                all)        ;;
+                *)
+                  _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
+                  ;;
+              esac
+            done <<< "${val},"
+            opts[${#opts[@]}]="--preserve=${val}"
+          else
+            opts[${#opts[@]}]='--preserve'
+          fi
+          ;;
+        -L|--dereference)
+          opts[${#opts[@]}]='-L'
+          ;;
+        -l|--link)
+          opts[${#opts[@]}]='--link'
+          ;;
+        -m|--mode)
+          val="${_SGL_OPT_VALS[${i}]}"
+          if [[ -z "${val}" ]] || [[ "${val}" =~ [[:space:]] ]]; then
+            _sgl_err VAL "invalid \`${FN}' \`${opt}' MODE \`${val}'"
+          fi
+          mode="${val}"
+          ;;
+        -n|--no-clobber)
+          force=0
+          opts[${#opts[@]}]='--no-clobber'
+          ;;
+        -o|--owner)
+          val="${_SGL_OPT_VALS[${i}]}"
+          if [[ -z "${val}" ]] || [[ "${val}" =~ [[:space:]] ]]; then
+            _sgl_err VAL "invalid \`${FN}' \`${opt}' OWNER \`${val}'"
+          fi
+          own="${val}"
+          ;;
+        -P|--no-dereference)
+          opts[${#opts[@]}]='-P'
+          ;;
+        -Q|--silent)
+          silent=1
+          ;;
+        -q|--quiet)
+          quiet=1
+          ;;
+        -r|--recursive)
+          opts[${#opts[@]}]='-R'
+          ;;
+        -s|--symlink)
+          opts[${#opts[@]}]='--symbolic-link'
+          ;;
+        -u|--update)
+          opts[${#opts[@]}]='--update'
+          ;;
+        -V|--verbose)
+          opts[${#opts[@]}]='--verbose'
+          ;;
+        -v|--version)
+          _sgl_version
+          ;;
+        -w|--warn)
+          force=1
+          opts[${#opts[@]}]='--interactive'
+          ;;
+        -x|--one-file-system)
+          opts[${#opts[@]}]='--one-file-system'
+          ;;
+        *)
+          _sgl_err SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
+          ;;
+      esac
+      i=$(( i + 1 ))
+    done
+  fi
 
   # save number of SRC/DEST values
   len=${#_SGL_VALS[@]}
 
   # catch missing SRC
   if [[ ${len} -eq 0 ]]; then
-    _sgl_err ${silent} VAL "missing \`${FN}' SRC"
+    _sgl_err VAL "missing \`${FN}' SRC"
   fi
 
   # assign unknown target
   if [[ ${target} -eq 0 ]]; then
     if [[ ${len} -eq 1 ]]; then
-      _sgl_err ${silent} VAL "missing \`${FN}' DEST"
+      _sgl_err VAL "missing \`${FN}' DEST"
     fi
     if [[ ${len} -eq 2 ]] && ! _sgl_is_dir "${_SGL_VALS[1]}"; then
       target=2
@@ -317,22 +315,22 @@ sgl_cp()
         len=$(( len - 1 ))
         dest="${_SGL_VALS[@]: -1:1}"
         if ! _sgl_is_dir "${dest}"; then
-          _sgl_err ${silent} VAL "invalid \`${FN}' DEST_DIR \`${dest}'"
+          _sgl_err VAL "invalid \`${FN}' DEST_DIR \`${dest}'"
         fi
         opts[${#opts[@]}]="--target-directory=${dest}"
       fi
 
       # parse each SRC
-      dests=()
+      local -a dests=()
       for src in "${_SGL_VALS[@]:0:${len}}"; do
         if ! _sgl_is_file "${src}"; then
-          _sgl_err ${silent} VAL "invalid \`${FN}' SRC \`${src}'"
+          _sgl_err VAL "invalid \`${FN}' SRC \`${src}'"
         fi
         opts[${#opts[@]}]="${src}"
         val="${dest}/${src##*/}"
         if _sgl_is_file "${val}" && [[ ${force} -ne 1 ]]; then
-          _sgl_err ${silent} VAL \
-            "DEST \`${val}' already exists (use \`--force' to overwrite)"
+          val="DEST \`${val}' already exists"
+          _sgl_err VAL "${val} (use \`--force' to overwrite)"
         fi
         dests[${#dests[@]}]="${val}"
       done
@@ -358,10 +356,10 @@ sgl_cp()
     2)
       # catch invalid SRC/DEST count
       if [[ ${len} -eq 1 ]]; then
-        _sgl_err ${silent} VAL "missing \`${FN}' DEST"
+        _sgl_err VAL "missing \`${FN}' DEST"
       fi
       if [[ ${len} -ne 2 ]]; then
-        _sgl_err ${silent} VAL "only 1 \`${FN} -D' SRC and DEST"
+        _sgl_err VAL "only 1 \`${FN} -D' SRC and DEST"
       fi
 
       # save SRC/DEST
@@ -370,14 +368,14 @@ sgl_cp()
 
       # catch invalid SRC/DEST paths
       if ! _sgl_is_file "${src}"; then
-        _sgl_err ${silent} VAL "invalid \`${FN}' SRC path \`${src}'"
+        _sgl_err VAL "invalid \`${FN}' SRC path \`${src}'"
       fi
       if _sgl_is_dir "${dest}"; then
-        _sgl_err ${silent} VAL "existing \`${FN}' DEST dir \`${dest}'"
+        _sgl_err VAL "existing \`${FN}' DEST dir \`${dest}'"
       fi
       if _sgl_is_file "${dest}" && [[ ${force} -ne 1 ]]; then
-        _sgl_err ${silent} VAL \
-          "DEST \`${dest}' already exists (use \`--force' to overwrite)"
+        dest="DEST \`${dest}' already exists"
+        _sgl_err VAL "${dest} (use \`--force' to overwrite)"
       fi
 
       # copy files
@@ -399,7 +397,7 @@ sgl_cp()
 
     # catch bug
     *)
-      _sgl_err ${silent} SGL "invalid \`${FN}' \$target value \`${target}'"
+      _sgl_err SGL "invalid \`${FN}' \$target value \`${target}'"
       ;;
   esac
   return 0

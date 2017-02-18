@@ -21,11 +21,14 @@
 _sgl_fail()
 {
   local -r FN='_sgl_fail'
+  local -i shh
   local title
+  local err="${1}"
 
-  case "${1}" in
+  case "${err}" in
     ERR|MISC)
       title='ERROR'
+      err='ERR'
       ;;
     OPT)
       title='OPTION ERROR'
@@ -46,22 +49,32 @@ _sgl_fail()
       title='SUPERGLUE ERROR'
       ;;
     *)
-      if [[ ! "${1}" =~ ^[1-9][0-9]{,2}$ ]] || [[ ${1} -gt 126 ]]; then
-        _sgl_err 0 SGL "invalid \`${FN}' ERR \`${1}'"
+      if [[ ! "${err}" =~ ^[1-9][0-9]{,2}$ ]] || [[ ${err} -gt 126 ]]; then
+        _sgl_err SGL "invalid \`${FN}' ERR \`${err}'"
       fi
       title='ERROR'
+      err='ERR'
       ;;
   esac
 
-  if [[ "${SGL_COLOR_ON}" == '1' ]]; then
-    title="${SGL_RED}${title}${SGL_UNCOLOR}"
-  elif [[ "${SGL_COLOR_OFF}" != '1' ]] && [[ -t 1 ]]; then
-    title="${SGL_RED}${title}${SGL_UNCOLOR}"
+  if _sgl_is_true "${silent}"; then
+    shh=1
+  elif _sgl_is_false "${silent}"; then
+    shh=0
+  elif [[ "${err}" == 'CHLD' ]]; then
+    shh=$(_sgl_get_silent CHLD)
+  else
+    shh=$(_sgl_get_silent PRT)
   fi
 
-  if [[ "${SGL_SILENT}" != '1' ]]; then
+  if [[ ${shh} -eq 0 ]]; then
+    if _sgl_is_true "${SGL_COLOR_ON}"; then
+      title="${SGL_RED}${title}${SGL_UNCOLOR}"
+    elif ! _sgl_is_true "${SGL_COLOR_OFF}" && [[ -t 1 ]]; then
+      title="${SGL_RED}${title}${SGL_UNCOLOR}"
+    fi
     printf '%s\n' "${title} ${2}" 1>&2
-    if [[ "${SGL_VERBOSE}" == '1' ]]; then
+    if _sgl_is_true "${SGL_VERBOSE}"; then
       local details="$(caller)"
       printf '%s %s %s\n' '-' 'LINE' "${details%% *}" 1>&2
       printf '%s %s %s\n' '-' 'FILE' "${details##* }" 1>&2

@@ -4,8 +4,8 @@
 
 ############################################################
 # @func _sgl_err
-# @use _sgl_err SILENT ERR [MSG]
-# @val ERR      Must be an error from the below options or any valid integer
+# @use _sgl_err ERR [MSG]
+# @val ERR  Must be an error from the below options or any valid integer
 #               in the range of `1' to `126'.
 #   `ERR|MISC'  An unknown error.
 #   `OPT'       An invalid option.
@@ -14,8 +14,7 @@
 #   `DPND'      A dependency error.
 #   `CHLD'      A child process exited unsuccessfully.
 #   `SGL'       A `superglue' script error.
-# @val MSG     Can be any string.
-# @val SILENT  Must be a `0' to print an error message or `1' to not.
+# @val MSG  Can be any string.
 # @exit
 #   1  ERR|MISC
 #   2  OPT
@@ -29,16 +28,15 @@ _sgl_err()
 {
   local -r FN='_sgl_err'
   local -i code
+  local -i shh
   local title
+  local err="${1}"
 
-  if [[ "${1}" != '0' ]] && [[ "${1}" != '1' ]]; then
-    _sgl_err 0 SGL "invalid \`${FN}' SILENT \`${1}'"
-  fi
-
-  case "${2}" in
+  case "${err}" in
     ERR|MISC)
       title='ERROR'
       code=1
+      err='ERR'
       ;;
     OPT)
       title='OPTION ERROR'
@@ -64,28 +62,36 @@ _sgl_err()
       title='SUPERGLUE ERROR'
       ;;
     *)
-      if [[ "${2}" =~ ^[1-9][0-9]{,2}$ ]] && [[ ${2} -lt 127 ]]; then
-        title='ERROR'
-        code=${2}
-      else
-        _sgl_err ${1} SGL "invalid \`${FN}' ERR \`${2}'"
+      if [[ ! "${err}" =~ ^[1-9][0-9]{,2}$ ]] || [[ ${err} -gt 126 ]]; then
+        _sgl_err SGL "invalid \`${FN}' ERR \`${err}'"
       fi
+      title='ERROR'
+      code=${err}
+      err='ERR'
       ;;
   esac
 
-  if [[ "${1}" == '0' ]]; then
-    if [[ "${SGL_COLOR_ON}" == '1' ]]; then
+  if _sgl_is_true "${silent}"; then
+    shh=1
+  elif _sgl_is_false "${silent}"; then
+    shh=0
+  elif [[ "${err}" == 'CHLD' ]]; then
+    shh=$(_sgl_get_silent CHLD)
+  else
+    shh=$(_sgl_get_silent PRT)
+  fi
+
+  if [[ ${shh} -eq 0 ]]; then
+    if _sgl_is_true "${SGL_COLOR_ON}"; then
       title="${SGL_RED}${title}${SGL_UNCOLOR}"
-    elif [[ "${SGL_COLOR_OFF}" != '1' ]] && [[ -t 1 ]]; then
+    elif ! _sgl_is_true "${SGL_COLOR_OFF}" && [[ -t 1 ]]; then
       title="${SGL_RED}${title}${SGL_UNCOLOR}"
     fi
-    if [[ "${SGL_SILENT}" != '1' ]]; then
-      printf '%s\n' "${title} ${3}" 1>&2
-      if [[ "${SGL_VERBOSE}" == '1' ]]; then
-        local details="$(caller)"
-        printf '%s %s %s\n' '-' 'LINE' "${details%% *}" 1>&2
-        printf '%s %s %s\n' '-' 'FILE' "${details##* }" 1>&2
-      fi
+    printf '%s\n' "${title} ${2}" 1>&2
+    if _sgl_is_true "${SGL_VERBOSE}"; then
+      local details="$(caller)"
+      printf '%s %s %s\n' '-' 'LINE' "${details%% *}" 1>&2
+      printf '%s %s %s\n' '-' 'FILE' "${details##* }" 1>&2
     fi
   fi
 

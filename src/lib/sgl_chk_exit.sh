@@ -46,8 +46,7 @@ _sgl_source err err_code esc_val fail get_quiet get_silent help parse_args \
 sgl_chk_exit()
 {
   local -r FN='sgl_chk_exit'
-  local -i i
-  local -i len
+  local -i i=0
   local -i code=0
   local -i xcode=0
   local -i quiet=$(_sgl_get_quiet PRT)
@@ -59,7 +58,7 @@ sgl_chk_exit()
   local opt
 
   # parse each argument
-  _sgl_parse_args ${silent} "${FN}" \
+  _sgl_parse_args ${FN} \
     '-h|-?|--help'       0 \
     '-c|--cmd|--command' 1 \
     '-m|--msg|--message' 1 \
@@ -71,55 +70,56 @@ sgl_chk_exit()
     -- "${@}"
 
   # parse each OPTION
-  len=${#_SGL_OPTS[@]}
-  for (( i=0; i<len; i++ )); do
-    opt="${_SGL_OPTS[${i}]}"
-    case "${opt}" in
-      -h|-\?|--help)
-        _sgl_help ${FN}
-        ;;
-      -c|--cmd|--command)
-        cmd="${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -m|--msg|--message)
-        msg="${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -p|--prg|--program)
-        prg="${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -Q|--silent)
-        silent=1
-        ;;
-      -q|--quiet)
-        quiet=1
-        ;;
-      -v|--version)
-        _sgl_version
-        ;;
-      -x|--exit)
-        if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
-          err="${_SGL_OPT_VALS[${i}]}"
-        fi
-        xcode=$(_sgl_err_code "${err}")
-        if [[ ${xcode} -eq 0 ]]; then
-          _sgl_err ${silent} VAL "invalid \`${FN}' ERR \`${err}'"
-        fi
-        ;;
-      *)
-        _sgl_err ${silent} SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
-        ;;
-    esac
-  done
+  if [[ ${#_SGL_OPTS[@]} -gt 0 ]]; then
+    for opt in "${_SGL_OPTS[@]}"; do
+      case "${opt}" in
+        -h|-\?|--help)
+          _sgl_help ${FN}
+          ;;
+        -c|--cmd|--command)
+          cmd="${_SGL_OPT_VALS[${i}]}"
+          ;;
+        -m|--msg|--message)
+          msg="${_SGL_OPT_VALS[${i}]}"
+          ;;
+        -p|--prg|--program)
+          prg="${_SGL_OPT_VALS[${i}]}"
+          ;;
+        -Q|--silent)
+          silent=1
+          ;;
+        -q|--quiet)
+          quiet=1
+          ;;
+        -v|--version)
+          _sgl_version
+          ;;
+        -x|--exit)
+          if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
+            err="${_SGL_OPT_VALS[${i}]}"
+          fi
+          xcode=$(_sgl_err_code "${err}")
+          if [[ ${xcode} -eq 0 ]]; then
+            _sgl_err VAL "invalid \`${FN}' ERR \`${err}'"
+          fi
+          ;;
+        *)
+          _sgl_err SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
+          ;;
+      esac
+      i=$(( i + 1 ))
+    done
+  fi
 
   # parse CODE
   if [[ ${#_SGL_VALS[@]} -eq 0 ]]; then
-    _sgl_err ${silent} VAL "missing \`${FN}' CODE"
+    _sgl_err VAL "missing \`${FN}' CODE"
   elif [[ ${#_SGL_VALS[@]} -gt 1 ]]; then
-    _sgl_err ${silent} VAL "only 1 \`${FN}' CODE allowed"
+    _sgl_err VAL "only 1 \`${FN}' CODE allowed"
   fi
   code="${_SGL_VALS[0]}"
   if [[ ! "${code}" =~ ^[0-9][0-9]?[0-9]?$ ]] || [[ ${code} -gt 255 ]]; then
-    _sgl_err ${silent} VAL "invalid \`${FN}' CODE \`${code}'"
+    _sgl_err VAL "invalid \`${FN}' CODE \`${code}'"
   fi
   if [[ ${code} -eq 0 ]]; then
     return 0
@@ -148,7 +148,7 @@ sgl_chk_exit()
   # exit process
   if [[ ${xcode} -ne 0 ]]; then
     if [[ -n "${msg}" ]]; then
-      _sgl_err ${silent} ${err} "${msg}"
+      _sgl_err ${err} "${msg}"
     fi
     exit ${xcode}
   fi

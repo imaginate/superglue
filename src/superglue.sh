@@ -112,7 +112,7 @@ _sgl_clean_builtin
 ################################################################################
 
 if [[ -z "${BASH_VERSINFO}" ]] || [[ "${BASH_VERSINFO[0]}" != '4' ]]; then
-  _sgl_err 0 DPND "bash version 4 required"
+  _sgl_err DPND "bash version 4 required"
 fi
 
 ################################################################################
@@ -267,8 +267,7 @@ if [[ ${#__SGL_OPTS[@]} -gt 0 ]]; then
         if [[ ${__SGL_OPT_BOOL[${__I}]} -eq 1 ]]; then
           __VAL="$(_sgl_prefix "${__SGL_OPT_VALS[${__I}]}")"
           if ! _sgl_is_func "${__VAL}"; then
-            _sgl_err $(_sgl_get_silent PRT) VAL \
-              "invalid \`${SGL}' FUNC \`${__VAL}'"
+            _sgl_err VAL "invalid \`${SGL}' FUNC \`${__VAL}'"
           fi
           _sgl_help "${__VAL}"
         else
@@ -294,8 +293,7 @@ if [[ ${#__SGL_OPTS[@]} -gt 0 ]]; then
         declare __RE='^[a-z*]+[a-z_ ,|*]*$'
         __VAL="${__SGL_OPT_VALS[${__I}]}"
         if [[ ! "${__VAL}" =~ ${__RE} ]]; then
-          _sgl_err $(_sgl_get_silent PRT) VAL \
-            "invalid \`${SGL}' FUNCS \`${__VAL}'"
+          _sgl_err VAL "invalid \`${SGL}' FUNCS \`${__VAL}'"
         fi
         unset -v __RE
         declare -a __FUNCS=()
@@ -305,8 +303,9 @@ if [[ ${#__SGL_OPTS[@]} -gt 0 ]]; then
         while IFS= read -r -d ' ' __FUNC; do
           __FUNC="$(_sgl_prefix "${__FUNC}")"
           if ! _sgl_match_func "${__FUNC}"; do
-            _sgl_err $(_sgl_get_silent PRT) VAL \
-              "invalid \`${SGL}' FUNC \`${__FUNC}' in FUNCS \`${__VAL}'"
+            __FUNC="FUNC \`${__FUNC}'"
+            __VAL="FUNCS \`${__VAL}'"
+            _sgl_err VAL "invalid \`${SGL}' ${__FUNC} in ${__VAL}"
           fi
           __FUNCS[${#__FUNCS[@]}]="${__FUNC}"
         done <<< "${__VAL} "
@@ -324,8 +323,7 @@ if [[ ${#__SGL_OPTS[@]} -gt 0 ]]; then
         set -x
         ;;
       *)
-        _sgl_err $(_sgl_get_silent PRT) SGL \
-          "invalid parsed \`${SGL}' OPTION \`${__OPT}'"
+        _sgl_err SGL "invalid parsed \`${SGL}' OPTION \`${__OPT}'"
         ;;
     esac
     : $(( ++__I ))
@@ -340,7 +338,7 @@ fi
 ################################################################################
 
 if [[ ${#__SGL_VALS[@]} -eq 0 ]]; then
-  _sgl_err $(_sgl_get_silent PRT) VAL "missing \`${SGL}' FUNC|SCRIPT"
+  _sgl_err VAL "missing \`${SGL}' FUNC|SCRIPT"
 fi
 
 declare -a SGL_ARGS=()
@@ -378,8 +376,7 @@ fi
 readonly SGL_SCRIPT="${__SGL_VALS[0]}"
 
 if ! _sgl_is_read "${SGL_SCRIPT}"; then
-  _sgl_err $(_sgl_get_silent PRT) VAL \
-    "invalid \`${SGL}' file path SCRIPT \`${SGL_SCRIPT}'"
+  _sgl_err VAL "invalid \`${SGL}' file path SCRIPT \`${SGL_SCRIPT}'"
 fi
 
 . "${SGL_SCRIPT}" "${SGL_ARGS[@]}"

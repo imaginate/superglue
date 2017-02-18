@@ -45,13 +45,13 @@ _sgl_source err err_code esc_val fail get_quiet get_silent help parse_args \
 sgl_chk_uid()
 {
   local -r FN='sgl_chk_uid'
-  local -i i
-  local -i len
+  local -i i=0
   local -i code=0
+  local -i pass=0
   local -i quiet=$(_sgl_get_quiet PRT)
   local -i silent=$(_sgl_get_silent PRT)
   local -i invert=0
-  local -i pass
+  local uids
   local uid
   local err=AUTH
   local msg
@@ -59,7 +59,7 @@ sgl_chk_uid()
   local opt
 
   # parse each argument
-  _sgl_parse_args ${silent} "${FN}" \
+  _sgl_parse_args ${FN} \
     '-h|-?|--help'       0 \
     '-i|--invert'        0 \
     '-m|--msg|--message' 1 \
@@ -71,76 +71,71 @@ sgl_chk_uid()
     -- "${@}"
 
   # parse each OPTION
-  len=${#_SGL_OPTS[@]}
-  for (( i=0; i<len; i++ )); do
-    opt="${_SGL_OPTS[${i}]}"
-    case "${opt}" in
-      -h|-\?|--help)
-        _sgl_help ${FN}
-        ;;
-      -i|--invert)
-        invert=1
-        ;;
-      -m|--msg|--message)
-        msg="${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -p|--prg|--program)
-        prg="${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -Q|--silent)
-        silent=1
-        ;;
-      -q|--quiet)
-        quiet=1
-        ;;
-      -v|--version)
-        _sgl_version
-        ;;
-      -x|--exit)
-        if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
-          err="${_SGL_OPT_VALS[${i}]}"
-        fi
-        code=$(_sgl_err_code "${err}")
-        if [[ ${code} -eq 0 ]]; then
-          _sgl_err ${silent} VAL "invalid \`${FN}' ERR \`${err}'"
-        fi
-        ;;
-      *)
-        _sgl_err ${silent} SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
-        ;;
-    esac
-  done
+  if [[ ${#_SGL_OPTS[@]} -gt 0 ]]; then
+    for opt in "${_SGL_OPTS[@]}"; do
+      case "${opt}" in
+        -h|-\?|--help)
+          _sgl_help ${FN}
+          ;;
+        -i|--invert)
+          invert=1
+          ;;
+        -m|--msg|--message)
+          msg="${_SGL_OPT_VALS[${i}]}"
+          ;;
+        -p|--prg|--program)
+          prg="${_SGL_OPT_VALS[${i}]}"
+          ;;
+        -Q|--silent)
+          silent=1
+          ;;
+        -q|--quiet)
+          quiet=1
+          ;;
+        -v|--version)
+          _sgl_version
+          ;;
+        -x|--exit)
+          if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
+            err="${_SGL_OPT_VALS[${i}]}"
+          fi
+          code=$(_sgl_err_code "${err}")
+          if [[ ${code} -eq 0 ]]; then
+            _sgl_err VAL "invalid \`${FN}' ERR \`${err}'"
+          fi
+          ;;
+        *)
+          _sgl_err SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
+          ;;
+      esac
+      i=$(( i + 1 ))
+    done
+  fi
 
   # catch invalid EUID
   if [[ ! "${EUID}" =~ ^[0-9]+$ ]] || [[ ${EUID} -gt 60000 ]]; then
-    _sgl_err ${silent} CHLD "invalid \$EUID \`${EUID}'"
+    _sgl_err DPND "invalid \$EUID \`${EUID}'"
   fi
-
-  # catch invalid UID
-  len=${#_SGL_VALS[@]}
-  if [[ ${len} -eq 0 ]]; then
-    _sgl_err ${silent} VAL "missing a UID for \`${FN}'"
-  fi
-  for (( i=0; i<len; i++ )); do
-    uid="${_SGL_VALS[${i}]}"
-    if [[ ! "${uid}" =~ ^[0-9]+$ ]] || [[ ${uid} -gt 60000 ]]; then
-      _sgl_err ${silent} VAL "invalid \`${FN}' UID \`${uid}'"
-    fi
-  done
 
   # check each UID
-  uid=''
-  pass=0
-  for (( i=0; i<len; i++ )); do
-    if [[ -n "${uid}" ]]; then
-      uid="${uid}|${_SGL_VALS[${i}]}"
-    else
-      uid="${_SGL_VALS[${i}]}"
+  if [[ ${#_SGL_VALS[@]} -eq 0 ]]; then
+    _sgl_err VAL "missing a UID for \`${FN}'"
+  fi
+  for uid in "${_SGL_VALS[@]}"; do
+    if [[ ! "${uid}" =~ ^[0-9]+$ ]] || [[ ${uid} -gt 60000 ]]; then
+      _sgl_err VAL "invalid \`${FN}' UID \`${uid}'"
     fi
-    if [[ ${_SGL_VALS[${i}]} -eq ${EUID} ]]; then
+    if [[ -n "${uids}" ]]; then
+      uids="${uids}|${uid}"
+    else
+      uids="${uid}"
+    fi
+    if [[ "${uid}" == "${EUID}" ]]; then
       pass=1
     fi
   done
+
+  # return if successful
   if [[ ${invert} -eq 1 ]]; then
     if [[ ${pass} -eq 0 ]]; then
       return 0
@@ -154,7 +149,7 @@ sgl_chk_uid()
     if [[ -n "${prg}" ]]; then
       if [[ -n "${msg}" ]]; then
         prg="$(_sgl_esc_val "${prg}")"
-        uid="$(_sgl_esc_val "${uid}")"
+        uid="$(_sgl_esc_val "${uids}")"
         msg="$(printf '%s' "${msg}" | ${sed} -e "s/PRG/${prg}/g" \
           -e "s/UID/${uid}/g" -e "s/EUID/${EUID}/g")"
       else
@@ -168,7 +163,7 @@ sgl_chk_uid()
   # exit process
   if [[ ${code} -ne 0 ]]; then
     if [[ -n "${msg}" ]]; then
-      _sgl_err ${silent} ${err} "${msg}"
+      _sgl_err ${err} "${msg}"
     fi
     exit ${code}
   fi

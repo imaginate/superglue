@@ -45,8 +45,7 @@ _sgl_source err err_code esc_val fail get_quiet get_silent help is_file \
 sgl_chk_file()
 {
   local -r FN='sgl_chk_file'
-  local -i i
-  local -i len
+  local -i i=0
   local -i code=0
   local -i read=0
   local -i quiet=$(_sgl_get_quiet PRT)
@@ -58,7 +57,7 @@ sgl_chk_file()
   local opt
 
   # parse each argument
-  _sgl_parse_args ${silent} "${FN}" \
+  _sgl_parse_args ${FN} \
     '-h|-?|--help'         0 \
     '-m|--msg|--message'   1 \
     '-p|--prg|--program'   1 \
@@ -70,49 +69,50 @@ sgl_chk_file()
     -- "${@}"
 
   # parse each OPTION
-  len=${#_SGL_OPTS[@]}
-  for (( i=0; i<len; i++ )); do
-    opt="${_SGL_OPTS[${i}]}"
-    case "${opt}" in
-      -h|-\?|--help)
-        _sgl_help ${FN}
-        ;;
-      -m|--msg|--message)
-        msg="${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -p|--prg|--program)
-        prg="${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -Q|--silent)
-        silent=1
-        ;;
-      -q|--quiet)
-        quiet=1
-        ;;
-      -r|--read|--readable)
-        read=1
-        ;;
-      -v|--version)
-        _sgl_version
-        ;;
-      -x|--exit)
-        if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
-          err="${_SGL_OPT_VALS[${i}]}"
-        fi
-        code=$(_sgl_err_code "${err}")
-        if [[ ${code} -eq 0 ]]; then
-          _sgl_err ${silent} VAL "invalid \`${FN}' ERR \`${err}'"
-        fi
-        ;;
-      *)
-        _sgl_err ${silent} SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
-        ;;
-    esac
-  done
+  if [[ ${#_SGL_OPTS[@]} -gt 0 ]]; then
+    for opt in "${_SGL_OPTS[@]}"; do
+      case "${opt}" in
+        -h|-\?|--help)
+          _sgl_help ${FN}
+          ;;
+        -m|--msg|--message)
+          msg="${_SGL_OPT_VALS[${i}]}"
+          ;;
+        -p|--prg|--program)
+          prg="${_SGL_OPT_VALS[${i}]}"
+          ;;
+        -Q|--silent)
+          silent=1
+          ;;
+        -q|--quiet)
+          quiet=1
+          ;;
+        -r|--read|--readable)
+          read=1
+          ;;
+        -v|--version)
+          _sgl_version
+          ;;
+        -x|--exit)
+          if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
+            err="${_SGL_OPT_VALS[${i}]}"
+          fi
+          code=$(_sgl_err_code "${err}")
+          if [[ ${code} -eq 0 ]]; then
+            _sgl_err VAL "invalid \`${FN}' ERR \`${err}'"
+          fi
+          ;;
+        *)
+          _sgl_err SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
+          ;;
+      esac
+      i=$(( i + 1 ))
+    done
+  fi
 
   # catch missing FILE
   if [[ ${#_SGL_VALS[@]} -eq 0 ]]; then
-    _sgl_err ${silent} VAL "missing a FILE for \`${FN}'"
+    _sgl_err VAL "missing a FILE for \`${FN}'"
   fi
 
   # build error message
@@ -142,11 +142,9 @@ sgl_chk_file()
       file="$(_sgl_esc_val "${file}")"
       msg="$(printf '%s' "${msg}" | ${sed} -e "s/FILE/${file}/g")"
       if [[ ${code} -eq 0 ]]; then
-        if [[ ${silent} -ne 1 ]]; then
-          _sgl_fail ${err} "${msg}"
-        fi
+        _sgl_fail ${err} "${msg}"
       else
-        _sgl_err ${silent} ${err} "${msg}"
+        _sgl_err ${err} "${msg}"
       fi
     elif [[ ${code} -ne 0 ]]; then
       exit ${code}

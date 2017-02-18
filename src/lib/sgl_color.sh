@@ -9,7 +9,7 @@
 #   0  PASS
 ################################################################################
 
-_sgl_source err get_color get_quiet get_silent help parse_args version
+_sgl_source err get_color get_quiet get_silent help is_color parse_args version
 
 ############################################################
 # Easily print a colored message to `stdout'.
@@ -53,8 +53,7 @@ _sgl_source err get_color get_quiet get_silent help parse_args version
 sgl_color()
 {
   local -r FN='sgl_color'
-  local -i i
-  local -i len
+  local -i i=0
   local -i loud=0
   local -i quiet=$(_sgl_get_quiet PRT)
   local -i silent=$(_sgl_get_silent PRT)
@@ -67,7 +66,7 @@ sgl_color()
   local line
 
   # parse each argument
-  _sgl_parse_args ${silent} "${FN}" \
+  _sgl_parse_args ${FN} \
     '-d|--delim'      1 \
     '-h|-?|--help'    0 \
     '-l|--loud'       0 \
@@ -79,63 +78,69 @@ sgl_color()
     -- "${@}"
 
   # parse each OPTION
-  len=${#_SGL_OPTS[@]}
-  for (( i=0; i<len; i++ )); do
-    opt="${_SGL_OPTS[${i}]}"
-    case "${opt}" in
-      -d|--delim)
-        delim="${_SGL_OPT_VALS[${i}]}"
-        ;;
-      -h|-\?|--help)
-        _sgl_help ${FN}
-        ;;
-      -l|--loud)
-        loud=1
-        ;;
-      -N|--newline)
-        newline=1
-        ;;
-      -n|--no-newline)
-        newline=0
-        ;;
-      -Q|--silent)
-        silent=1
-        loud=0
-        ;;
-      -q|--quiet)
-        quiet=1
-        loud=0
-        ;;
-      -v|--version)
-        _sgl_version
-        ;;
-      *)
-        _sgl_err ${silent} SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
-        ;;
-    esac
-  done
+  if [[ ${#_SGL_OPTS[@]} -gt 0 ]]; then
+    for opt in "${_SGL_OPTS[@]}"; do
+      case "${opt}" in
+        -d|--delim)
+          delim="${_SGL_OPT_VALS[${i}]}"
+          ;;
+        -h|-\?|--help)
+          _sgl_help ${FN}
+          ;;
+        -l|--loud)
+          loud=1
+          ;;
+        -N|--newline)
+          newline=1
+          ;;
+        -n|--no-newline)
+          newline=0
+          ;;
+        -Q|--silent)
+          silent=1
+          loud=0
+          ;;
+        -q|--quiet)
+          quiet=1
+          loud=0
+          ;;
+        -v|--version)
+          _sgl_version
+          ;;
+        *)
+          _sgl_err SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
+          ;;
+      esac
+      i=$(( i + 1 ))
+    done
+  fi
 
-  # save values length
-  len=${#_SGL_VALS[@]}
+  # check number of values
+  case ${#_SGL_VALS[@]} in
+    0)
+      _sgl_err VAL "missing \`${FN}' COLOR"
+      ;;
+    1)
+      fromstdin=1
+      ;;
+    2)
+      if [[ "${_SGL_VALS[1]}" == '-' ]]; then
+        fromstdin=1
+      fi
+      ;;
+  esac
 
   # parse COLOR
-  if [[ ${len} -eq 0 ]]; then
-    _sgl_err ${silent} VAL "missing \`${FN}' COLOR"
+  color="${_SGL_VALS[0]}"
+  if ! _sgl_is_color "${color}"; then
+    _sgl_err VAL "invalid \`${FN}' COLOR \`${color}'"
   fi
-  color="$(_sgl_get_color "${_SGL_VALS[0]}")"
-  if [[ ${?} -ne 0 ]]; then
-    _sgl_err ${silent} VAL "invalid \`${FN}' COLOR \`${_SGL_VALS[0]}'"
-  fi
+  color="$(_sgl_get_color "${color}")"
 
   # parse MSG
-  if [[ ${len} -eq 1 ]]; then
-    fromstdin=1
-  elif [[ ${len} -eq 2 ]] && [[ "${_SGL_VALS[1]}" == '-' ]]; then
-    fromstdin=1
-  fi
   if [[ ${fromstdin} -eq 1 ]]; then
     if ! read -t 0 line; then
-      _sgl_err ${silent} VAL "missing \`${FN}' MSG"
+      _sgl_err VAL "missing \`${FN}' MSG"
     fi
     while IFS= read -r line; do
       if [[ -n "${msg}" ]]; then
@@ -161,14 +166,16 @@ sgl_color()
 
   # color MSG
   if [[ -n "${color}" ]]; then
-    if [[ "${SGL_COLOR_ON}" == '1' ]]; then
+    if _sgl_is_true "${SGL_COLOR_ON}"; then
       msg="${color}${msg}${SGL_UNCOLOR}"
-    elif [[ "${SGL_COLOR_OFF}" != '1' ]] && [[ -t 1 ]]; then
+    elif ! _sgl_is_true "${SGL_COLOR_OFF}" && [[ -t 1 ]]; then
       msg="${color}${msg}${SGL_UNCOLOR}"
     fi
   fi
 
-  if [[ ${loud} -eq 1 ]] || [[ ${quiet} -eq 0 ]]; then
+  if [[ ${loud} -eq 1 ]]; then
+    printf '%s' "${msg}"
+  elif [[ ${quiet} -eq 0 ]] && [[ ${silent} -eq 0 ]]; then
     printf '%s' "${msg}"
   fi
 

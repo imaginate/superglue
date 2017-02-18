@@ -18,26 +18,25 @@
 ############################################################
 _sgl_get_silent()
 {
-  local -i silent=0
+  local -i shh=0
 
-  if [[ "${SGL_SILENT}" == '1' ]]; then
-    silent=1
+  if _sgl_is_true "${SGL_SILENT}"; then
+    shh=1
   else
     case "${1}" in
       CHLD)
-        if [[ "${SGL_SILENT_CHILD}" == '1' ]]; then
-          silent=1
+        if _sgl_is_true "${SGL_SILENT_CHILD}"; then
+          shh=1
         fi
         ;;
       PRT)
-        if [[ "${SGL_SILENT_PARENT}" == '1' ]]; then
-          silent=1
+        if _sgl_is_true "${SGL_SILENT_PARENT}"; then
+          shh=1
         fi
         ;;
     esac
   fi
 
-  printf '%s' "${silent}"
-  return 0
+  printf '%s' "${shh}"
 }
 readonly -f _sgl_get_silent

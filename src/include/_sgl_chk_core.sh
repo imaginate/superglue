@@ -17,14 +17,14 @@ _sgl_chk_core()
   local path
 
   if ! _sgl_is_dir "${dir}"; then
-    _sgl_err 0 DPND "missing core directory \`${dir}' - reinstall \`${SGL}'"
+    _sgl_err DPND "missing core directory \`${dir}' - reinstall \`${SGL}'"
   fi
   shift
 
   for path in "${@}"; do
     path="${dir}/${path}"
     if ! _sgl_is_read "${path}"; then
-      _sgl_err 0 DPND "missing core file \`${path}' - reinstall \`${SGL}'"
+      _sgl_err DPND "missing core file \`${path}' - reinstall \`${SGL}'"
     fi
   done
   return 0

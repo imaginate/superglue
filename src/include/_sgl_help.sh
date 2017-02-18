@@ -17,22 +17,24 @@ _sgl_help()
   local -r FN='_sgl_help'
   local name="${1}"
   local path
-  local -i ret
 
-  if [[ "${name}" == 'sgl' ]] || [[ "${name}" == 'sglue' ]]; then
-    name='superglue'
-  fi
-
-  if [[ "${name}" != 'superglue' ]] && ! _sgl_is_func "${name}"; then
-    _sgl_err 0 SGL "invalid \`${FN}' CMD|FUNC \`${name}'"
-  fi
+  case "${name}" in
+    sgl|sglue)
+      name='superglue'
+      ;;
+    superglue)
+      ;;
+    *)
+      if ! _sgl_is_func "${name}"; then
+        _sgl_err SGL "invalid \`${FN}' CMD|FUNC \`${name}'"
+      fi
+      ;;
+  esac
 
   path="${SGL_HELP}/${name}"
   ${cat} -- "${path}"
-  ret=${?}
-  if [[ ${ret} -ne 0 ]]; then
-    _sgl_err 0 CHLD "\`${cat} -- \"${path}\"' exited with \`${ret}'"
-  fi
+  _sgl_chk_exit ${?} ${cat} -- "${path}"
+
   exit 0
 }
 readonly -f _sgl_help
