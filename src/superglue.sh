@@ -78,6 +78,7 @@ readonly NIL='/dev/null'
 # @include ./include/_sgl_fail.sh
 # @include ./include/_sgl_get_quiet.sh
 # @include ./include/_sgl_get_silent.sh
+# @include ./include/_sgl_get_verbose.sh
 # @include ./include/_sgl_help.sh
 # @include ./include/_sgl_is_cmd.sh
 # @include ./include/_sgl_is_dir.sh
