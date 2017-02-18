@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # @dest $LIB/superglue/sgl_source
 # @mode 0644
 #

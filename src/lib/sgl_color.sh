@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # @dest $LIB/superglue/sgl_color
 # @mode 0644
 #

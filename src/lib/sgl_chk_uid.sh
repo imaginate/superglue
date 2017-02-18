@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # @dest $LIB/superglue/sgl_chk_uid
 # @mode 0644
 #

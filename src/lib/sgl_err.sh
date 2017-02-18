@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # @dest $LIB/superglue/sgl_err
 # @mode 0644
 #

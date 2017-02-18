@@ -806,7 +806,7 @@ sglue_mk_incl()
     content=''
     while IFS= read -r subline; do
       content="${content}${subline}\\n"
-    done <<< "$(${sed} -e '1,6 d' -e 's/[\/&]/\\&/g' "${path}")"
+    done <<< "$(${sed} -e '1,4 d' -e 's/[\/&]/\\&/g' "${path}")"
     ${sed} -i -e "s/${line}/${content}/" "${dest}"
   done <<< "$(${grep} "${SGLUE_TAG_INCL}" "${dest}" 2> ${NIL})"
 }

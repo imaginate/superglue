@@ -1,5 +1,3 @@
-#!/bin/bash --posix
-#
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2017 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
 ################################################################################
