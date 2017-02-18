@@ -85,6 +85,7 @@ readonly NIL='/dev/null'
 # @include ./include/_sgl_is_path.sh
 # @include ./include/_sgl_is_read.sh
 # @include ./include/_sgl_is_set.sh
+# @include ./include/_sgl_is_true.sh
 # @include ./include/_sgl_match_func.sh
 # @include ./include/_sgl_parse_args.sh
 # @include ./include/_sgl_parse_init.sh
