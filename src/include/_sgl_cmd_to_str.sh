@@ -1,12 +1,5 @@
-# @dest $LIB/superglue/_sgl_cmd_to_str
-# @mode 0644
-#
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2017 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
-#
-# @use _sgl_source cmd_to_str
-# @return
-#   0  PASS
 ################################################################################
 
 ############################################################

@@ -71,7 +71,9 @@ readonly NIL='/dev/null'
 
 # @include ./include/_sgl_chk_cmd.sh
 # @include ./include/_sgl_chk_core.sh
+# @include ./include/_sgl_chk_exit.sh
 # @include ./include/_sgl_clean_builtin.sh
+# @include ./include/_sgl_cmd_to_str.sh
 # @include ./include/_sgl_err.sh
 # @include ./include/_sgl_fail.sh
 # @include ./include/_sgl_get_quiet.sh

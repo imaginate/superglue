@@ -1,15 +1,6 @@
-# @dest $LIB/superglue/_sgl_chk_exit
-# @mode 0644
-#
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2017 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
-#
-# @use _sgl_source chk_exit
-# @return
-#   0  PASS
 ################################################################################
-
-_sgl_source cmd_to_str err
 
 ############################################################
 # @func _sgl_chk_exit
@@ -27,6 +18,7 @@ _sgl_chk_exit()
 {
   local -i code=${1}
   local cmdstr
+  local prg
 
   if [[ ${code} -eq 0 ]]; then
     return 0
@@ -34,6 +26,13 @@ _sgl_chk_exit()
 
   shift
   cmdstr="$(_sgl_cmd_to_str "${@}")"
-  _sgl_err ${silent} CHLD "\`${cmdstr}' in \`${FN}' exited with \`${code}'"
+
+  if [[ -n "${FN}" ]]; then
+    prg="${FN}"
+  else
+    prg="${SGL}"
+  fi
+
+  _sgl_err CHLD "\`${cmdstr}' in \`${prg}' exited with \`${code}'"
 }
 readonly -f _sgl_chk_exit
