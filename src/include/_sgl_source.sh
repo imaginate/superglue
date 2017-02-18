@@ -23,6 +23,9 @@ _sgl_source()
 
   for func in "${@}"; do
     func="_sgl_${func}"
+    if _sgl_is_set "${func}"; then
+      continue
+    fi
     path="${SGL_LIB}/${func}"
     if ! _sgl_is_read "${path}"; then
       _sgl_err 0 DPND "missing core file \`${path}' - reinstall \`${SGL}'"
