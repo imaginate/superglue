@@ -9,8 +9,8 @@
 #   `0|n|no'   FALSE
 #   `1|y|yes'  TRUE
 # @return
-#   0  TRUE
-#   1  FALSE
+#   0  PASS  The BOOL is TRUE.
+#   1  FAIL  The BOOL is FALSE or unset.
 ############################################################
 _sgl_is_true()
 {
