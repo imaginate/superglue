@@ -5,21 +5,41 @@
 ################################################################################
 
 ############################################################
-# Checks the globals, SGL_SILENT and SGL_SILENT_PARENT.
+# Prints the boolean for the below globals.
+#   `SGL_SILENT'
+#   `SGL_SILENT_PARENT'
+#   `SGL_SILENT_CHILD'
 #
 # @func _sgl_get_silent
-# @use _sgl_get_silent
+# @use _sgl_get_silent [PROC]
+# @val PROC  Must be one of the below options.
+#   `CHLD'  Child process.
+#   `PRT'   Parent process.
 # @return
-#   0  OFF
-#   1  ON
+#   0  PASS
 ############################################################
 _sgl_get_silent()
 {
-  if [[ "${SGL_SILENT}" == '1' ]] || [[ "${SGL_SILENT_PARENT}" == '1' ]]; then
-    printf '%s' '1'
-    return 1
+  local -i silent=0
+
+  if [[ "${SGL_SILENT}" == '1' ]]; then
+    silent=1
+  else
+    case "${1}" in
+      CHLD)
+        if [[ "${SGL_SILENT_CHILD}" == '1' ]]; then
+          silent=1
+        fi
+        ;;
+      PRT)
+        if [[ "${SGL_SILENT_PARENT}" == '1' ]]; then
+          silent=1
+        fi
+        ;;
+    esac
   fi
-  printf '%s' '0'
+
+  printf '%s' "${silent}"
   return 0
 }
 readonly -f _sgl_get_silent
