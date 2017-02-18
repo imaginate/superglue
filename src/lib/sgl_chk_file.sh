@@ -48,7 +48,7 @@ sgl_chk_file()
   local -i len
   local -i code=0
   local -i read=0
-  local -i quiet=$(_sgl_get_quiet)
+  local -i quiet=$(_sgl_get_quiet PRT)
   local -i silent=$(_sgl_get_silent PRT)
   local file
   local err=DPND

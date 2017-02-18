@@ -46,7 +46,7 @@ sgl_chk_dir()
   local -i i
   local -i len
   local -i code=0
-  local -i quiet=$(_sgl_get_quiet)
+  local -i quiet=$(_sgl_get_quiet PRT)
   local -i silent=$(_sgl_get_silent PRT)
   local dir
   local err=DPND
