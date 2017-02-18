@@ -13,52 +13,52 @@
 # @func _sgl_get_color
 # @use _sgl_get_color COLOR
 # @val COLOR  Should be a color from the below options.
-#   `black'   Prints $SGL_BLACK.
-#   `blue'    Prints $SGL_BLUE.
-#   `cyan'    Prints $SGL_CYAN.
-#   `green'   Prints $SGL_GREEN.
+#   `black'   Prints global `SGL_BLACK'.
+#   `blue'    Prints global `SGL_BLUE'.
+#   `cyan'    Prints global `SGL_CYAN'.
+#   `green'   Prints global `SGL_GREEN'.
 #   `none'    Prints no color.
-#   `purple'  Prints $SGL_PURPLE.
-#   `red'     Prints $SGL_RED.
-#   `white'   Prints $SGL_WHITE.
-#   `yellow'  Prints $SGL_YELLOW.
+#   `purple'  Prints global `SGL_PURPLE'.
+#   `red'     Prints global `SGL_RED'.
+#   `white'   Prints global `SGL_WHITE'.
+#   `yellow'  Prints global `SGL_YELLOW'.
 # @return
-#   0  PASS  COLOR is valid.
-#   1  FAIL  COLOR is invalid.
+#   0  PASS
 ############################################################
 _sgl_get_color()
 {
-  case "${1}" in
+  local color="${1}"
+
+  case "${color}" in
     black|Black|BLACK)
-      printf '%s' "${SGL_BLACK}"
+      color="${SGL_BLACK}"
       ;;
     blue|Blue|BLUE)
-      printf '%s' "${SGL_BLUE}"
+      color="${SGL_BLUE}"
       ;;
     cyan|Cyan|CYAN)
-      printf '%s' "${SGL_CYAN}"
+      color="${SGL_CYAN}"
       ;;
     green|Green|GREEN)
-      printf '%s' "${SGL_GREEN}"
-      ;;
-    none|None|NONE)
+      color="${SGL_GREEN}"
       ;;
     purple|Purple|PURPLE)
-      printf '%s' "${SGL_PURPLE}"
+      color="${SGL_PURPLE}"
       ;;
     red|Red|RED)
-      printf '%s' "${SGL_RED}"
+      color="${SGL_RED}"
       ;;
     white|White|WHITE)
-      printf '%s' "${SGL_WHITE}"
+      color="${SGL_WHITE}"
       ;;
     yellow|Yellow|YELLOW)
-      printf '%s' "${SGL_YELLOW}"
+      color="${SGL_YELLOW}"
       ;;
     *)
-      return 1
+      return 0
       ;;
   esac
-  return 0
+
+  printf '%s' "${color}"
 }
 readonly -f _sgl_get_color
