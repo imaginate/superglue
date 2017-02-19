@@ -8,7 +8,7 @@
 #   0  PASS
 ################################################################################
 
-_sgl_source err get_alias get_quiet get_silent help is_set match_func \
+_sgl_source chk_exit err get_alias get_quiet get_silent help is_set match_func \
   parse_args prefix version
 
 ############################################################
@@ -41,6 +41,14 @@ _sgl_source err get_alias get_quiet get_silent help is_set match_func \
 #   sgl_source
 # @return
 #   0  PASS
+# @exit-on-error
+#   1  ERR   An unknown error.
+#   2  OPT   An invalid option.
+#   3  VAL   An invalid or missing value.
+#   4  AUTH  A permissions error.
+#   5  DPND  A dependency error.
+#   6  CHLD  A child process exited unsuccessfully.
+#   7  SGL   A `superglue' script error.
 ############################################################
 sgl_source()
 {
@@ -126,6 +134,7 @@ sgl_source()
   for func in "${funcs[@]}"; do
     if ! _sgl_is_set "${func}"; then
       . "${SGL_LIB}/${func}"
+      _sgl_chk_exit ${?} '.' "${SGL_LIB}/${func}"
     fi
     if [[ ${alias} -eq 1 ]]; then
       case "${func}" in
