@@ -76,6 +76,7 @@ readonly NIL='/dev/null'
 # @include ./include/_sgl_cmd_to_str.sh
 # @include ./include/_sgl_err.sh
 # @include ./include/_sgl_fail.sh
+# @include ./include/_sgl_get_alias.sh
 # @include ./include/_sgl_get_quiet.sh
 # @include ./include/_sgl_get_silent.sh
 # @include ./include/_sgl_get_verbose.sh
