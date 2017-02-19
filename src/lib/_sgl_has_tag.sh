@@ -17,7 +17,7 @@
 # @val TAG   Must be a valid `superglue' tag.
 #   `DEST'
 #   `INCL'
-#   `MOD'
+#   `MODE'
 #   `OWN'
 #   `SET'
 #   `VERS'
@@ -37,7 +37,7 @@ _sgl_has_tag()
     INCL)
       tag='^[[:blank:]]*#[[:blank:]]*@incl\(ude\)\?[[:blank:]]\+'
       ;;
-    MOD)
+    MODE)
       tag='^[[:blank:]]*#[[:blank:]]*@mode\?[[:blank:]]\+'
       ;;
     OWN)
