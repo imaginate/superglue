@@ -60,10 +60,11 @@ readonly SGL_LIB='/usr/lib/superglue'
 readonly SGL_HELP='/usr/share/superglue/help'
 
 ################################################################################
-## DEFINE NULL REF
+## DEFINE NULL & TMP REFS
 ################################################################################
 
 readonly NIL='/dev/null'
+readonly TMP='/tmp'
 
 ################################################################################
 ## DEFINE PRIVATE FUNCS
@@ -143,6 +144,11 @@ declare -ar SGL_FUNCS=( \
 
 _sgl_chk_core "${SGL_LIB}" "${SGL_FUNCS[@]}"
 _sgl_chk_core "${SGL_HELP}" 'superglue' "${SGL_FUNCS[@]}"
+
+if ! _sgl_is_dir "${TMP}"; then
+  _sgl_err DPND \
+    "missing core directory \`${TMP}' - your system may not be compatible"
+fi
 
 ################################################################################
 ## DEFINE COMMANDS
