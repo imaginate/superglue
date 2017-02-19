@@ -3,6 +3,7 @@
 ################################################################################
 
 ############################################################
+# @private
 # @func _sgl_prefix
 # @use _sgl_prefix FUNC
 # @val FUNC  Should be a valid `superglue' function. The `sgl_' prefix

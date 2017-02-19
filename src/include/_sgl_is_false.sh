@@ -3,6 +3,7 @@
 ################################################################################
 
 ############################################################
+# @private
 # @func _sgl_is_false
 # @use _sgl_is_false BOOL
 # @val BOOL  Should be a boolean value from the below options.

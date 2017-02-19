@@ -10,6 +10,7 @@
 ################################################################################
 
 ############################################################
+# @private
 # @func _sgl_err_code
 # @use _sgl_err_code ERR
 # @val ERR  Must be an error from the below options or any valid integer in the

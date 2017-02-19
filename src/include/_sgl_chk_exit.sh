@@ -3,6 +3,7 @@
 ################################################################################
 
 ############################################################
+# @private
 # @func _sgl_chk_exit
 # @use _sgl_chk_exit RET CMD [...OPT] [...VAL]
 # @val CMD  Must be a valid executable path.

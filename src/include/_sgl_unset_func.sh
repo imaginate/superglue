@@ -3,6 +3,7 @@
 ################################################################################
 
 ############################################################
+# @private
 # @func _sgl_unset_func
 # @use _sgl_unset_func BUILTIN
 # @val BUILTIN  Must be a built-in command.

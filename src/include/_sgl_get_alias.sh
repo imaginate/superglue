@@ -5,6 +5,7 @@
 ############################################################
 # Prints the boolean for the global, `SGL_ALIAS'.
 #
+# @private
 # @func _sgl_get_alias
 # @use _sgl_get_alias
 # @return

@@ -13,6 +13,7 @@ _sgl_source err err_code esc_val fail get_quiet get_silent help is_dir \
   parse_args version
 
 ############################################################
+# @public
 # @func sgl_chk_dir
 # @use sgl_chk_dir [...OPTION] ...DIR
 # @opt -h|-?|--help            Print help info and exit.

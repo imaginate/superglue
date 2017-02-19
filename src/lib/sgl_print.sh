@@ -15,6 +15,7 @@ _sgl_source err get_color get_quiet get_silent help is_color is_file is_true \
 ############################################################
 # Flexibly print a message to `stdout' or a destination of choice.
 #
+# @public
 # @func sgl_print
 # @use sgl_print [...OPTION] ...MSG
 # @opt -b|--no-color           Disable colored TITLE or MSG outputs.

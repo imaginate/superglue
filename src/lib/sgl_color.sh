@@ -15,6 +15,7 @@ _sgl_source err get_color get_quiet get_silent help is_color is_true \
 ############################################################
 # Easily print a colored message to `stdout'.
 #
+# @public
 # @func sgl_color
 # @use sgl_color [...OPTION] COLOR ...MSG
 # @opt -d|--delim=DELIM  Use DELIM to deliminate each MSG.

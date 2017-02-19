@@ -3,6 +3,7 @@
 ################################################################################
 
 ############################################################
+# @private
 # @func _sgl_fail
 # @use _sgl_fail ERR MSG
 # @val ERR  Must be an error from the below options or any valid integer in the

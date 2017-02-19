@@ -3,6 +3,7 @@
 ################################################################################
 
 ############################################################
+# @private
 # @func _sgl_match_func
 # @use _sgl_match_func FUNC
 # @val FUNC  Must be a valid `superglue' function pattern. May contain `*'.

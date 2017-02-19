@@ -3,6 +3,7 @@
 ################################################################################
 
 ############################################################
+# @private
 # @func _sgl_chk_core
 # @use _sgl_chk_core DIR ...FILE
 # @val DIR   Must be a valid `superglue' directory path.

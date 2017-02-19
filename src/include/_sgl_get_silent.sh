@@ -8,6 +8,7 @@
 #   `SGL_SILENT_PARENT'
 #   `SGL_SILENT_CHILD'
 #
+# @private
 # @func _sgl_get_silent
 # @use _sgl_get_silent [PROC]
 # @val PROC  Must be one of the below options.

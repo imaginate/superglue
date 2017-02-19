@@ -13,6 +13,7 @@ _sgl_source err err_code esc_val fail get_quiet get_silent help is_cmd \
   parse_args version
 
 ############################################################
+# @public
 # @func sgl_chk_cmd
 # @use sgl_chk_cmd [...OPTION] ...CMD
 # @opt -h|-?|--help            Print help info and exit.

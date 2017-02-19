@@ -13,6 +13,7 @@ _sgl_source err err_code esc_val fail get_quiet get_silent help is_file \
   is_read parse_args version
 
 ############################################################
+# @public
 # @func sgl_chk_file
 # @use sgl_chk_file [...OPTION] ...FILE
 # @opt -h|-?|--help            Print help info and exit.

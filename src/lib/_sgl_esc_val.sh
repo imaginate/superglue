@@ -12,6 +12,7 @@
 _sgl_source esc_val
 
 ############################################################
+# @private
 # @func _sgl_esc_val
 # @use _sgl_esc_val VAL
 # @val VAL  Must be a value for sed replacement.

@@ -5,6 +5,7 @@
 ############################################################
 # Prints the boolean for the global, `SGL_VERBOSE'.
 #
+# @private
 # @func _sgl_get_verbose
 # @use _sgl_get_verbose
 # @return

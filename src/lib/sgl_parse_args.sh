@@ -20,6 +20,7 @@ _sgl_source err get_quiet get_silent help version
 #   `SGL_OPT_VALS'  The parsed option value.
 #   `SGL_VALS'      The remaining (non-option) parsed values.
 #
+# @public
 # @func sgl_parse_args
 # @use sgl_parse_args [...OPTION]
 # @opt -a|--args|--arguments [...ARG]

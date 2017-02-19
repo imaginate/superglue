@@ -13,6 +13,7 @@ _sgl_source chk_exit err get_quiet get_silent help is_dir is_file parse_args \
   version
 
 ############################################################
+# @public
 # @func sgl_cp
 # @use sgl_cp [...OPTION] SRC DEST
 # @use sgl_cp [...OPTION] ...SRC DEST_DIR

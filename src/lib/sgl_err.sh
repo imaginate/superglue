@@ -13,6 +13,7 @@ _sgl_source err get_color get_quiet get_silent get_verbose help is_color \
   is_true parse_args version
 
 ############################################################
+# @public
 # @func sgl_err
 # @use sgl_err [...OPTION] ERR ...MSG
 # @opt -b|--no-color             Disable colored TITLE or MSG outputs.

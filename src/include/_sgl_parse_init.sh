@@ -10,6 +10,7 @@
 #   $__SGL_OPT_VALS  The parsed option value.
 #   $__SGL_VALS      The remaining (non-option) parsed values.
 #
+# @private
 # @func _sgl_parse_init
 # @use _sgl_parse_init [OPT VAL] -- [...ARG]
 # @val ARG  Each original passed argument.

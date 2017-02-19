@@ -14,6 +14,7 @@ _sgl_source chk_exit err get_alias get_quiet get_silent help is_set match_func \
 ############################################################
 # Note that `sgl_source' is automatically sourced on `superglue' start.
 #
+# @public
 # @func sgl_source
 # @use sgl_source [...OPTION] ...FUNC
 # @opt -A|--no-alias  Disable FUNC aliases without `sgl_' prefix (default).

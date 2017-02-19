@@ -12,6 +12,7 @@
 _sgl_source err get_quiet get_silent help parse_args trim_ansi version
 
 ############################################################
+# @public
 # @func sgl_set_color
 # @use sgl_set_color [...OPTION] [...COLOR[=ANSI]]
 # @opt -d|--disable  Disable each COLOR or all colors if no COLOR is defined.

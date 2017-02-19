@@ -10,6 +10,7 @@
 ################################################################################
 
 ############################################################
+# @private
 # @func _sgl_esc_vals
 # @use _sgl_esc_vals VAL
 # @val VAL  Must be a multi-line value for sed replacement.

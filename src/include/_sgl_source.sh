@@ -3,6 +3,7 @@
 ################################################################################
 
 ############################################################
+# @private
 # @func _sgl_source
 # @use _sgl_source ...FUNC
 # @val FUNC  Must be a private `superglue' function.

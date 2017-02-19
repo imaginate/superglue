@@ -10,6 +10,7 @@
 ################################################################################
 
 ############################################################
+# @private
 # @func _sgl_get_color
 # @use _sgl_get_color COLOR
 # @val COLOR  Should be a color from the below options.

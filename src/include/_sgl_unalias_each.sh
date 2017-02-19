@@ -3,6 +3,7 @@
 ################################################################################
 
 ############################################################
+# @private
 # @func _sgl_unalias_each
 # @use _sgl_unalias_each ...BUILTIN
 # @val BUILTIN  Must be a built-in command.
