@@ -21,7 +21,7 @@ _sgl_get_tmp()
 {
   local base="${TMP}/.sgl"
   local pre="${1}"
-  local -ir MAX=9999
+  local -ir MAX=999999
   local -i i=0
 
   if [[ -n "${pre}" ]]; then
