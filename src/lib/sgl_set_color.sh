@@ -9,6 +9,8 @@
 #   0  PASS
 ################################################################################
 
+_sgl_source err get_quiet get_silent help parse_args trim_ansi version
+
 ############################################################
 # @func sgl_set_color
 # @use sgl_set_color [...OPTION] [...COLOR[=ANSI]]
@@ -38,22 +40,17 @@
 sgl_set_color()
 {
   local -r FN='sgl_set_color'
-  local -r E="$(printf '%b' '\033')"
-  local -i i
-  local -i len
+  local -r ESC="$(printf '%b' '\033')"
   local -i reset=0
   local -i disable=0
-  local -i quiet=${SGL_QUIET}
-  local -i silent=${SGL_SILENT}
+  local -i quiet=$(_sgl_get_quiet PRT)
+  local -i silent=$(_sgl_get_silent PRT)
   local color
   local ansi
   local opt
 
-  [[ ${SGL_SILENT_PARENT} -eq 1 ]] && silent=1
-  [[ ${SGL_QUIET_PARENT}  -eq 1 ]] && quiet=1
-
   # parse each argument
-  _sgl_parse_args "${FN}" \
+  _sgl_parse_args ${FN} \
     '-d|--disable' 0 \
     '-e|--enable'  0 \
     '-h|-?|--help' 0 \
@@ -61,46 +58,45 @@ sgl_set_color()
     '-q|--quiet'   0 \
     '-r|--reset'   0 \
     '-v|--version' 0 \
-    -- "$@"
+    -- "${@}"
 
   # parse each OPTION
-  len=${#_SGL_OPTS[@]}
-  for ((i=0; i<len; i++)); do
-    opt="${_SGL_OPTS[${i}]}"
-    case "${opt}" in
-      -d|--disable)
-        disable=1
-        reset=0
-        ;;
-      -e|--enable)
-        disable=0
-        reset=1
-        ;;
-      -h|-\?|--help)
-        _sgl_help sgl_set_color
-        ;;
-      -Q|--silent)
-        silent=1
-        ;;
-      -q|--quiet)
-        quiet=1
-        ;;
-      -r|--reset)
-        disable=0
-        reset=1
-        ;;
-      -v|--version)
-        _sgl_version
-        ;;
-    esac
-  done
+  if [[ ${#_SGL_OPTS[@]} -gt 0 ]]; then
+    for opt in "${_SGL_OPTS[@]}"; do
+      case "${opt}" in
+        -d|--disable)
+          disable=1
+          reset=0
+          ;;
+        -e|--enable)
+          disable=0
+          reset=1
+          ;;
+        -h|-\?|--help)
+          _sgl_help ${FN}
+          ;;
+        -Q|--silent)
+          silent=1
+          ;;
+        -q|--quiet)
+          quiet=1
+          ;;
+        -r|--reset)
+          disable=0
+          reset=1
+          ;;
+        -v|--version)
+          _sgl_version
+          ;;
+      esac
+    done
+  fi
 
   # parse and set each COLOR
   if [[ ${#_SGL_VALS[@]} -gt 0 ]]; then
     for color in "${_SGL_VALS[@]}"; do
       if [[ "${color}" =~ = ]]; then
-        ansi="$(printf '%s' "${color#*=}" | ${sed} -e 's/^\[//' -e 's/m$//' \
-          -e 's/^\('"$E"'\|\\e\|\\033\)//')"
+        ansi="$(_sgl_trim_ansi "${color#*=}")"
         color="${color%%=*}"
       fi
       case "${color}" in
@@ -114,16 +110,14 @@ sgl_set_color()
         white|White|WHITE)       ;;
         yellow|Yellow|YELLOW)    ;;
         *)
-          [[ ${silent} -eq 1 ]] && _sgl_err VAL
           _sgl_err VAL "invalid \`${FN}' COLOR \`${color}'"
           ;;
       esac
       if [[ -n "${ansi}" ]]; then
         if [[ ! "${ansi}" =~ ^[0-9]{1,3}(;[0-9]{1,3})*$ ]]; then
-          [[ ${silent} -eq 1 ]] && _sgl_err VAL
           _sgl_err VAL "invalid \`${FN}' ANSI \`${ansi}'"
         fi
-        ansi="${E}[${ansi}m"
+        ansi="${ESC}[${ansi}m"
       fi
       if [[ ${disable} -eq 1 ]]; then
         case "${color}" in
@@ -188,5 +182,7 @@ sgl_set_color()
       SGL_YELLOW="${_SGL_YELLOW}"
     fi
   fi
+
+  return 0
 }
 readonly -f sgl_set_color
