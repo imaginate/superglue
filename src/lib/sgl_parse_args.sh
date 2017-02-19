@@ -9,13 +9,16 @@
 #   0  PASS
 ################################################################################
 
+_sgl_source err get_quiet get_silent help version
+
 ############################################################
-# This function parses each argument in SGL_ARGS and saves the resulting
-# option/values to the following zero-based indexed arrays:
-#   SGL_OPTS      Each parsed option (e.g. `-s' or `--long').
-#   SGL_OPT_BOOL  Whether each option has a value (`0' or `1').
-#   SGL_OPT_VALS  The parsed option value.
-#   SGL_VALS      The remaining (non-option) parsed values.
+# This function parses each argument in global indexed array, `SGL_ARGS',
+# and saves the resulting options and values to the following global
+# zero-based indexed arrays:
+#   `SGL_OPTS'      Each parsed option (e.g. `-s' or `--long').
+#   `SGL_OPT_BOOL'  Whether each option has a value (`0' or `1').
+#   `SGL_OPT_VALS'  The parsed option value.
+#   `SGL_VALS'      The remaining (non-option) parsed values.
 #
 # @func sgl_parse_args
 # @use sgl_parse_args [...OPTION]
@@ -43,6 +46,14 @@
 #   `2|M|MAYBE'  The OPT can have a value.
 # @return
 #   0  PASS
+# @exit-on-error
+#   1  ERR   An unknown error.
+#   2  OPT   An invalid option.
+#   3  VAL   An invalid or missing value.
+#   4  AUTH  A permissions error.
+#   5  DPND  A dependency error.
+#   6  CHLD  A child process exited unsuccessfully.
+#   7  SGL   A `superglue' script error.
 ############################################################
 sgl_parse_args()
 {
@@ -52,8 +63,8 @@ sgl_parse_args()
   local -i u
   local -i len
   local -i ulen
-  local -i quiet=${SGL_QUIET}
-  local -i silent=${SGL_SILENT}
+  local -i quiet=$(_sgl_get_quiet PRT)
+  local -i silent=$(_sgl_get_silent PRT)
   local -i override=0
   local arg
   local opt
@@ -64,17 +75,19 @@ sgl_parse_args()
   local -A short
 
   # parse each OPTION
-  while [[ $# -gt 0 ]]; do
-    [[ "$1" =~ ^- ]] || _sgl_err VAL "invalid \`${FN}' VALUE \`$1'"
+  while [[ ${#} -gt 0 ]]; do
+    if [[ ! "${1}" =~ ^- ]]; then
+      _sgl_err VAL "invalid \`${FN}' VALUE \`${1}'"
+    fi
     # parse long option
-    if [[ "$1" =~ ^-- ]]; then
-      case "$1" in
+    if [[ "${1}" =~ ^-- ]]; then
+      case "${1}" in
         --args|--arguments)
           override=1
           shift
           args=()
-          while [[ $# -gt 0 ]]; do
-            args[${#args[@]}]="$1"
+          while [[ ${#} -gt 0 ]]; do
+            args[${#args[@]}]="${1}"
             shift
           done
           break
@@ -82,22 +95,22 @@ sgl_parse_args()
         --opts|--options)
           shift
           # parse each OPTS and VAL
-          while [[ $# -gt 0 ]]; do
+          while [[ ${#} -gt 0 ]]; do
             # end OPTS
-            if [[ "$1" =~ ^--?$ ]]; then
+            if [[ "${1}" =~ ^--?$ ]]; then
               shift
               break
             fi
             # save OPTS and VAL refs
             # increment args index
-            if [[ "$1" =~ = ]]; then
-              opt="$(printf '%s' "$1" | ${sed} -e 's/=.*$//')"
-              val="$(printf '%s' "$1" | ${sed} -e 's/^[^=]\+=//')"
+            if [[ "${1}" =~ = ]]; then
+              opt="${1%%=*}"
+              val="${1#*=}"
               shift
             else
-              opt="$1"
-              if [[ $# -gt 1 ]] && [[ ! "$2" =~ ^- ]]; then
-                val="$2"
+              opt="${1}"
+              if [[ ${#} -gt 1 ]] && [[ ! "${2}" =~ ^- ]]; then
+                val="${2}"
                 shift
               else
                 val=0
@@ -110,17 +123,17 @@ sgl_parse_args()
             fi
             # parse VAL
             case "${val}" in
-              0|n|no|N|NO)
+              0|n|no|N|No|NO)
                 val=0
                 ;;
-              1|y|yes|Y|YES)
+              1|y|yes|Y|Yes|YES)
                 val=1
                 ;;
-              2|m|maybe|M|MAYBE)
+              2|m|maybe|M|Maybe|MAYBE)
                 val=2
                 ;;
               *)
-                _sgl_err VAL "invalid \`${FN}' OPTS \`${opt}' VAL \`${val}'"
+                _sgl_err VAL "invalid \`${FN}' VAL \`${val}' for OPTS \`${opt}'"
                 ;;
             esac
             # parse each OPT in OPTS
@@ -137,14 +150,14 @@ sgl_parse_args()
           done
           ;;
         --prg|--program)
-          if [[ $# -eq 1 ]] || [[ "$2" =~ ^- ]]; then
+          if [[ ${#} -eq 1 ]] || [[ "${2}" =~ ^- ]]; then
             _sgl_err VAL "missing \`${FN}' PRG"
           fi
-          prg="$2"
+          prg="${2}"
           shift 2
           ;;
         --prg=*|--program=*)
-          prg="$(printf '%s' "$1" | ${sed} -e 's/^[^=]\+=//')"
+          prg="${1#*=}"
           shift
           ;;
         --silent)
@@ -159,27 +172,33 @@ sgl_parse_args()
           _sgl_version
           ;;
         --help)
-          _sgl_help sgl_parse_args
+          _sgl_help ${FN}
           ;;
         *)
-          _sgl_err OPT "invalid \`${FN}' OPTION \`$1'"
+          _sgl_err OPT "invalid \`${FN}' OPTION \`${1}'"
           ;;
       esac
     # parse short options
     else
+      i=0
       len="${#1}"
-      for ((i=1; i<len; i++)); do
+      while :; do
+        i=$(( i + 1 ))
+        if [[ ${i} -gte ${len} ]]; do
+          break
+        fi
         arg="-${1:${i}:1}"
         case "${arg}" in
           -a)
-            if [[ $(( ++i )) -ne ${len} ]]; then
+            i=$(( i + 1 ))
+            if [[ ${i} -ne ${len} ]]; then
               _sgl_err OPT "\`-a' must be the last \`${FN}' OPTION"
             fi
             override=1
             shift
             args=()
-            while [[ $# -gt 0 ]]; do
-              args[${#args[@]}]="$1"
+            while [[ ${#} -gt 0 ]]; do
+              args[${#args[@]}]="${1}"
               shift
             done
             break 2
@@ -188,19 +207,19 @@ sgl_parse_args()
             if [[ $(( i + 1 )) -eq ${len} ]]; then
               shift
               # parse each OPTS and VAL
-              while [[ $# -gt 0 ]]; do
+              while [[ ${#} -gt 0 ]]; do
                 # end OPTS
-                [[ "$1" =~ ^--?$ ]] && break
+                [[ "${1}" =~ ^--?$ ]] && break
                 # save OPTS and VAL refs
                 # increment args index
-                if [[ "$1" =~ = ]]; then
-                  opt="$(printf '%s' "$1" | ${sed} -e 's/=.*$//')"
-                  val="$(printf '%s' "$1" | ${sed} -e 's/^[^=]\+=//')"
+                if [[ "${1}" =~ = ]]; then
+                  opt="${1%%=*}"
+                  val="${1#*=}"
                   shift
                 else
-                  opt="$1"
-                  if [[ $# -gt 1 ]] && [[ ! "$2" =~ ^- ]]; then
-                    val="$2"
+                  opt="${1}"
+                  if [[ ${#} -gt 1 ]] && [[ ! "${2}" =~ ^- ]]; then
+                    val="${2}"
                     shift
                   else
                     val=0
@@ -213,17 +232,17 @@ sgl_parse_args()
                 fi
                 # parse VAL
                 case "${val}" in
-                  0|n|no|N|NO)
+                  0|n|no|N|No|NO)
                     val=0
                     ;;
-                  1|y|yes|Y|YES)
+                  1|y|yes|Y|Yes|YES)
                     val=1
                     ;;
-                  2|m|maybe|M|MAYBE)
+                  2|m|maybe|M|Maybe|MAYBE)
                     val=2
                     ;;
                   *)
-                    _sgl_err VAL "invalid \`${FN}' OPTS \`${opt}' VAL \`${val}'"
+                    _sgl_err VAL "invalid \`${FN}' VAL \`${val}' for OPTS \`${opt}'"
                     ;;
                 esac
                 # parse each OPT in OPTS
@@ -241,13 +260,14 @@ sgl_parse_args()
             fi
             ;;
           -p)
-            if [[ $(( ++i )) -lt ${len} ]]; then
+            i=$(( i + 1 ))
+            if [[ ${i} -lt ${len} ]]; then
               prg="${1:${i}}"
               break
-            elif [[ $# -eq 1 ]] || [[ "$2" =~ ^- ]]; then
+            elif [[ ${#} -eq 1 ]] || [[ "${2}" =~ ^- ]]; then
               _sgl_err VAL "missing \`${FN}' \`-p' PRG"
             else
-              prg="$2"
+              prg="${2}"
               shift
             fi
             ;;
@@ -261,7 +281,7 @@ sgl_parse_args()
             _sgl_version
             ;;
           -\?|-h)
-            _sgl_help sgl_parse_args
+            _sgl_help ${FN}
             ;;
           *)
             _sgl_err OPT "invalid \`${FN}' OPTION \`${arg}'"
@@ -273,7 +293,9 @@ sgl_parse_args()
   done
 
   # format PRG
-  [[ -n "${prg}" ]] && prg="\`${prg}' "
+  if [[ -n "${prg}" ]]; then
+    prg="\`${prg}' "
+  fi
 
   # set args to SGL_ARGS
   if [[ ${override} -eq 0 ]]; then
@@ -292,14 +314,21 @@ sgl_parse_args()
   SGL_VALS=()
 
   # parse each ARG option
+  i=-1
   len=${#args[@]}
-  for ((i=0; i<len; i++)); do
+  while :; do
+    i=$(( i + 1 ))
+    if [[ ${i} -gte ${len} ]]; then
+      break
+    fi
     opt="${args[${i}]}"
     # start ARG values
-    [[ "${opt}" =~ ^- ]] || break
+    if [[ ! "${opt}" =~ ^- ]]; then
+      break
+    fi
     # end ARG options
     if [[ "${opt}" =~ ^--?$ ]]; then
-      i=$(( ++i ))
+      i=$(( i + 1 ))
       break
     fi
     # parse long ARG option
@@ -308,8 +337,8 @@ sgl_parse_args()
       a=${#SGL_OPTS[@]}
       # parse long ARG option with `='
       if [[ "${opt}" =~ = ]]; then
-        val="$(printf '%s' "${opt}" | ${sed} -e 's/^[^=]\+=//')"
-        opt="$(printf '%s' "${opt}" | ${sed} -e 's/=.*$//')"
+        val="${opt#*=}"
+        opt="${opt%%=*}"
         case "${long[${opt}]:-x}" in
           0)
             _sgl_err VAL "invalid ${prg}\`${opt}' VALUE"
@@ -330,7 +359,7 @@ sgl_parse_args()
             SGL_OPT_VALS[${a}]=''
             ;;
           1)
-            i=$(( ++i ))
+            i=$(( i + 1 ))
             val="${args[${i}]}"
             if [[ ${i} -eq ${len} ]] || [[ "${val}" =~ ^- ]]; then
               _sgl_err VAL "missing ${prg}\`${opt}' VALUE"
@@ -339,10 +368,10 @@ sgl_parse_args()
             SGL_OPT_VALS[${a}]="${val}"
             ;;
           2)
-            i=$(( ++i ))
+            i=$(( i + 1 ))
             val="${args[${i}]}"
             if [[ ${i} -eq ${len} ]] || [[ "${val}" =~ ^- ]]; then
-              i=$(( --i ))
+              i=$(( i - 1 ))
               SGL_OPT_BOOL[${a}]=0
               SGL_OPT_VALS[${a}]=''
             else
@@ -357,9 +386,14 @@ sgl_parse_args()
       fi
     # parse short ARG option
     else
+      u=0
       arg="${opt}"
       ulen="${#arg}"
-      for ((u=1; u<ulen; u++)); do
+      while :; do
+        u=$(( u + 1 ))
+        if [[ ${u} -gte ${ulen} ]]; then
+          break
+        fi
         opt="-${arg:${u}:1}"
         a=${#SGL_OPTS[@]}
         SGL_OPTS[${a}]="${opt}"
@@ -370,11 +404,12 @@ sgl_parse_args()
             ;;
           1)
             SGL_OPT_BOOL[${a}]=1
-            if ((++u < ulen)); then
+            u=$(( u + 1 ))
+            if [[ ${u} -lt ${ulen} ]]; then
               SGL_OPT_VALS[${a}]="${arg:${u}}"
               break
             fi
-            i=$(( ++i ))
+            i=$(( i + 1 ))
             val="${args[${i}]}"
             if [[ ${i} -eq ${len} ]] || [[ "${val}" =~ ^- ]]; then
               _sgl_err VAL "missing ${prg}\`${opt}' VALUE"
@@ -383,12 +418,13 @@ sgl_parse_args()
             fi
             ;;
           2)
-            if ((++u < ulen)); then
+            u=$(( u + 1 ))
+            if [[ ${u} -lt ${ulen} ]]; then
               SGL_OPT_BOOL[${a}]=1
               SGL_OPT_VALS[${a}]="${arg:${u}}"
               break
             fi
-            i=$(( ++i ))
+            i=$(( i + 1 ))
             val="${args[${i}]}"
             if [[ ${i} -eq ${len} ]] || [[ "${val}" =~ ^- ]]; then
               i=$(( --i ))
@@ -408,8 +444,11 @@ sgl_parse_args()
   done
 
   # parse each ARG value
-  for ((i; i<len; i++)); do
+  while [[ ${i} -lt ${len} ]]; do
     SGL_VALS[${#SGL_VALS[@]}]="${args[${i}]}"
+    i=$(( i + 1 ))
   done
+
+  return 0
 }
 readonly -f sgl_parse_args

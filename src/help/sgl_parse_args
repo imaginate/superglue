@@ -1,4 +1,12 @@
 
+  This function parses each argument in global indexed array, `SGL_ARGS',
+  and saves the resulting options and values to the following global
+  zero-based indexed arrays:
+    `SGL_OPTS'      Each parsed option (e.g. `-s' or `--long').
+    `SGL_OPT_BOOL'  Whether each option has a value (`0' or `1').
+    `SGL_OPT_VALS'  The parsed option value.
+    `SGL_VALS'      The remaining (non-option) parsed values.
+
   sgl_parse_args [...OPTION]
 
   Options:
@@ -29,3 +37,13 @@
 
   Returns:
     0  PASS
+
+  Exits (on error only):
+    1  ERR   An unknown error.
+    2  OPT   An invalid option.
+    3  VAL   An invalid or missing value.
+    4  AUTH  A permissions error.
+    5  DPND  A dependency error.
+    6  CHLD  A child process exited unsuccessfully.
+    7  SGL   A `superglue' script error.
+
