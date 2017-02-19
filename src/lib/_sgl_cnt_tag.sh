@@ -12,9 +12,9 @@
 ############################################################
 # @private
 # @func _sgl_cnt_tag
-# @use _sgl_cnt_tag TAG FILE
-# @val FILE  Must be a valid file path.
-# @val TAG   Must be a valid `superglue' tag.
+# @use _sgl_cnt_tag SRC TAG
+# @val SRC  Must be a valid file path.
+# @val TAG  Must be a valid `superglue' tag.
 #   `DEST'
 #   `INCL'
 #   `MODE'
@@ -26,8 +26,8 @@
 ############################################################
 _sgl_cnt_tag()
 {
-  local tag="${1}"
-  local file="${2}"
+  local src="${1}"
+  local tag="${2}"
   local -i count
 
   case "${tag}" in
@@ -51,7 +51,7 @@ _sgl_cnt_tag()
       ;;
   esac
 
-  count="$(${grep} -c -e "${tag}" -- "${file}" 2> ${NIL} || :)"
+  count="$(${grep} -c -e "${tag}" -- "${src}" 2> ${NIL} || :)"
   if [[ ! "${count}" =~ ^[0-9]+$ ]]; then
     count=0
   fi

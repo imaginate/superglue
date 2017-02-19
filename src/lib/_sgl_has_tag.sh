@@ -12,9 +12,9 @@
 ############################################################
 # @private
 # @func _sgl_has_tag
-# @use _sgl_has_tag TAG FILE
-# @val FILE  Must be a valid file path.
-# @val TAG   Must be a valid `superglue' tag.
+# @use _sgl_has_tag SRC TAG
+# @val SRC  Must be a valid file path.
+# @val TAG  Must be a valid `superglue' tag.
 #   `DEST'
 #   `INCL'
 #   `MODE'
@@ -27,8 +27,8 @@
 ############################################################
 _sgl_has_tag()
 {
-  local tag="${1}"
-  local file="${2}"
+  local src="${1}"
+  local tag="${2}"
 
   case "${tag}" in
     DEST)
@@ -51,7 +51,7 @@ _sgl_has_tag()
       ;;
   esac
 
-  if ${grep} -q -e "${tag}" -- "${file}"; then
+  if ${grep} -q -e "${tag}" -- "${src}"; then
     return 0
   fi
   return 1
