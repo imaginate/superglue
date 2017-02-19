@@ -9,8 +9,6 @@
 #   0  PASS
 ################################################################################
 
-_sgl_source is_read
-
 ############################################################
 # @private
 # @func _sgl_has_tag
@@ -53,7 +51,7 @@ _sgl_has_tag()
       ;;
   esac
 
-  if _sgl_is_read "${file}" && ${grep} -q -e "${tag}" -- "${file}"; then
+  if ${grep} -q -e "${tag}" -- "${file}"; then
     return 0
   fi
   return 1
