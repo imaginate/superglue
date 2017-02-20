@@ -1,12 +1,12 @@
 
   sgl_cp [...OPTION] SRC DEST
-  sgl_cp [...OPTION] ...SRC DEST_DIR
-  sgl_cp [...OPTION] -d DEST_DIR ...SRC
+  sgl_cp [...OPTION] ...SRC DIR
+  sgl_cp [...OPTION] -d DIR ...SRC
 
   Options:
-    -B|--backup-ext=EXT   Override the usual backup file extension.
+    -B|--backup-ext=EXT   Override the default backup file extension, `~'.
     -b|--backup[=CTRL]    Make a backup of each existing destination file.
-    -D|--no-dest-dir      Treat DEST as a normal file (not a DEST_DIR).
+    -D|--no-dest-dir      Treat DEST as a normal file (not a DIR).
     -d|--dest-dir=DIR     Copy each SRC into DIR.
     -F|--no-force         If destination exists do not overwrite it.
     -f|--force            If destination exists overwrite it.
@@ -24,6 +24,8 @@
     -q|--quiet            Disable `stdout' output.
     -r|--recursive        Copy directories recursively.
     -s|--symlink          Make symlinks instead of copying.
+    -T|--no-target-dir    Treat DEST as a normal file (not a DIR).
+    -t|--target-dir=DIR   Copy each SRC into DIR.
     -u|--update           Copy only when SRC is newer than DEST.
     -V|--verbose          Print exec status details.
     -v|--version          Print version info and exit.
@@ -32,7 +34,7 @@
     -|--                  End the options.
 
   Values:
-    ATTRS  A comma-separated list of file attributes from below options.
+    ATTR   Must be a file attribute from the below options.
       `mode'
       `ownership'
       `timestamps'
@@ -40,17 +42,30 @@
       `links'
       `xattr'
       `all'
-    CTRL   A version control method to use for backups from below options.
+    ATTRS  Must be a list of one or more ATTR separated by a `,'.
+    CTRL   Must be a backup control method from the below options.
       `none|off'      Never make backups (even if `--backup' is given).
       `numbered|t'    Make numbered backups.
-      `existing|nil'  If numbered backups exist make numbered. Otherwise make simple.
+      `existing|nil'  Make numbered backups if they exist. Otherwise make simple.
       `simple|never'  Always make simple backups.
-    DEST   Must be a valid path.
+    DEST   Must be a valid file system path.
     DIR    Must be a valid directory path.
-    EXT    An extension to append to the end of a backup file. The default is `~'.
-    MODE   Must be a valid file mode.
-    OWNER  Must be a valid USER[:GROUP].
-    SRC    Must be a valid file path.
+    EXT    Must be a valid file extension. No whitespace characters allowed.
+    MODE   Must be a valid file mode. Symbolic and octal formats allowed.
+           See `man chmod' for more details about valid options.
+    OWNER  Must be a valid USER and/or GROUP formatted as `[USER][:[GROUP]]'.
+           See `man chown' for more details about valid options.
+    SRC    Must be a valid file system path.
 
   Returns:
     0  PASS
+
+  Exits (on error only):
+    1  ERR   An unknown error.
+    2  OPT   An invalid option.
+    3  VAL   An invalid or missing value.
+    4  AUTH  A permissions error.
+    5  DPND  A dependency error.
+    6  CHLD  A child process exited unsuccessfully.
+    7  SGL   A `superglue' script error.
+

@@ -9,18 +9,19 @@
 #   0  PASS
 ################################################################################
 
-_sgl_source chk_exit err get_quiet get_silent help is_dir is_file parse_args \
-  version
+_sgl_source chk_attrs chk_exit err get_quiet get_silent has_group has_user \
+  help is_ctrl is_dir is_file is_flat is_group is_mode is_owner is_user \
+  parse_args version
 
 ############################################################
 # @public
 # @func sgl_cp
 # @use sgl_cp [...OPTION] SRC DEST
-# @use sgl_cp [...OPTION] ...SRC DEST_DIR
-# @use sgl_cp [...OPTION] -d DEST_DIR ...SRC
-# @opt -B|--backup-ext=EXT   Override the usual backup file extension.
+# @use sgl_cp [...OPTION] ...SRC DIR
+# @use sgl_cp [...OPTION] -d DIR ...SRC
+# @opt -B|--backup-ext=EXT   Override the default backup file extension, `~'.
 # @opt -b|--backup[=CTRL]    Make a backup of each existing destination file.
-# @opt -D|--no-dest-dir      Treat DEST as a normal file (not a DEST_DIR).
+# @opt -D|--no-dest-dir      Treat DEST as a normal file (not a DIR).
 # @opt -d|--dest-dir=DIR     Copy each SRC into DIR.
 # @opt -F|--no-force         If destination exists do not overwrite it.
 # @opt -f|--force            If destination exists overwrite it.
@@ -38,13 +39,15 @@ _sgl_source chk_exit err get_quiet get_silent help is_dir is_file parse_args \
 # @opt -q|--quiet            Disable `stdout' output.
 # @opt -r|--recursive        Copy directories recursively.
 # @opt -s|--symlink          Make symlinks instead of copying.
+# @opt -T|--no-target-dir    Treat DEST as a normal file (not a DIR).
+# @opt -t|--target-dir=DIR   Copy each SRC into DIR.
 # @opt -u|--update           Copy only when SRC is newer than DEST.
 # @opt -V|--verbose          Print exec status details.
 # @opt -v|--version          Print version info and exit.
 # @opt -w|--warn             If destination exists prompt before overwrite.
 # @opt -x|--one-file-system  Stay on this file system.
 # @opt -|--                  End the options.
-# @val ATTRS  A comma-separated list of file attributes from below options.
+# @val ATTR   Must be a file attribute from the below options.
 #   `mode'
 #   `ownership'
 #   `timestamps'
@@ -52,17 +55,20 @@ _sgl_source chk_exit err get_quiet get_silent help is_dir is_file parse_args \
 #   `links'
 #   `xattr'
 #   `all'
-# @val CTRL   A version control method to use for backups from below options.
+# @val ATTRS  Must be a list of one or more ATTR separated by a `,'.
+# @val CTRL   Must be a backup control method from the below options.
 #   `none|off'      Never make backups (even if `--backup' is given).
 #   `numbered|t'    Make numbered backups.
-#   `existing|nil'  If numbered backups exist make numbered. Otherwise make simple.
+#   `existing|nil'  Make numbered backups if they exist. Otherwise make simple.
 #   `simple|never'  Always make simple backups.
-# @val DEST   Must be a valid path.
+# @val DEST   Must be a valid file system path.
 # @val DIR    Must be a valid directory path.
-# @val EXT    An extension to append to the end of a backup file. The default is `~'.
-# @val MODE   Must be a valid file mode.
-# @val OWNER  Must be a valid USER[:GROUP].
-# @val SRC    Must be a valid file path.
+# @val EXT    Must be a valid file extension. No whitespace characters allowed.
+# @val MODE   Must be a valid file mode. Symbolic and octal formats allowed.
+#             See `man chmod' for more details about valid options.
+# @val OWNER  Must be a valid USER and/or GROUP formatted as `[USER][:[GROUP]]'.
+#             See `man chown' for more details about valid options.
+# @val SRC    Must be a valid file system path.
 # @return
 #   0  PASS
 # @exit-on-error
@@ -79,12 +85,13 @@ sgl_cp()
   local -r FN='sgl_cp'
   local -i i=0
   local -i len=0
+  local -i bkup=0
   local -i force=0
   local -i target=0
   local -i quiet=$(_sgl_get_quiet PRT)
   local -i silent=$(_sgl_get_silent PRT)
   local -a opts=()
-  local attr
+  local bkext
   local mode
   local own
   local opt
@@ -102,17 +109,19 @@ sgl_cp()
     '-f|--force'           0 \
     '-H|--cmd-dereference' 0 \
     '-h|-?|--help'         0 \
-    '-K|--no-keep'         1 \
-    '-k|--keep'            2 \
+    '-K|--no-keep|--no-preserve' 1 \
+    '-k|--keep|--preserve' 2 \
     '-L|--dereference'     0 \
     '-l|--link'            0 \
-    '-m|--mode'            1 \
+    '-m|--mod|--mode'      1 \
     '-n|--no-clobber'      0 \
-    '-o|--owner'           1 \
+    '-o|--own|--owner'     1 \
     '-P|--no-dereference'  0 \
     '-Q|--silent'          0 \
     '-q|--quiet'           0 \
     '-r|--recursive'       0 \
+    '-T|--no-target-dir|--no-target-directory' 0 \
+    '-t|--target-dir|--target-directory' 1 \
     '-s|--symlink'         0 \
     '-u|--update'          0 \
     '-V|--verbose'         0 \
@@ -126,42 +135,37 @@ sgl_cp()
     for opt in "${_SGL_OPTS[@]}"; do
       case "${opt}" in
         -B|--backup-ext)
-          val="${_SGL_OPT_VALS[${i}]}"
-          if [[ -z "${val}" ]] || [[ "${val}" =~ [[:space:]] ]]; then
-            _sgl_err VAL "invalid \`${FN}' \`${opt}' EXT \`${val}'"
+          bkext="${_SGL_OPT_VALS[${i}]}"
+          if ! _sgl_is_flat "${bkext}"; then
+            _sgl_err VAL "invalid \`${FN}' \`${opt}' EXT \`${bkext}'"
           fi
-          opts[${#opts[@]}]="--suffix=${val}"
+          opts[${#opts[@]}]="--suffix=${bkext}"
           ;;
         -b|--backup)
           if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
             val="${_SGL_OPT_VALS[${i}]}"
-              case "${val}" in
-              none|off)     ;;
-              numbered|t)   ;;
-              existing|nil) ;;
-              simple|never) ;;
-              *)
-                _sgl_err VAL "invalid \`${FN}' CTRL \`${val}'"
-                ;;
-            esac
+            if ! _sgl_is_ctrl "${val}"; then
+              _sgl_err VAL "invalid \`${FN}' CTRL \`${val}'"
+            fi
             opts[${#opts[@]}]="--backup=${val}"
           else
             opts[${#opts[@]}]='--backup'
           fi
+          bkup=1
           ;;
         -D|--no-dest-dir)
           target=2
           dest=''
-          opts[${#opts[@]}]='--no-target-directory'
+          opts[${#opts[@]}]='-T'
           ;;
         -d|--dest-dir)
           target=1
-          val="${_SGL_OPT_VALS[${i}]}"
-          if ! _sgl_is_dir "${val}"; then
-            _sgl_err VAL "invalid \`${FN}' DEST_DIR \`${val}'"
+          dest="${_SGL_OPT_VALS[${i}]}"
+          if ! _sgl_is_dir "${dest}"; then
+            _sgl_err VAL "invalid \`${FN}' DIR \`${dest}'"
           fi
-          dest="${val}"
-          opts[${#opts[@]}]="--target-directory=${val}"
+          opts[${#opts[@]}]='-t'
+          opts[${#opts[@]}]="${dest}"
           ;;
         -F|--no-force)
           force=0
@@ -177,50 +181,18 @@ sgl_cp()
         -h|-\?|--help)
           _sgl_help ${FN}
           ;;
-        -K|--no-keep)
+        -K|--no-keep|--no-preserve)
           val="${_SGL_OPT_VALS[${i}]}"
-          if [[ -z "${val}" ]] || [[ ! "${val}" =~ ^[a-z]+(,[a-z]+)*$ ]]; then
-            _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTRS \`${val}'"
-          fi
-          while IFS= read -r -d ',' attr; do
-            case "${attr}" in
-              mode)       ;;
-              ownership)  ;;
-              timestamps) ;;
-              context)    ;;
-              links)      ;;
-              xattr)      ;;
-              all)        ;;
-              *)
-                _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
-                ;;
-            esac
-          done <<< "${val},"
           opts[${#opts[@]}]="--no-preserve=${val}"
+          _sgl_chk_attrs "${FN}" "${opt}" "${val}"
           ;;
-        -k|--keep)
+        -k|--keep|--preserve)
           if [[ ${_SGL_OPT_BOOL[${i}]} -eq 1 ]]; then
             val="${_SGL_OPT_VALS[${i}]}"
-            if [[ -z "${val}" ]] || [[ ! "${val}" =~ ^[a-z]+(,[a-z]+)*$ ]]; then
-              _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTRS \`${val}'"
-            fi
-            while IFS= read -r -d ',' attr; do
-              case "${attr}" in
-                mode)       ;;
-                ownership)  ;;
-                timestamps) ;;
-                context)    ;;
-                links)      ;;
-                xattr)      ;;
-                all)        ;;
-                *)
-                  _sgl_err VAL "invalid \`${FN}' \`${opt}' ATTR \`${attr}'"
-                  ;;
-              esac
-            done <<< "${val},"
             opts[${#opts[@]}]="--preserve=${val}"
+            _sgl_chk_attrs "${FN}" "${opt}" "${val}"
           else
-            opts[${#opts[@]}]='--preserve'
+            opts[${#opts[@]}]='--preserve=mode,ownership,timestamps'
           fi
           ;;
         -L|--dereference)
@@ -229,23 +201,27 @@ sgl_cp()
         -l|--link)
           opts[${#opts[@]}]='--link'
           ;;
-        -m|--mode)
-          val="${_SGL_OPT_VALS[${i}]}"
-          if [[ -z "${val}" ]] || [[ "${val}" =~ [[:space:]] ]]; then
-            _sgl_err VAL "invalid \`${FN}' \`${opt}' MODE \`${val}'"
+        -m|--mod|--mode)
+          mode="${_SGL_OPT_VALS[${i}]}"
+          if ! _sgl_is_mode "${mode}"; then
+            _sgl_err VAL "invalid \`${FN}' \`${opt}' MODE \`${mode}'"
           fi
-          mode="${val}"
           ;;
         -n|--no-clobber)
           force=0
           opts[${#opts[@]}]='--no-clobber'
           ;;
-        -o|--owner)
-          val="${_SGL_OPT_VALS[${i}]}"
-          if [[ -z "${val}" ]] || [[ "${val}" =~ [[:space:]] ]]; then
-            _sgl_err VAL "invalid \`${FN}' \`${opt}' OWNER \`${val}'"
+        -o|--own|--owner)
+          own="${_SGL_OPT_VALS[${i}]}"
+          if ! _sgl_is_owner "${own}"; then
+            _sgl_err VAL "invalid \`${FN}' \`${opt}' OWNER \`${own}'"
           fi
-          own="${val}"
+          if _sgl_has_user "${own}" && ! _sgl_is_user "${own%:*}"; then
+            _sgl_err VAL "invalid \`${FN}' \`${opt}' USER \`${own%:*}'"
+          fi
+          if _sgl_has_group "${own}" && ! _sgl_is_group "${own#*:}"; then
+            _sgl_err VAL "invalid \`${FN}' \`${opt}' GROUP \`${own#*:}'"
+          fi
           ;;
         -P|--no-dereference)
           opts[${#opts[@]}]='-P'
@@ -261,6 +237,20 @@ sgl_cp()
           ;;
         -s|--symlink)
           opts[${#opts[@]}]='--symbolic-link'
+          ;;
+        -T|--no-target-dir|--no-target-directory)
+          target=2
+          dest=''
+          opts[${#opts[@]}]='-T'
+          ;;
+        -t|--target-dir|--target-directory)
+          target=1
+          dest="${_SGL_OPT_VALS[${i}]}"
+          if ! _sgl_is_dir "${dest}"; then
+            _sgl_err VAL "invalid \`${FN}' DIR \`${dest}'"
+          fi
+          opts[${#opts[@]}]='-t'
+          opts[${#opts[@]}]="${dest}"
           ;;
         -u|--update)
           opts[${#opts[@]}]='--update'
@@ -284,6 +274,10 @@ sgl_cp()
       esac
       i=$(( i + 1 ))
     done
+  fi
+
+  if [[ ${bkup} -eq 1 ]] && [[ -z "${bkext}" ]]; then
+    opts[${#opts[@]}]='--suffix=~'
   fi
 
   # save number of SRC/DEST values
@@ -311,18 +305,20 @@ sgl_cp()
 
     # handle file-to-directory copy
     1)
-      # parse DEST_DIR
+      # parse DIR
       if [[ -z "${dest}" ]]; then
         len=$(( len - 1 ))
         dest="${_SGL_VALS[@]: -1:1}"
         if ! _sgl_is_dir "${dest}"; then
-          _sgl_err VAL "invalid \`${FN}' DEST_DIR \`${dest}'"
+          _sgl_err VAL "invalid \`${FN}' DIR \`${dest}'"
         fi
-        opts[${#opts[@]}]="--target-directory=${dest}"
+        opts[${#opts[@]}]='-t'
+        opts[${#opts[@]}]="${dest}"
       fi
 
       # parse each SRC
       local -a dests=()
+      opts[${#opts[@]}]='--'
       for src in "${_SGL_VALS[@]:0:${len}}"; do
         if ! _sgl_is_file "${src}"; then
           _sgl_err VAL "invalid \`${FN}' SRC \`${src}'"
@@ -342,14 +338,14 @@ sgl_cp()
 
       # set file modes
       if [[ -n "${mode}" ]]; then
-        ${chmod} "${mode}" "${dests[@]}"
-        _sgl_chk_exit ${?} ${chmod} "${mode}" "${dests[@]}"
+        ${chmod} -- "${mode}" "${dests[@]}"
+        _sgl_chk_exit ${?} ${chmod} -- "${mode}" "${dests[@]}"
       fi
 
       # set file owners
       if [[ -n "${own}" ]]; then
-        ${chown} "${own}" "${dests[@]}"
-        _sgl_chk_exit ${?} ${chown} "${own}" "${dests[@]}"
+        ${chown} -- "${own}" "${dests[@]}"
+        _sgl_chk_exit ${?} ${chown} -- "${own}" "${dests[@]}"
       fi
       ;;
 
@@ -380,19 +376,19 @@ sgl_cp()
       fi
 
       # copy files
-      ${cp} "${opts[@]}" "${src}" "${dest}"
-      _sgl_chk_exit ${?} ${cp} "${opts[@]}" "${src}" "${dest}"
+      ${cp} "${opts[@]}" -- "${src}" "${dest}"
+      _sgl_chk_exit ${?} ${cp} "${opts[@]}" -- "${src}" "${dest}"
 
       # set file modes
       if [[ -n "${mode}" ]]; then
-        ${chmod} "${mode}" "${dest}"
-        _sgl_chk_exit ${?} ${chmod} "${mode}" "${dest}"
+        ${chmod} -- "${mode}" "${dest}"
+        _sgl_chk_exit ${?} ${chmod} -- "${mode}" "${dest}"
       fi
 
       # set file owners
       if [[ -n "${own}" ]]; then
-        ${chown} "${own}" "${dest}"
-        _sgl_chk_exit ${?} ${chown} "${own}" "${dest}"
+        ${chown} -- "${own}" "${dest}"
+        _sgl_chk_exit ${?} ${chown} -- "${own}" "${dest}"
       fi
       ;;
 
