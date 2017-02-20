@@ -9,7 +9,7 @@
 #   0  PASS
 ################################################################################
 
-_sgl_source is_cmd which
+_sgl_source is_cmd is_flat which
 
 ############################################################
 # @private
@@ -25,7 +25,7 @@ _sgl_is_user()
   local user="${1}"
   local cmd
 
-  if [[ -z "${user}" ]] || [[ "${user}" =~ [[:space:]] ]]; then
+  if ! _sgl_is_flat "${user}"; then
     return 1
   fi
 
