@@ -9,7 +9,7 @@
 #   0  PASS
 ################################################################################
 
-_sgl_source esc_key get_keys trim_tag
+_sgl_source esc_key get_keys trim_blank trim_tag
 
 ############################################################
 # Prints each TAG value. Checks should be ran before calling.
@@ -21,65 +21,80 @@ _sgl_source esc_key get_keys trim_tag
 # @val TAG  Must be a valid `superglue' tag.
 #   `DEST'
 #   `INCL'
-#   `MODE'
-#   `OWN'
 #   `SET'
-#   `VERS'
 # @return
 #   0  PASS
 ############################################################
 _sgl_get_tags()
 {
-  local src="${1}"
-  local tag="${2}"
+  local -r SRC="${1}"
+  local -r TAG="${2}"
+  local -i var=0
   local key
   local val
   local line
   local name
+  local patt
   local value
 
-  case "${tag}" in
+  case "${TAG}" in
     DEST)
-      tag='^[[:blank:]]*#[[:blank:]]*@dest\(ination\)\?[[:blank:]]\+'
+      patt='^[[:blank:]]*#[[:blank:]]*@dest\(ination\)\?[[:blank:]]\+'
       ;;
     INCL)
-      tag='^[[:blank:]]*#[[:blank:]]*@incl\(ude\)\?[[:blank:]]\+'
-      ;;
-    MODE)
-      tag='^[[:blank:]]*#[[:blank:]]*@mode\?[[:blank:]]\+'
-      ;;
-    OWN)
-      tag='^[[:blank:]]*#[[:blank:]]*@own\(er\)\?[[:blank:]]\+'
+      patt='^[[:blank:]]*#[[:blank:]]*@incl\(ude\)\?[[:blank:]]\+'
       ;;
     SET)
-      tag='^[[:blank:]]*#[[:blank:]]*@\(set\|var\|variable\)[[:blank:]]\+'
-      ;;
-    VERS)
-      tag='^[[:blank:]]*#[[:blank:]]*@vers\(ion\)\?[[:blank:]]\+'
+      patt='^[[:blank:]]*#[[:blank:]]*@\(set\|var\|variable\)[[:blank:]]\+'
+      var=1
       ;;
   esac
 
   while IFS= read -r line; do
     val="$(_sgl_trim_tag "${line}")"
+
+    if [[ ${var} -eq 1 ]]; then
+      key="$(_sgl_trim_blank "${val%%=*}")"
+      val="$(_sgl_trim_blank "${val#*=}")"
+      printf '%s' "${key}="
+    fi
+
+    if [[ "${val:0:1}" == "'" ]]; then
+      val="${val:1}"
+      val="${val%\'}"
+      printf '%s\n' "${val}"
+      continue
+    fi
+
+    if [[ "${val:0:1}" == '"' ]]; then
+      val="${val:1}"
+      val="${val%\"}"
+    fi
+
     while IFS= read -r key; do
       if [[ -z "${key}" ]]; then
         continue
       fi
+
       name="${key:1}"
       if [[ "${key:1:1}" == '{' ]]; then
         name="${name:1}"
         name="${name%\}}"
       fi
+
       key="$(_sgl_esc_key "${key}")"
       value="${_SGL_DEFS[${name}]}"
       if [[ "${val:0:1}" == '$' ]]; then
-        val="$(printf '%s' "${val}" | ${sed} -e "s/^${key}/${value}/")"
+        key="^${key}"
       else
-        val="$(printf '%s' "${val}" | ${sed} -e "s/\([^\\]\)${key}/\1${value}/")"
+        key="\([^\\]\)${key}"
+        value="\1${value}"
       fi
+      val="$(printf '%s' "${val}" | ${sed} -e "s/${key}/${value}/")"
     done <<< "$(_sgl_get_keys "${val}")"
+
     printf '%s\n' "${val}"
-  done <<< "$(${grep} -e "${tag}" -- "${src}")"
+  done <<< "$(${grep} -e "${patt}" -- "${SRC}")"
 
   return 0
 }
