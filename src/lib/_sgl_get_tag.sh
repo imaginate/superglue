@@ -21,47 +21,53 @@ _sgl_source esc_key get_keys trim_tag
 # @val SRC  Must be a valid file path.
 # @val TAG  Must be a valid `superglue' tag.
 #   `DEST'
-#   `INCL'
 #   `MODE'
 #   `OWN'
-#   `SET'
 #   `VERS'
 # @return
 #   0  PASS
 ############################################################
 _sgl_get_tag()
 {
-  local src="${1}"
-  local tag="${2}"
+  local -r SRC="${1}"
+  local -r TAG="${2}"
   local key
   local val
   local line
   local name
+  local patt
   local value
 
-  case "${tag}" in
+  case "${TAG}" in
     DEST)
-      tag='^[[:blank:]]*#[[:blank:]]*@dest\(ination\)\?[[:blank:]]\+'
-      ;;
-    INCL)
-      tag='^[[:blank:]]*#[[:blank:]]*@incl\(ude\)\?[[:blank:]]\+'
+      patt='^[[:blank:]]*#[[:blank:]]*@dest\(ination\)\?[[:blank:]]\+'
       ;;
     MODE)
-      tag='^[[:blank:]]*#[[:blank:]]*@mode\?[[:blank:]]\+'
+      patt='^[[:blank:]]*#[[:blank:]]*@mode\?[[:blank:]]\+'
       ;;
     OWN)
-      tag='^[[:blank:]]*#[[:blank:]]*@own\(er\)\?[[:blank:]]\+'
-      ;;
-    SET)
-      tag='^[[:blank:]]*#[[:blank:]]*@\(set\|var\|variable\)[[:blank:]]\+'
+      patt='^[[:blank:]]*#[[:blank:]]*@own\(er\)\?[[:blank:]]\+'
       ;;
     VERS)
-      tag='^[[:blank:]]*#[[:blank:]]*@vers\(ion\)\?[[:blank:]]\+'
+      patt='^[[:blank:]]*#[[:blank:]]*@vers\(ion\)\?[[:blank:]]\+'
       ;;
   esac
 
-  line="$(${grep} -e "${tag}" -- "${src}")"
+  line="$(${grep} -e "${patt}" -- "${SRC}")"
   val="$(_sgl_trim_tag "${line}")"
+
+  if [[ "${val:0:1}" == "'" ]]; then
+    val="${val:1}"
+    val="${val%\'}"
+    printf '%s' "${val}"
+    return 0
+  fi
+
+  if [[ "${val:0:1}" == '"' ]]; then
+    val="${val:1}"
+    val="${val%\"}"
+  fi
+
   while IFS= read -r key; do
     if [[ -z "${key}" ]]; then
       continue
