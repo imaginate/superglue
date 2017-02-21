@@ -14,9 +14,8 @@ _sgl_source chk_exit esc_val get_tag get_tags has_tag sort_keys
 ############################################################
 # @private
 # @func _sgl_ins_var
-# @use _sgl_ins_var SRC TMP
+# @use _sgl_ins_var SRC
 # @val SRC  Must be a valid file path.
-# @val TMP  Must be a valid file path.
 # @return
 #   0  PASS
 # @exit-on-error
@@ -25,7 +24,6 @@ _sgl_source chk_exit esc_val get_tag get_tags has_tag sort_keys
 _sgl_ins_var()
 {
   local -r SRC="${1}"
-  local -r TMP="${2}"
   local key
   local val
   local -A vars
@@ -63,8 +61,8 @@ _sgl_ins_var()
     opts[${#opts[@]}]="s/${key}/\1\2${val}/g"
   done <<< "$(_sgl_sort_keys "${keys[@]}")"
 
-  ${sed} -i "${opts[@]}" -- "${TMP}"
-  _sgl_chk_exit ${?} ${sed} -i "${opts[@]}" -- "${TMP}"
+  ${sed} -i "${opts[@]}" -- "${SRC}"
+  _sgl_chk_exit ${?} ${sed} -i "${opts[@]}" -- "${SRC}"
 
   return 0
 }
