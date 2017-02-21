@@ -36,6 +36,28 @@ is_pathname()
 declare -f -r is_pathname
 
 ############################################################
+# @func is_rel_dir
+# @use is_rel_dir DIR
+# @return
+#   0  PASS
+############################################################
+is_rel_dir()
+{
+  local name
+
+  name="${1%/}"
+  name="${name##*/}"
+
+  if [[ "${name}" == '.'  ]] || \
+     [[ "${name}" == '..' ]]
+  then
+    return 0
+  fi
+  return 1
+}
+declare -f -r is_rel_dir
+
+############################################################
 # @func clean_tree
 # @use clean_tree DIR
 # @return
@@ -50,7 +72,9 @@ clean_tree()
       continue
     fi
     if [[ -d "${path}" ]]; then
-      clean_tree "${path}"
+      if ! is_rel_dir "${path}"; then
+        clean_tree "${path}"
+      fi
     elif [[ -f "${path}" ]]; then
       rm -f -- "${path}"
     fi
@@ -124,7 +148,7 @@ declare -f -r stop
 ############################################################
 throw()
 {
-  TEST_ERRORS[${#TEST_ERRORS[@]}]=( "${*}" )
+  TEST_ERRORS[${#TEST_ERRORS[@]}]="${*}"
   TESTS_FAILED=$(( TESTS_FAILED + 1 ))
   return 0
 }
