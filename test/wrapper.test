@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # Verify superglue script wrapper.
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
@@ -24,17 +22,18 @@ sgl_source 'chk_*' err parse_args print
 sgl_chk_uid --exit --prg='Example' 1000
 
 # Parse the arguments easily.
-sgl_parse_args --prg 'Example' --options \
-  '-a|--ask' Y \
-  '-b|--bounce' \
-  '-c|--coast' \
-  '-t|--tell' M \
-  '-?|--help'
+sgl_parse_args \
+  --prg 'Example' \
+  --options \
+    '-a|--ask'    Y \
+    '-b|--bounce'   \
+    '-c|--coast'    \
+    '-t|--tell'   M \
+    '-?|--help'
 
 # Handle the parsed options.
-len=${#SGL_OPTS[@]}
-for ((i=0; i<len; i++)); do
-  opt="${SGL_OPTS[i]}"
+(( i=0 ))
+for opt in "${SGL_OPTS[@]}"; do
   case "${opt}" in
     -a|--ask)
       DEMO_ASK="${SGL_OPT_VALS[i]}"
@@ -61,11 +60,12 @@ for ((i=0; i<len; i++)); do
       exit 0
       ;;
   esac
+  (( ++i ))
 done
 
 # If grep fails exit the process.
 printf '%s' 'has a mighty pattern' | ${grep} 'a mighty pattern' > ${NIL}
-sgl_chk_exit --exit --cmd='grep' $?
+sgl_chk_exit --exit --cmd='grep' ${?}
 
 exit 0
 EOF
@@ -75,9 +75,11 @@ chmod 0755 "${cmd}"
 ## RUN SCRIPT
 ################################################################################
 
+local line
+
 ######################################################################
 # @note-for-bash-newbies
-# @lines 98-102
+# @lines 92-96
 #
 # The `while' loop is used to catch and register any errors from the
 # wrapped script. The following is an ordered sequence of events:
@@ -88,7 +90,8 @@ chmod 0755 "${cmd}"
 # - Each line is read and any errors are thrown until `stdin' closes.
 ######################################################################
 while IFS= read -r line; do
-  [[ -n "${line}" ]] && throw "${line}"
-done <<EOF
-$("${cmd}" --ask='Something?' -ct 3>&2 2>&1 1>&3-)
-EOF
+  if [[ -n "${line}" ]]; then
+    throw "${line}"
+  fi
+done <<< "$("${cmd}" --ask='Something?' -ct 3>&2 2>&1 1>&3-)"
+

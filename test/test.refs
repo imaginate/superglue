@@ -1,4 +1,6 @@
-#!/bin/bash
+# TEST REFERENCES
+#
+# Global references used throughout the tests.
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2017 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
@@ -17,27 +19,26 @@ declare -r DUMTMP1="${DUMMY}/tmp1"
 declare -r DUMTMP2="${DUMMY}/tmp2"
 declare -r DUMTMP3="${DUMMY}/tmp3"
 
-declare -ar DUMDIRS=( \
+declare -ar DUMMY_DIRS=( \
   "${DUMMY}"   \
   "${DUMTMP}"  \
   "${DUMTMP1}" \
   "${DUMTMP2}" \
-  "${DUMTMP3}" \
-)
+  "${DUMTMP3}" )
 
 ################################################################################
 ## DEFINE TITLES
 ################################################################################
 
-declare -r HEAD='START SUPERGLUE TESTS'
-declare -r FOOT='END SUPERGLUE TESTS'
+declare -r HEADER='START SUPERGLUE TESTS'
+declare -r FOOTER='END SUPERGLUE TESTS'
 
 ################################################################################
 ## DEFINE LENGTHS
 ################################################################################
 
-declare -ir ROWLENGTH=36
-declare -ir SECTIONWIDTH=-14
+declare -ir ROW_LENGTH=36
+declare -ir SECTION_WIDTH=-14
 
 ################################################################################
 ## DEFINE COLORS
@@ -51,24 +52,23 @@ declare -r GREEN="$(printf '%b' '\033[0;32m')"
 ## DEFINE ERROR REFS
 ################################################################################
 
-declare -ax ERRORS
-declare -ix FAILED=0
+declare -ax TEST_ERRORS
+declare -ix TESTS_FAILED=0
 
 ################################################################################
 ## DEFINE SGL CMD LIST
 ################################################################################
 
-declare -ar SGLCMDS=( \
+declare -ar SGLUE_CMDS=( \
   sgl       \
   sglue     \
-  superglue \
-)
+  superglue )
 
 ################################################################################
 ## DEFINE SGL FUNC LIST
 ################################################################################
 
-declare -ar SGLFUNCS=( \
+declare -ar SGLUE_FUNCS=( \
   sgl_chk_cmd    \
   sgl_chk_dir    \
   sgl_chk_exit   \
@@ -82,5 +82,5 @@ declare -ar SGLFUNCS=( \
   sgl_print      \
   sgl_rm_dest    \
   sgl_set_color  \
-  sgl_source     \
-)
+  sgl_source     )
+

@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # Verify `sgl_mk_dest'.
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
@@ -22,7 +20,7 @@ cat <<'EOF' > "${src}"
 # SOURCE
 # @version 0.1.0-test
 #
-# @dest $BASE/dest.sgl.file
+# @dest "$BASE/dest.sgl.file"
 # @dest ${TMP}/dest.sgl.file
 # @mode 0755
 #
@@ -118,9 +116,11 @@ EOF
 ## RUN FUNCTION
 ################################################################################
 
+local line
+
 ######################################################################
 # @note-for-bash-newbies
-# @lines 48-52
+# @lines 133-140
 #
 # The `while' loop is used to catch and register any errors from
 # `sgl_mk_dest'. The following is an ordered sequence of events:
@@ -131,27 +131,37 @@ EOF
 # - Each line is read and any errors are thrown until `stdin' closes.
 ######################################################################
 while IFS= read -r line; do
-  [[ -n "${line}" ]] && throw "${line}"
-done <<EOF
-$(sgl mk_dest -d "BASE=${DUMMY}" -d "TMP=${DUMTMP}" "${src}" 3>&2 2>&1 1>&3-)
-EOF
+  if [[ -n "${line}" ]]; then
+    throw "${line}"
+  fi
+done <<< "$(sgl mk_dest \
+  --define "BASE=${DUMMY}" \
+  --define "TMP=${DUMTMP}" \
+  -- "${src}" 3>&2 2>&1 1>&3-)"
 
 ################################################################################
 ## CHECK RESULTS
 ################################################################################
 
-# Catch a missing dest file.
-[[ -f "${dest1}" ]] || throw "missing dest file \`${dest1}'"
-[[ -f "${dest2}" ]] || throw "missing dest file \`${dest2}'"
+local path
 
-# Catch a non-executable dest file.
-[[ -x "${dest1}" ]] || throw "invalid file mode for dest file \`${dest1}'"
-[[ -x "${dest2}" ]] || throw "invalid file mode for dest file \`${dest2}'"
+for path in "${dest1}" "${dest2}"; do
 
-# Catch incorrect dest file content.
-if [[ -f "${dest1}" ]] && [[ "$(cat "${correct}")" != "$(cat "${dest1}")" ]]; then
-  throw "invalid dest file \`${dest1}'"
-fi
-if [[ -f "${dest2}" ]] && [[ "$(cat "${correct}")" != "$(cat "${dest2}")" ]]; then
-  throw "invalid dest file \`${dest2}'"
-fi
+  # Catch a missing dest file.
+  if [[ ! -f "${path}" ]]; then
+    throw "missing dest file \`${path}'"
+  fi
+
+  # Catch a non-executable dest file.
+  if [[ ! -x "${path}" ]]; then
+    throw "invalid file mode for dest file \`${path}'"
+  fi
+
+  # Catch incorrect dest file content.
+  if [[ -f "${path}" ]] && [[ "$(cat "${correct}")" != "$(cat "${path}")" ]]; then
+    throw "invalid dest file \`${path}'"
+  fi
+
+done
+return 0
+

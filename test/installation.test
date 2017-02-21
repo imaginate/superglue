@@ -6,36 +6,39 @@
 # @copyright 2017 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
 ################################################################################
 
-local cmd
-local func
+local name
 local path
 
 ################################################################################
 ## CHECK BIN
 ################################################################################
 
-for cmd in "${SGLCMDS[@]}"; do
-  path="${BIN}/${cmd}"
-  [[ -x "${path}" ]] || throw "missing executable \`${path}'"
+for name in "${SGLUE_CMDS[@]}"; do
+  path="${BIN}/${name}"
+  if [[ ! -x "${path}" ]]; then
+    throw "missing executable path \`${path}'"
+  fi
 done
 
 ################################################################################
 ## CHECK LIB
 ################################################################################
 
-for func in "${SGLFUNCS[@]}"; do
-  path="${LIB}/${func}"
-  [[ -f "${path}" ]] || throw "missing function \`${path}'"
+for name in "${SGLUE_FUNCS[@]}"; do
+  path="${LIB}/${name}"
+  if [[ ! -r "${path}" ]]; then
+    throw "missing readable path \`${path}'"
+  fi
 done
 
 ################################################################################
 ## CHECK HELP
 ################################################################################
 
-path="${HELP}/superglue"
-[[ -f "${path}" ]] || throw "missing help info \`${path}'"
-
-for func in "${SGLFUNCS[@]}"; do
-  path="${HELP}/${func}"
-  [[ -f "${path}" ]] || throw "missing help info \`${path}'"
+for name in superglue "${SGLUE_FUNCS[@]}"; do
+  path="${HELP}/${name}"
+  if [[ ! -r "${path}" ]]; then
+    throw "missing readable path \`${path}'"
+  fi
 done
+

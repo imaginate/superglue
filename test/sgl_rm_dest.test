@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # Verify `sgl_rm_dest'.
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
@@ -18,23 +16,25 @@ local dest2="${DUMTMP}/dest.sgl.file"
 # Make the test src file.
 cat <<'EOF' > "${src}"
 # SOURCE
-# @dest $HOME/dest.sgl.file
+# @dest "$HOME/dest.sgl.file"
 # @dest ${TMP}/dest.sgl.file
 # @mode 0755
 # ...
 EOF
 
 # Make each dest file.
-cp "${src}" "${dest1}"
-cp "${src}" "${dest2}"
+cp -T -- "${src}" "${dest1}"
+cp -T -- "${src}" "${dest2}"
 
 ################################################################################
 ## RUN FUNCTION
 ################################################################################
 
+local line
+
 ######################################################################
 # @note-for-bash-newbies
-# @lines 52-56
+# @lines 47-54
 #
 # The `while' loop is used to catch and register any errors from
 # `sgl_rm_dest'. The following is an ordered sequence of events:
@@ -45,15 +45,27 @@ cp "${src}" "${dest2}"
 # - Each line is read and any errors are thrown until `stdin' closes.
 ######################################################################
 while IFS= read -r line; do
-  [[ -n "${line}" ]] && throw "${line}"
-done <<EOF
-$(sgl rm_dest -d "HOME=${DUMMY}" -d "TMP=${DUMTMP}" "${src}" 3>&2 2>&1 1>&3-)
-EOF
+  if [[ -n "${line}" ]]; then
+    throw "${line}"
+  fi
+done <<< "$(sgl rm_dest \
+  --define "HOME=${DUMMY}" \
+  --define "TMP=${DUMTMP}" \
+  -- "${src}" 3>&2 2>&1 1>&3-)"
 
 ################################################################################
 ## CHECK RESULTS
 ################################################################################
 
-# Catch an existing dest file.
-[[ -f "${dest1}" ]] && throw "existing dest file \`${dest1}'"
-[[ -f "${dest2}" ]] && throw "existing dest file \`${dest2}'"
+local path
+
+for path in "${dest1}" "${dest2}"; do
+
+  # Catch an existing dest file.
+  if [[ -f "${path}" ]]; then
+    throw "existing dest file \`${path}'"
+  fi
+
+done
+return 0
+

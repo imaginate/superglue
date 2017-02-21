@@ -32,9 +32,9 @@ source ./test.helpers
 ## MAKE DUMMY DIRECTORIES
 ################################################################################
 
-for DUMDIR in "${DUMDIRS[@]}"; do
-  if [[ ! -d "${DUMDIR}" ]]; then
-    mkdir -p 0755 -- "${DUMDIR}"
+for DIR in "${DUMMY_DIRS[@]}"; do
+  if [[ ! -d "${DIR}" ]]; then
+    mkdir -p 0755 -- "${DIR}"
   fi
 done
 
@@ -42,7 +42,7 @@ done
 ## RUN TESTS
 ################################################################################
 
-echo_header
+header
 
 if [[ ${#} -gt 0 ]]; then
   run_tests "${@}"
@@ -50,8 +50,8 @@ else
   run_tests ./*.test
 fi
 
-echo_final
-echo_footer
+results
+footer
 
 ################################################################################
 ## REMOVE DUMMY DIRECTORIES

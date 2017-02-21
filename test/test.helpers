@@ -1,8 +1,39 @@
-#!/bin/bash
+# TEST HELPERS
+#
+# Helper functions that run the tests. See the below list for a quick reference
+# of all functions defined here (listed in declared order).
+#
+#   `is_pathname'
+#   `clean_tree'
+#   `run_test'
+#   `run_tests'
+#   `stop'
+#   `throw'
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2017 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
 ################################################################################
+
+############################################################
+# @func is_pathname
+# @use is_pathname PATH
+# @return
+#   0  PASS
+############################################################
+is_pathname()
+{
+  local path="${1%/}"
+  local name="${path##*/}"
+
+  if [[ -n "${path}"      ]] && \
+     [[ "${name}" != '*'  ]] && \
+     [[ "${name}" != '.*' ]] 
+  then
+    return 0
+  fi
+  return 1
+}
+declare -f -r is_pathname
 
 ############################################################
 # @func clean_tree
@@ -14,15 +45,19 @@ clean_tree()
 {
   local path
 
-  for path in "${1}"/*; do
+  for path in "${1}"/* "${1}"/.*; do
+    if ! is_pathname "${path}"; then
+      continue
+    fi
     if [[ -d "${path}" ]]; then
       clean_tree "${path}"
     elif [[ -f "${path}" ]]; then
-      rm -f "${path}"
+      rm -f -- "${path}"
     fi
   done
+  return 0
 }
-declare -fr clean_tree
+declare -f -r clean_tree
 
 ############################################################
 # @func run_test
@@ -32,15 +67,18 @@ declare -fr clean_tree
 ############################################################
 run_test()
 {
-  [[ -f "${1}.test" ]] || stop "invalid SECTION \`${1}' tests stopped"
+  if [[ ! -r "${1}.test" ]]; then
+    stop "invalid SECTION \`${1}' tests stopped"
+  fi
 
   clean_tree "${DUMMY}"
-  ERRORS=()
+  TEST_ERRORS=()
   source "${1}.test"
-  echo_result "${1}"
+  section "${1}"
   clean_tree "${DUMMY}"
+  return 0
 }
-declare -fr run_test
+declare -f -r run_test
 
 ############################################################
 # @func run_tests
@@ -51,39 +89,44 @@ declare -fr run_test
 run_tests()
 {
   local path
+  local name
 
-  for path in "$@"; do
-    path="${path##*/}"
-    run_test "${path%.test}"
+  for path in "${@}"; do
+    name="${path##*/}"
+    name="${name%.test}"
+    run_test "${name}"
   done
+  return 0
 }
-declare -fr run_tests
+declare -f -r run_tests
 
 ############################################################
 # Prints an error message and aborts the tests.
 #
 # @func stop
-# @use stop ...MSG
+# @use stop [...MSG]
 # @exit
 #   1  FAIL
 ############################################################
 stop()
 {
-  echo_stop "${*}"
-  echo_footer
+  stop_row "${*}"
+  footer
   exit 1
 }
-declare -fr stop
+declare -f -r stop
 
 ############################################################
 # @func throw
-# @use throw ...MSG
+# @use throw [...MSG]
 # @return
 #   0  PASS
 ############################################################
 throw()
 {
-  ERRORS+=("$*")
-  : $((++FAILED))
+  TEST_ERRORS[${#TEST_ERRORS[@]}]=( "${*}" )
+  TESTS_FAILED=$(( TESTS_FAILED + 1 ))
+  return 0
 }
-declare -frx throw
+declare -f -r -x throw
+
