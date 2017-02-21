@@ -4,14 +4,15 @@
   Options:
     -D|--defines=VARS     Define multiple VAR for any TAG VALUE to use.
     -d|--define=VAR       Define one VAR for any TAG VALUE to use.
-    -E|--no-empty         Force SRC to contain at least one destination tag.
-    -e|--empty            Allow SRC to not contain a destination tag.
+    -E|--no-empty         Force SRC to contain at least one `dest' TAG (default).
+    -e|--empty            Allow SRC to not contain a `destination' TAG.
     -F|--no-force         If destination exists do not overwrite it.
     -f|--force            If destination exists overwrite it.
     -h|-?|--help          Print help info and exit.
     -Q|--silent           Disable `stderr' and `stdout' outputs.
     -q|--quiet            Disable `stdout' output.
     -r|--recursive        If SRC is a directory recursively process directories.
+    -T|--no-test          Disable REGEX testing for each DEST (default).
     -t|--test=REGEX       Test each DEST path against REGEX (uses bash `=~').
     -V|--verbose          Print exec status details.
     -v|--version          Print version info and exit.
@@ -26,20 +27,30 @@
            child file path is processed as a SRC. Each SRC file must contain at
            least one `dest' TAG (unless `--empty' is used), can contain one
            `mode', `owner', and `version' TAG, and can contain multiple `include'
-           or `var' TAG. Note that OPTION values take priority over TAG values.
+           or `set' TAG. Note that OPTION values take priority over TAG values.
     TAG    A TAG is defined within a SRC file's contents. It must be a one-line
            comment formatted as `# @TAG VALUE'. Spacing is optional except
            between TAG and VALUE. The TAG must be one of the options below.
-      `dest'     Formatted `# @dest DEST'.
-      `include'  Formatted `# @include FILE'.
-      `mode'     Formatted `# @mode MODE'.
-      `owner'    Formatted `# @owner OWNER'.
-      `var'      Formatted `# @var KEY=VALUE'.
-      `version'  Formatted `# @version VERSION'.
+      `dest|destination'  Formatted `# @dest DEST'.
+      `incl|include'      Formatted `# @incl FILE'.
+      `mod|mode'          Formatted `# @mod MODE'.
+      `own|owner'         Formatted `# @own OWNER'.
+      `set|var|variable'  Formatted `# @set KEY=VALUE'.
+      `vers|version'      Formatted `# @vers VERSION'.
     VAR    Must be a valid `KEY=VALUE' pair. The KEY must start with a character
            matching `[a-zA-Z_]', can only contain `[a-zA-Z0-9_]', and must end
            with `[a-zA-Z0-9]'. The VALUE must not contain a `,'.
-    VARS   Must be a list of one or more VAR separated by `,'.
+    VARS   Must be a list of one or more VAR separated by a `,'.
 
   Returns:
     0  PASS
+
+  Exits (on error only):
+    1  ERR   An unknown error.
+    2  OPT   An invalid option.
+    3  VAL   An invalid or missing value.
+    4  AUTH  A permissions error.
+    5  DPND  A dependency error.
+    6  CHLD  A child process exited unsuccessfully.
+    7  SGL   A `superglue' script error.
+
