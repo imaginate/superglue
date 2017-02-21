@@ -125,7 +125,8 @@ paint()
   fi
 
   if [[ ! -t 1 ]]; then
-    out "${*:1}"
+    shift
+    out "${*}"
     return 0
   fi
 
@@ -140,8 +141,9 @@ paint()
       return 0
       ;;
   esac
+  shift
 
-  out "${*:1}"
+  out "${*}"
   out "${UNCOLOR}"
 }
 declare -f -r paint
@@ -163,7 +165,8 @@ paint2()
   fi
 
   if [[ ! -t 1 ]]; then
-    out2 "${*:1}"
+    shift
+    out2 "${*}"
     return 0
   fi
 
@@ -178,8 +181,9 @@ paint2()
       return 0
       ;;
   esac
+  shift
 
-  out2 "${*:1}"
+  out2 "${*}"
   out2 "${UNCOLOR}"
 }
 declare -f -r paint2
@@ -192,7 +196,10 @@ declare -f -r paint2
 ############################################################
 column()
 {
-  printf "%${1}s" "${*:1}"
+  local -i width="${1}"
+
+  shift
+  printf "%${width}s" "${*}"
 }
 declare -f -r column
 
@@ -204,7 +211,10 @@ declare -f -r column
 ############################################################
 column2()
 {
-  printf "%${1}s" "${*:1}" 1>&2
+  local -i width="${1}"
+ 
+  shift
+  printf "%${width}s" "${*}" 1>&2
 }
 declare -f -r column2
 
