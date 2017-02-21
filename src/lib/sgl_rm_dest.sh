@@ -19,8 +19,8 @@ _sgl_source chk_exit chk_tag err get_quiet get_silent get_tags get_verbose \
 # @use sgl_rm_dest [...OPTION] ...SRC
 # @opt -D|--defines=VARS     Define multiple VAR for any TAG VALUE to use.
 # @opt -d|--define=VAR       Define one VAR for any TAG VALUE to use.
-# @opt -E|--no-empty         Force SRC to contain at least one destination tag.
-# @opt -e|--empty            Allow SRC to not contain a destination tag.
+# @opt -E|--no-empty         Force SRC to contain at least one `dest' TAG (default).
+# @opt -e|--empty            Allow SRC to not contain a `destination' TAG.
 # @opt -F|--no-force         If destination exists do not overwrite it.
 # @opt -f|--force            If a destination exists overwrite it.
 # @opt -h|-?|--help          Print help info and exit.
