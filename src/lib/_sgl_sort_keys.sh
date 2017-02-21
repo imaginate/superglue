@@ -29,7 +29,7 @@ _sgl_sort_keys()
       local key
       for key in "${@}"; do
         printf '%s\n' "${key}"
-      done | ${sort} -u
+      done | ${sort} -u -r
       ;;
   esac
   return 0
