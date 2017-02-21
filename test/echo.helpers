@@ -250,7 +250,7 @@ err_row()
 {
   out2 ' - '
   paint2 red 'ERR'
-  echo2 "${*}"
+  echo2 " ${*}"
 }
 declare -f -r err_row
 
