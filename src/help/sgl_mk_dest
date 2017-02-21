@@ -26,7 +26,7 @@
     -q|--quiet            Disable `stdout' output.
     -r|--recursive        If SRC is a directory recursively process directories.
     -s|--symlink          Make symlinks instead of copying.
-    -T|--no-test          Disable REGEX testing for each DEST.
+    -T|--no-test          Disable REGEX testing for each DEST (default).
     -t|--test=REGEX       Test each DEST path against REGEX (uses bash `=~').
     -u|--update           Copy only when SRC is newer than DEST.
     -V|--verbose          Print exec status details.
