@@ -429,6 +429,10 @@ sgl_mk_dest()
         _sgl_err VAL "\`${FN}' ${dest} failed the REGEX \`${regex}' test"
       fi
 
+      if [[ "${dest:0:1}" != '/' ]]; then
+        dest="${src%/*}/${dest}"
+      fi
+
       dir="${dest%/*}"
       if [[ -n "${dir}" ]] && ! _sgl_is_dir "${dir}"; then
         dest="DEST \`${dest}' in SRC \`${src}'"
