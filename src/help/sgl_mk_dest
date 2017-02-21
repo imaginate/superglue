@@ -2,14 +2,14 @@
   sgl_mk_dest [...OPTION] ...SRC
 
   Options:
-    -B|--backup-ext=EXT   Override the usual backup file extension.
+    -B|--backup-ext=EXT   Override the default backup file extension, `~'.
     -b|--backup[=CTRL]    Make a backup of each existing destination file.
     -D|--defines=VARS     Define multiple VAR for any TAG VALUE to use.
     -d|--define=VAR       Define one VAR for any TAG VALUE to use.
-    -E|--no-empty         Force SRC to contain at least one destination tag.
-    -e|--empty            Allow SRC to not contain a destination tag.
+    -E|--no-empty         Force SRC to contain at least one `dest' TAG (default).
+    -e|--empty            Allow SRC to not contain a `destination' TAG.
     -F|--no-force         If destination exists do not overwrite it.
-    -f|--force            If destination exists overwrite it.
+    -f|--force            If a destination exists overwrite it.
     -H|--cmd-dereference  Follow command-line SRC symlinks.
     -h|-?|--help          Print help info and exit.
     -I|--no-include       Disable `include' TAG processing and inserts.
@@ -18,7 +18,7 @@
     -L|--dereference      Always follow SRC symlinks.
     -l|--link             Hard link files instead of copying.
     -m|--mode=MODE        Set the file mode for each destination.
-    -N|--no-insert        Disable `var' TAG processing and inserts.
+    -N|--no-insert        Disable `set' TAG processing and inserts.
     -n|--no-clobber       If destination exists do not overwrite.
     -o|--owner=OWNER      Set the file owner for each destination.
     -P|--no-dereference   Never follow SRC symlinks.
@@ -26,6 +26,7 @@
     -q|--quiet            Disable `stdout' output.
     -r|--recursive        If SRC is a directory recursively process directories.
     -s|--symlink          Make symlinks instead of copying.
+    -T|--no-test          Disable REGEX testing for each DEST.
     -t|--test=REGEX       Test each DEST path against REGEX (uses bash `=~').
     -u|--update           Copy only when SRC is newer than DEST.
     -V|--verbose          Print exec status details.
@@ -35,7 +36,7 @@
     -|--                  End the options.
 
   Values:
-    ATTR   Must be a file attribute from below options.
+    ATTR   Must be a file attribute from the below options.
       `mode'
       `ownership'
       `timestamps'
@@ -43,37 +44,48 @@
       `links'
       `xattr'
       `all'
-    ATTRS  Must be a list of one or more ATTR separated by `,'.
-    CTRL   Must be a backup control method from below options.
+    ATTRS  Must be a list of one or more ATTR separated by a `,'.
+    CTRL   Must be a backup control method from the below options.
       `none|off'      Never make backups (even if `--backup' is given).
       `numbered|t'    Make numbered backups.
-      `existing|nil'  If numbered backups exist make numbered. Otherwise make simple.
+      `existing|nil'  Make numbered backups if they exist. Otherwise make simple.
       `simple|never'  Always make simple backups.
     DEST   Must be a valid path. Can include defined VAR KEYs identified by a
            leading `$' and optionally wrapped with curly brackets, `${KEY}'.
-    EXT    Must be a valid file extension to append to the end of a backup file.
-           The default is `~'. Spaces are not allowed.
-    MODE   Must be a valid file mode.
-    OWNER  Must be a valid USER[:GROUP].
+    EXT    Must be a valid file extension. No whitespace characters allowed.
+    MODE   Must be a valid file mode. Symbolic and octal formats allowed.
+           See `man chmod' for more details about valid options.
+    OWNER  Must be a valid USER and/or GROUP formatted as `[USER][:[GROUP]]'.
+           See `man chown' for more details about valid options.
     REGEX  Can be any string. Refer to bash test `=~' operator for more details.
     SRC    Must be a valid file or directory path. If SRC is a directory each
            child file path is processed as a SRC. Each SRC file must contain at
            least one `dest' TAG (unless `--empty' is used), can contain one
            `mode', `owner', and `version' TAG, and can contain multiple `include'
-           or `var' TAG. Note that OPTION values take priority over TAG values.
+            or `set' TAG. Note that OPTION values take priority over TAG values.
     TAG    A TAG is defined within a SRC file's contents. It must be a one-line
            comment formatted as `# @TAG VALUE'. Spacing is optional except
            between TAG and VALUE. The TAG must be one of the options below.
-      `dest'     Formatted `# @dest DEST'.
-      `include'  Formatted `# @include FILE'.
-      `mode'     Formatted `# @mode MODE'.
-      `owner'    Formatted `# @owner OWNER'.
-      `var'      Formatted `# @var KEY=VALUE'.
-      `version'  Formatted `# @version VERSION'.
+      `dest|destination'  Formatted `# @dest DEST'.
+      `incl|include'      Formatted `# @incl FILE'.
+      `mod|mode'          Formatted `# @mod MODE'.
+      `own|owner'         Formatted `# @own OWNER'.
+      `set|var|variable'  Formatted `# @set KEY=VALUE'.
+      `vers|version'      Formatted `# @vers VERSION'.
     VAR    Must be a valid `KEY=VALUE' pair. The KEY must start with a character
            matching `[a-zA-Z_]', only contain characters `[a-zA-Z0-9_]', and end
            with a character matching `[a-zA-Z0-9]'.
-    VARS   Must be a list of one or more VAR separated by `,'.
+    VARS   Must be a list of one or more VAR separated by a `,'.
 
   Returns:
     0  PASS
+
+  Exits (on error only):
+    1  ERR   An unknown error.
+    2  OPT   An invalid option.
+    3  VAL   An invalid or missing value.
+    4  AUTH  A permissions error.
+    5  DPND  A dependency error.
+    6  CHLD  A child process exited unsuccessfully.
+    7  SGL   A `superglue' script error.
+
