@@ -19,7 +19,7 @@ declare -r DUMTMP1="${DUMMY}/tmp1"
 declare -r DUMTMP2="${DUMMY}/tmp2"
 declare -r DUMTMP3="${DUMMY}/tmp3"
 
-declare -ar DUMMY_DIRS=( \
+declare -a -r DUMMY_DIRS=( \
   "${DUMMY}"   \
   "${DUMTMP}"  \
   "${DUMTMP1}" \
@@ -37,8 +37,8 @@ declare -r FOOTER='END SUPERGLUE TESTS'
 ## DEFINE LENGTHS
 ################################################################################
 
-declare -ir ROW_LENGTH=36
-declare -ir SECTION_WIDTH=-14
+declare -i -r ROW_LENGTH=36
+declare -i -r SECTION_WIDTH=-14
 
 ################################################################################
 ## DEFINE COLORS
@@ -52,14 +52,14 @@ declare -r GREEN="$(printf '%b' '\033[0;32m')"
 ## DEFINE ERROR REFS
 ################################################################################
 
-declare -ax TEST_ERRORS
-declare -ix TESTS_FAILED=0
+declare -a -x TEST_ERRORS
+declare -i -x TESTS_FAILED=0
 
 ################################################################################
 ## DEFINE SGL CMD LIST
 ################################################################################
 
-declare -ar SGLUE_CMDS=( \
+declare -a -r SGLUE_CMDS=( \
   sgl       \
   sglue     \
   superglue )
@@ -68,7 +68,7 @@ declare -ar SGLUE_CMDS=( \
 ## DEFINE SGL FUNC LIST
 ################################################################################
 
-declare -ar SGLUE_FUNCS=( \
+declare -a -r SGLUE_FUNCS=( \
   sgl_chk_cmd    \
   sgl_chk_dir    \
   sgl_chk_exit   \

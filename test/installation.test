@@ -41,4 +41,5 @@ for name in superglue "${SGLUE_FUNCS[@]}"; do
     throw "missing readable path \`${path}'"
   fi
 done
+return 0
 
