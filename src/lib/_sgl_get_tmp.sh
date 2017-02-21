@@ -29,7 +29,7 @@ _sgl_get_tmp()
     pre="${pre%%.}"
   fi
 
-  while _sgl_is_file "${base}${pre}.${i}";
+  while _sgl_is_file "${base}${pre}.${i}"; do
     i=$(( i + 1 ))
     if [[ ${i} -gt ${MAX} ]]; then
       if [[ "${pre}" =~ \.x+$ ]]; then
