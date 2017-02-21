@@ -34,7 +34,7 @@ source ./test.helpers
 
 for DIR in "${DUMMY_DIRS[@]}"; do
   if [[ ! -d "${DIR}" ]]; then
-    mkdir -p 0755 -- "${DIR}"
+    mkdir -p -m 0755 -- "${DIR}"
   fi
 done
 
