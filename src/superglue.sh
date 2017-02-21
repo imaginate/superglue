@@ -167,13 +167,14 @@ readonly mkdir="$(_sgl_which mkdir)"
 readonly mv="$(_sgl_which mv)"
 readonly rm="$(_sgl_which rm)"
 readonly sed="$(_sgl_which sed)"
+readonly sort="$(_sgl_which sort)"
 
 ################################################################################
 ## CHECK COMMANDS
 ################################################################################
 
 _sgl_chk_cmd ${bash} ${cat} ${chgrp} ${chmod} ${chown} ${cp} ${grep} ${ln} \
-  ${mkdir} ${mv} ${rm} ${sed}
+  ${mkdir} ${mv} ${rm} ${sed} ${sort}
 
 ################################################################################
 ## DEFINE COLORS
