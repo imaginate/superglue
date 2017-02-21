@@ -42,7 +42,7 @@ _sgl_source chk_attrs chk_exit chk_tags err get_quiet get_silent get_tag \
 # @opt -q|--quiet            Disable `stdout' output.
 # @opt -r|--recursive        If SRC is a directory recursively process directories.
 # @opt -s|--symlink          Make symlinks instead of copying.
-# @opt -T|--no-test          Disable REGEX testing for each DEST.
+# @opt -T|--no-test          Disable REGEX testing for each DEST (default).
 # @opt -t|--test=REGEX       Test each DEST path against REGEX (uses bash `=~').
 # @opt -u|--update           Copy only when SRC is newer than DEST.
 # @opt -V|--verbose          Print exec status details.
@@ -107,7 +107,7 @@ sgl_mk_dest()
   local -i i=0
   local -i bkup=0
   local -i deep=0
-  local -i test=1
+  local -i test=0
   local -i empty=0
   local -i force=0
   local -i insert=1
@@ -280,7 +280,7 @@ sgl_mk_dest()
           opts[${#opts[@]}]='--symbolic-link'
           ;;
         -T|--no-test)
-          test=1
+          test=0
           ;;
         -t|--test)
           regex="${_SGL_OPT_VALS[${i}]}"
