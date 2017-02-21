@@ -9,6 +9,10 @@
 #   0  PASS
 ################################################################################
 
+_sgl_source chk_exit chk_tag err get_quiet get_silent get_tags get_verbose \
+  has_tag help is_dir is_file is_path is_read parse_args parse_def parse_defs \
+  setup_defs version
+
 ############################################################
 # @public
 # @func sgl_rm_dest
@@ -23,6 +27,7 @@
 # @opt -Q|--silent           Disable `stderr' and `stdout' outputs.
 # @opt -q|--quiet            Disable `stdout' output.
 # @opt -r|--recursive        If SRC is a directory recursively process directories.
+# @opt -T|--no-test          Disable REGEX testing for each DEST (default).
 # @opt -t|--test=REGEX       Test each DEST path against REGEX (uses bash `=~').
 # @opt -V|--verbose          Print exec status details.
 # @opt -v|--version          Print version info and exit.
@@ -35,535 +40,215 @@
 #             child file path is processed as a SRC. Each SRC file must contain at
 #             least one `dest' TAG (unless `--empty' is used), can contain one
 #             `mode', `owner', and `version' TAG, and can contain multiple `include'
-#             or `var' TAG. Note that OPTION values take priority over TAG values.
+#             or `set' TAG. Note that OPTION values take priority over TAG values.
 # @val TAG    A TAG is defined within a SRC file's contents. It must be a one-line
 #             comment formatted as `# @TAG VALUE'. Spacing is optional except
 #             between TAG and VALUE. The TAG must be one of the options below.
-#   `dest'     Formatted `# @dest DEST'.
-#   `include'  Formatted `# @include FILE'.
-#   `mode'     Formatted `# @mode MODE'.
-#   `owner'    Formatted `# @owner OWNER'.
-#   `var'      Formatted `# @var KEY=VALUE'.
-#   `version'  Formatted `# @version VERSION'.
+#   `dest|destination'  Formatted `# @dest DEST'.
+#   `incl|include'      Formatted `# @incl FILE'.
+#   `mod|mode'          Formatted `# @mod MODE'.
+#   `own|owner'         Formatted `# @own OWNER'.
+#   `set|var|variable'  Formatted `# @set KEY=VALUE'.
+#   `vers|version'      Formatted `# @vers VERSION'.
 # @val VAR    Must be a valid `KEY=VALUE' pair. The KEY must start with a character
 #             matching `[a-zA-Z_]', can only contain `[a-zA-Z0-9_]', and must end
 #             with `[a-zA-Z0-9]'. The VALUE must not contain a `,'.
-# @val VARS   Must be a list of one or more VAR separated by `,'.
+# @val VARS   Must be a list of one or more VAR separated by a `,'.
 # @return
 #   0  PASS
 # @exit-on-error
+#   1  ERR   An unknown error.
+#   2  OPT   An invalid option.
+#   3  VAL   An invalid or missing value.
+#   4  AUTH  A permissions error.
+#   5  DPND  A dependency error.
+#   6  CHLD  A child process exited unsuccessfully.
+#   7  SGL   A `superglue' script error.
 ############################################################
 sgl_rm_dest()
 {
   local -r FN='sgl_rm_dest'
-
-  # tag patterns
-  local -r dtag='^[[:blank:]]*#[[:blank:]]*@dest[[:blank:]]\+'
-
-  # option flags
-  local -i silent=${SGL_SILENT}
-  local -i quiet=${SGL_QUIET}
+  local -i i=0
   local -i deep=0
+  local -i test=0
   local -i empty=0
   local -i force=0
+  local -i quiet=$(_sgl_get_quiet PRT)
+  local -i silent=$(_sgl_get_silent PRT)
+  local -i verbose=$(_sgl_get_verbose)
+  local -a files=()
+  local -a dirs=()
+  local -a opts=()
+  local src
+  local dir
+  local opt
+  local val
+  local dest
+  local file
   local regex='/[^/]+/[^/]+$'
 
-  # parsed values
-  local -a rm_opts
-  local -A tag_vars
-
-  __sgl_rm_dest__args "$@"
-  __sgl_rm_dest__opts "${_SGL_OPTS[@]}"
-  __sgl_rm_dest__vals "${_SGL_VALS[@]}"
-}
-readonly -f sgl_rm_dest
-
-################################################################################
-## DEFINE HELPER FUNCTIONS
-################################################################################
-
-############################################################
-# @private
-# @func __sgl_rm_dest__add_rm_opt
-# @use __sgl_rm_dest__add_rm_opt OPTION[=VALUE]
-# @return
-#   0  PASS
-############################################################
-__sgl_rm_dest__add_rm_opt()
-{
-  rm_opts[${#rm_opts[@]}]="$1"
-}
-readonly -f __sgl_rm_dest__add_rm_opt
-
-############################################################
-# @private
-# @func __sgl_rm_dest__chk_key
-# @use __sgl_rm_dest__chk_key KEY
-# @return
-#   0  PASS
-#   1  FAIL
-############################################################
-__sgl_rm_dest__chk_key()
-{
-  if [[ "$1" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]] && [[ "$1" =~ [a-zA-Z0-9]$ ]]; then
-    return 0
-  fi
-  return 1
-}
-readonly -f __sgl_rm_dest__chk_key
-
-############################################################
-# @private
-# @func __sgl_rm_dest__has_key
-# @use __sgl_rm_dest__has_key KEY
-# @return
-#   0  PASS
-#   1  FAIL
-############################################################
-__sgl_rm_dest__has_key()
-{
-  local _key
-
-  for _key in "${!tag_vars[@]}"; do
-    [[ "$1" == "${_key}" ]] && return 0
-  done
-  return 1
-}
-readonly -f __sgl_rm_dest__has_key
-
-############################################################
-# @private
-# @func __sgl_rm_dest__set_key
-# @use __sgl_rm_dest__set_key LINE
-# @return
-#   0  PASS
-# @exit-on-error
-############################################################
-__sgl_rm_dest__set_key()
-{
-  local _line="${1}"
-
-  key="${val#*$}"
-
-  if [[ -z "${key}" ]]; then
-    _sgl_err VAL "invalid \`${FN}' KEY at LINE \`${_line}' in SRC \`${src}'"
-  fi
-
-  if [[ "${key}" =~ ^\{ ]]; then
-    if [[ ! "${key}" =~ \} ]]; then
-      key="\`${FN}' KEY \`\$${key%%\$*}'"
-      _sgl_err VAL "invalid ${key} at LINE \`${_line}' in SRC \`${src}'"
-    fi
-    key="${key#\{}"
-    key="${key%%\}*}"
-    if ! __sgl_rm_dest__chk_key "${key}"; then
-      key="\`${FN}' KEY \`\${${key}}'"
-      _sgl_err VAL "invalid ${key} at LINE \`${_line}' in SRC \`${src}'"
-    fi
-    if ! __sgl_rm_dest__has_key "${key}"; then
-      key="\`${FN}' KEY \`\${${key}}'"
-      _sgl_err VAL "undefined ${key} at LINE \`${_line}' in SRC \`${src}'"
-    fi
-  else
-    key="$(printf '%s' "${key}" | ${sed} -e 's/[^a-zA-Z0-9_].*$//')"
-    if ! __sgl_rm_dest__chk_key "${key}"; then
-      key="\`${FN}' KEY \`\$${key}'"
-      _sgl_err VAL "invalid ${key} at LINE \`${_line}' in SRC \`${src}'"
-    fi
-    if ! __sgl_rm_dest__has_key "${key}"; then
-      key="\`${FN}' KEY \`\$${key}'"
-      _sgl_err VAL "undefined ${key} at LINE \`${_line}' in SRC \`${src}'"
-    fi
-  fi
-}
-readonly -f __sgl_rm_dest__set_key
-
-############################################################
-# @private
-# @func __sgl_rm_dest__set_val
-# @use __sgl_rm_dest__set_val LINE
-# @return
-#   0  PASS
-# @exit-on-error
-############################################################
-__sgl_rm_dest__set_val()
-{
-  local _line="${1}"
-  local _val
-  local key
-
-  val="$(__sgl_rm_dest__trim_tag "${_line}")"
-
-  while [[ "${val}" =~ \$ ]]; do
-    __sgl_rm_dest__set_key "${_line}"
-    _val="${tag_vars[${key}]}"
-    [[ "${val#*$}" =~ ^\{ ]] && key="{${key}}"
-    key="\$${key}"
-    val="$(printf '%s' "${val}" | ${sed} -e "s/${key}/${_val}/")"
-  done
-}
-readonly -f __sgl_rm_dest__set_val
-
-############################################################
-# @private
-# @func __sgl_rm_dest__trim_tag
-# @use __sgl_rm_dest__trim_tag LINE
-# @return
-#   0  PASS
-############################################################
-__sgl_rm_dest__trim_tag()
-{
-  printf '%s' "${1}" | ${sed} \
-    -e 's/^[[:blank:]]*#[[:blank:]]*@[[:lower:]]\+[[:blank:]]\+//' \
-    -e 's/[[:blank:]]\+$//'
-}
-readonly -f __sgl_rm_dest__trim_tag
-
-################################################################################
-## DEFINE ARGUMENT FUNCTIONS
-################################################################################
-
-############################################################
-# @private
-# @func __sgl_rm_dest__args
-# @use __sgl_rm_dest__args ...ARG
-# @return
-#   0  PASS
-# @exit-on-error
-############################################################
-__sgl_rm_dest__args()
-{
-  _sgl_parse_args "${FN}" \
-    '-D|--defines'      1 \
-    '-d|--define'       1 \
-    '-E|--no-empty'     0 \
-    '-e|--empty'        0 \
-    '-F|--no-force'     0 \
-    '-f|--force'        0 \
-    '-h|-?|--help'      0 \
-    '-Q|--silent'       0 \
-    '-q|--quiet'        0 \
-    '-r|--recursive'    0 \
-    '-t|--test'         1 \
-    '-V|--verbose'      0 \
-    '-v|--version'      0 \
+  _sgl_parse_args ${FN} \
+    '-D|--defines'         1 \
+    '-d|--define'          1 \
+    '-E|--no-empty'        0 \
+    '-e|--empty'           0 \
+    '-F|--no-force'        0 \
+    '-f|--force'           0 \
+    '-h|-?|--help'         0 \
+    '-Q|--silent'          0 \
+    '-q|--quiet'           0 \
+    '-r|--recursive'       0 \
+    '-T|--no-test'         0 \
+    '-t|--test'            1 \
+    '-V|--verbose'         0 \
+    '-v|--version'         0 \
     '-x|--one-file-system' 0 \
     -- "${@}"
-}
-readonly -f __sgl_rm_dest__args
 
-################################################################################
-## DEFINE OPTION FUNCTIONS
-################################################################################
+  _sgl_setup_defs
 
-############################################################
-# @private
-# @func __sgl_rm_dest__opts
-# @use __sgl_rm_dest__opts ...OPT
-# @return
-#   0  PASS
-# @exit-on-error
-############################################################
-__sgl_rm_dest__opts()
-{
-  local -i _index=0
-  local -i _bool
-  local _opt
-  local _val
-
-  tag_vars=( \
-    ['HOME']="$(_sgl_esc_val "${HOME}")" \
-    ['EUID']="$(_sgl_esc_val "${EUID}")" \
-    ['UID']="$(_sgl_esc_val "${UID}")"   \
-    ['USER']="$(_sgl_esc_val "${USER}")" \
-  )
-
-  [[ ${SGL_QUIET_PARENT}  -eq 1 ]] && quiet=1
-  [[ ${SGL_SILENT_PARENT} -eq 1 ]] && silent=1
-
-  # parse each OPTION
-  for _opt in "${@}"; do
-    _bool=${_SGL_OPT_BOOL[${_index}]}
-    _val="${_SGL_OPT_VALS[${_index}]}"
-    __sgl_rm_dest__opt "${_opt}" ${_bool} "${_val}"
-    _index=$(( ++_index ))
-  done
-
-  # set empty regex to pass
-  [[ -z "${regex}" ]] && regex='.*'
-}
-readonly -f __sgl_rm_dest__opts
-
-############################################################
-# @private
-# @func __sgl_rm_dest__opt
-# @use __sgl_rm_dest__opt OPT BOOL VAL
-# @return
-#   0  PASS
-# @exit-on-error
-############################################################
-__sgl_rm_dest__opt()
-{
-  case "${1}" in
-    -D|--defines)
-      __sgl_rm_dest__opt_D "${@}"
-      ;;
-    -d|--define)
-      __sgl_rm_dest__opt_d "${@}"
-      ;;
-    -E|--no-empty)
-      empty=0
-      ;;
-    -e|--empty)
-      empty=1
-      ;;
-    -F|--no-force)
-      force=0
-      __sgl_rm_dest__add_rm_opt '-i'
-      ;;
-    -f|--force)
-      force=1
-      __sgl_rm_dest__add_rm_opt '-f'
-      ;;
-    -h|-\?|--help)
-      _sgl_help sgl_rm_dest
-      ;;
-    -Q|--silent)
-      silent=1
-      ;;
-    -q|--quiet)
-      quiet=1
-      ;;
-    -r|--recursive)
-      deep=1
-      ;;
-    -t|--test)
-      regex="${3}"
-      ;;
-    -V|--verbose)
-      __sgl_rm_dest__add_rm_opt '--verbose'
-      ;;
-    -v|--version)
-      _sgl_version
-      ;;
-    -x|--one-file-system)
-      __sgl_rm_dest__add_rm_opt '--one-file-system'
-      ;;
-    *)
-      _sgl_err SGL "invalid parsed \`${FN}' OPTION \`${1}'"
-      ;;
-  esac
-}
-readonly -f __sgl_rm_dest__opt
-
-############################################################
-# @private
-# @func __sgl_rm_dest__opt_D
-# @use __sgl_rm_dest__opt_D OPT BOOL VAL
-# @return
-#   0  PASS
-# @exit-on-error
-############################################################
-__sgl_rm_dest__opt_D()
-{
-  local _var
-  local _key
-  local _val
-
-  [[ -n "${3}" ]] || _sgl_err VAL "missing \`${FN}' \`${1}' VARS"
-
-  while IFS= read -r -d ',' _var; do
-    if [[ ! "${_var}" =~ = ]]; then
-      _sgl_err VAL "missing \`${FN}' \`${1}' VAR \`${_var}' VALUE"
-    fi
-    _key="${_var%%=*}"
-    _val="${_var#*=}"
-    if ! __sgl_rm_dest__chk_key "${_key}"; then
-      _sgl_err VAL "invalid \`${FN}' \`${1}' VAR \`${_var}' KEY \`${_key}'"
-    fi
-    tag_vars["${_key}"]="$(_sgl_esc_val "${_val}")"
-  done <<< "${3},"
-}
-readonly -f __sgl_rm_dest__opt_D
-
-############################################################
-# @private
-# @func __sgl_rm_dest__opt_d
-# @use __sgl_rm_dest__opt_d OPT BOOL VAL
-# @return
-#   0  PASS
-# @exit-on-error
-############################################################
-__sgl_rm_dest__opt_d()
-{
-  local _key
-  local _val
-
-  [[ -n "${3}" ]] || _sgl_err VAL "missing \`${FN}' \`${1}' VAR"
-
-  [[ "${3}" =~ = ]] || _sgl_err VAL "missing \`${FN}' \`${1}' VAR \`${3}' VALUE"
-
-  _key="${3%%=*}"
-  _val="${3#*=}"
-
-  if ! __sgl_rm_dest__chk_key "${_key}"; then
-    _sgl_err VAL "invalid \`${FN}' \`${1}' VAR \`${3}' KEY \`${_key}'"
+  if [[ ${#_SGL_OPTS[@]} -gt 0 ]]; then
+    for opt in "${_SGL_OPTS[@]}"; then
+      case "${opt}" in
+        -D|--defines)
+          _sgl_parse_defs "${FN}" "${opt}" "${_SGL_OPT_VALS[${i}]}"
+          ;;
+        -d|--define)
+          _sgl_parse_def "${FN}" "${opt}" "${_SGL_OPT_VALS[${i}]}"
+          ;;
+        -E|--no-empty)
+          empty=0
+          ;;
+        -e|--empty)
+          empty=1
+          ;;
+        -F|--no-force)
+          force=0
+          opts[${#opts[@]}]='-i'
+          ;;
+        -f|--force)
+          force=1
+          opts[${#opts[@]}]='-f'
+          ;;
+        -h|-\?|--help)
+          _sgl_help ${FN}
+          ;;
+        -Q|--silent)
+          silent=1
+          ;;
+        -q|--quiet)
+          quiet=1
+          ;;
+        -r|--recursive)
+          deep=1
+          ;;
+        -T|--no-test)
+          test=0
+          ;;
+        -t|--test)
+          regex="${_SGL_OPT_VALS[${i}]}"
+          test=1
+          ;;
+        -V|--verbose)
+          verbose=1
+          opts[${#opts[@]}]='--verbose'
+          ;;
+        -v|--version)
+          _sgl_version
+          ;;
+        -x|--one-file-system)
+          opts[${#opts[@]}]='--one-file-system'
+          ;;
+        *)
+          _sgl_err SGL "invalid parsed \`${FN}' OPTION \`${opt}'"
+          ;;
+      esac
+      i=$(( i + 1 ))
+    done
   fi
 
-  tag_vars["${_key}"]="$(_sgl_esc_val "${_val}")"
-}
-readonly -f __sgl_rm_dest__opt_d
+  if [[ -z "${regex}" ]]; then
+    test=0
+  fi
 
-################################################################################
-## DEFINE VALUE FUNCTIONS
-################################################################################
+  if [[ ${#_SGL_VALS[@]} -eq 0 ]]; then
+    _sgl_err VAL "missing \`${FN}' SRC"
+  fi
 
-############################################################
-# @private
-# @func __sgl_rm_dest__vals
-# @use __sgl_rm_dest__vals ...SRC
-# @return
-#   0  PASS
-# @exit-on-error
-############################################################
-__sgl_rm_dest__vals()
-{
-  local _src
-
-  [[ $# -eq 0 ]] && _sgl_err VAL "missing \`${FN}' SRC"
-
-  for _src in "${@}"; do
-    if [[ -d "${_src}" ]]; then
-      if [[ ${deep} -eq 1 ]]; then
-        __sgl_rm_dest__dirs "${_src}"
-      else
-        __sgl_rm_dest__dir "${_src}"
-      fi
+  # check each SRC path
+  for val in "${_SGL_VALS[@]}"; do
+    if _sgl_is_dir "${val}"; then
+      dirs[${#dirs[@]}]="${val}"
+    elif _sgl_is_file "${val}"; then
+      files[${#files[@]}]="${val}"
     else
-      __sgl_rm_dest__val "${_src}"
+      _sgl_err VAL "invalid \`${FN}' SRC file path \`${val}'"
     fi
   done
-}
-readonly -f __sgl_rm_dest__vals
 
-############################################################
-# @private
-# @func __sgl_rm_dest__dir
-# @use __sgl_rm_dest__dir SRCDIR
-# @return
-#   0  PASS
-# @exit-on-error
-############################################################
-__sgl_rm_dest__dir()
-{
-  local _src
-
-  for _src in "${1}"/*; do
-    [[ -f "${_src}" ]] && __sgl_rm_dest__val "${_src}"
+  # handle each SRC directory
+  i=0
+  while [[ ${i} -lt ${#dirs[@]} ]]; do
+    dir="${dirs[${i}]}"
+    for val in "${dir}"/*; do
+      if _sgl_is_dir "${val}"; then
+        if [[ ${deep} -eq 1 ]]; then
+          dirs[${#dirs[@]}]="${val}"
+        fi
+      elif _sgl_is_file "${val}"; then
+        files[${#files[@]}]="${val}"
+      fi
+    done
+    i=$(( i + 1 ))
   done
-}
-readonly -f __sgl_rm_dest__dir
 
-############################################################
-# @private
-# @func __sgl_rm_dest__dirs
-# @use __sgl_rm_dest__dirs SRCDIR
-# @return
-#   0  PASS
-# @exit-on-error
-############################################################
-__sgl_rm_dest__dirs()
-{
-  local _src
+  # return if SRC directory has no files
+  if [[ ${#files[@]} -eq 0 ]]; then
+    return 0
+  fi
 
-  for _src in "${1}"/*; do
-    if [[ -d "${_src}" ]]; then
-      __sgl_rm_dest__dirs "${_src}"
-    elif [[ -f "${_src}" ]]; then
-      __sgl_rm_dest__val "${_src}"
+  # parse each SRC file path
+  for src in "${files[@]}"; do
+
+    # check each SRC file path
+    if ! _sgl_is_read "${src}"; then
+      _sgl_err AUTH "unreadable \`${FN}' SRC file path \`${src}'"
     fi
+    if ! _sgl_has_tag "${src}" DEST; then
+      if [[ ${empty} -eq 1 ]]; then
+        continue
+      fi
+      _sgl_err VAL "missing \`dest' TAG for \`${FN}' SRC \`${src}'"
+    fi
+    _sgl_chk_tag ${FN} "${src}" DEST
+
+    # parse each dest TAG
+    while IFS= read -r dest; do
+
+      if [[ ${test} -eq 1 ]] && [[ ! "${dest}" =~ ${regex} ]]; then
+        dest="DEST \`${dest}' in SRC \`${src}'"
+        _sgl_err VAL "\`${FN}' ${dest} failed the REGEX \`${regex}' test"
+      fi
+
+      if [[ "${dest:0:1}" != '/' ]]; then
+        dest="${src%/*}/${dest}"
+      fi
+
+      if ! _sgl_is_file "${dest}"; then
+        if _sgl_is_dir "${dest}"; then
+          dest="DEST \`${dest}' in SRC \`${src}'"
+          _sgl_err VAL "a directory already exists for \`${FN}' ${dest}"
+        elif _sgl_is_path "${dest}"; then
+          dest="DEST \`${dest}' in SRC \`${src}'"
+          _sgl_err VAL "a non-file already exists for \`${FN}' ${dest}"
+        fi
+      fi
+
+      ${rm} "${opts[@]}" -- "${dest}"
+      _sgl_chk_exit ${?} ${rm} "${opts[@]}" -- "${dest}"
+
+    done <<< "$(_sgl_get_tags "${src}" DEST)"
   done
+  return 0
 }
-readonly -f __sgl_rm_dest__dirs
-
-############################################################
-# @private
-# @func __sgl_rm_dest__val
-# @use __sgl_rm_dest__val SRC
-# @return
-#   0  PASS
-# @exit-on-error
-############################################################
-__sgl_rm_dest__val()
-{
-  local src="${1}"
-  local dst
-  local val
-  local _line
-
-  [[ -f "${src}" ]] || _sgl_err VAL "invalid path for \`${FN}' SRC \`${src}'"
-
-  # handle no dest tags in SRC
-  if ! ${grep} "${dtag}" "${src}" > ${NIL} 2>&1; then
-    [[ ${empty} -eq 1 ]] && return 0
-    _sgl_err VAL "missing dest tag in \`${FN}' SRC \`${src}'"
-  fi
-
-  # parse each DEST
-  while IFS= read -r _line; do
-    __sgl_rm_dest__dst "${_line}"
-    __sgl_rm_dest__rm
-  done <<< "$(${grep} "${dtag}" "${src}" 2> ${NIL})"
-}
-readonly -f __sgl_rm_dest__val
-
-############################################################
-# @private
-# @func __sgl_rm_dest__dst
-# @use __sgl_rm_dest__dst LINE
-# @return
-#   0  PASS
-# @exit-on-error
-############################################################
-__sgl_rm_dest__dst()
-{
-  local _key
-  local _val
-
-  __sgl_rm_dest__set_val "${1}"
-
-  dst="${val}"
-  [[ "${dst}" =~ ^/ ]] || dst="${src%/*}/${dst}"
-
-  if [[ ! "${dst}" =~ ${regex} ]]; then
-    dst="\`${FN}' DEST \`${dst}'"
-    _sgl_err VAL "invalid ${dst} at LINE \`${1}' in SRC \`${src}'"
-  fi
-
-  if [[ ! -f "${dst}" ]]; then
-    if [[ -d "${dst}" ]]; then
-      dst="\`${FN}' DEST \`${dst}' at LINE \`${1}'"
-      _sgl_err VAL "a dir already exists for ${dst} in SRC \`${src}'"
-    fi
-    if [[ -a "${dst}" ]]; then
-      dst="\`${FN}' DEST \`${dst}' at LINE \`${1}'"
-      _sgl_err VAL "a non-file already exists for ${dst} in SRC \`${src}'"
-    fi
-  fi
-}
-readonly -f __sgl_rm_dest__dst
-
-############################################################
-# @private
-# @func __sgl_rm_dest__rm
-# @use __sgl_rm_dest__rm
-# @return
-#   0  PASS
-# @exit-on-error
-############################################################
-__sgl_rm_dest__rm()
-{
-  ${rm} "${rm_opts[@]}" "${dst}" \
-    || _sgl_err CHLD "\`${rm}' in \`${FN}' exited with \`$?'"
-}
-readonly -f __sgl_rm_dest__rm
+readonly -f sgl_rm_dest
