@@ -20,7 +20,6 @@ _sgl_source esc_key get_keys trim_blank trim_tag
 # @val SRC  Must be a valid file path.
 # @val TAG  Must be a valid `superglue' tag.
 #   `DEST'
-#   `INCL'
 #   `SET'
 # @return
 #   0  PASS
@@ -40,9 +39,6 @@ _sgl_get_tags()
   case "${TAG}" in
     DEST)
       patt='^[[:blank:]]*#[[:blank:]]*@dest\(ination\)\?[[:blank:]]\+'
-      ;;
-    INCL)
-      patt='^[[:blank:]]*#[[:blank:]]*@incl\(ude\)\?[[:blank:]]\+'
       ;;
     SET)
       patt='^[[:blank:]]*#[[:blank:]]*@\(set\|var\|variable\)[[:blank:]]\+'
