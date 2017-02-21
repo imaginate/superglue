@@ -312,7 +312,7 @@ if [[ ${#__SGL_OPTS[@]} -gt 0 ]]; then
         __VAL="${__VAL% }"
         while IFS= read -r -d ' ' __FUNC; do
           __FUNC="$(_sgl_prefix "${__FUNC}")"
-          if ! _sgl_match_func "${__FUNC}"; do
+          if ! _sgl_match_func "${__FUNC}"; then
             __FUNC="FUNC \`${__FUNC}'"
             __VAL="FUNCS \`${__VAL}'"
             _sgl_err VAL "invalid \`${SGL}' ${__FUNC} in ${__VAL}"
