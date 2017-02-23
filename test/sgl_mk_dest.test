@@ -71,7 +71,7 @@ cat <<EOF > "${correct}"
 # SOURCE
 # @version 0.1.0-test
 #
-# @dest \$BASE/dest.sgl.file
+# @dest "\$BASE/dest.sgl.file"
 # @dest \${TMP}/dest.sgl.file
 # @mode 0755
 #
