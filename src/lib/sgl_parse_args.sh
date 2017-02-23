@@ -185,7 +185,7 @@ sgl_parse_args()
       len="${#1}"
       while :; do
         i=$(( i + 1 ))
-        if [[ ${i} -ge ${len} ]]; do
+        if [[ ${i} -ge ${len} ]]; then
           break
         fi
         arg="-${1:${i}:1}"
