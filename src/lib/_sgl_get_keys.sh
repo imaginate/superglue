@@ -32,7 +32,7 @@ _sgl_get_keys()
       return 0
     elif [[ "${val:1:1}" == '{' ]]; then
       if [[ "${val}" =~ \} ]]; then
-        printf '%s\n' "${val%%\}*}\}"
+        printf '%s\n' "${val%%\}*}}"
         val="${val#*\}}"
       else
         printf '%s\n' "${val}"
