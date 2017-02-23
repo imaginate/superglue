@@ -15,7 +15,8 @@ _sgl_source chk_exit err esc_cont esc_key get_keys has_tag ins_var is_file \
 ############################################################
 # @private
 # @func _sgl_ins_incl
-# @use _sgl_ins_incl PRG INS SRC
+# @use _sgl_ins_incl PRG INS DIR SRC
+# @val DIR  Must be the SRC parent directory path (enables tmp SRC paths).
 # @val INS  Must be the boolean value for `--insert'.
 # @val PRG  Must be the name of the calling command or function.
 # @val SRC  Must be a valid file path.
@@ -34,7 +35,8 @@ _sgl_ins_incl()
 {
   local -r PRG="${1}"
   local -r INS="${2}"
-  local -r SRC="${3}"
+  local -r DIR="${3}"
+  local -r SRC="${4}"
   local -r PATT='^[[:blank:]]*#[[:blank:]]*@incl\(ude\)\?[[:blank:]]\+'
   local key
   local val
@@ -88,7 +90,7 @@ _sgl_ins_incl()
     fi
 
     if [[ "${path:0:1}" != '/' ]]; then
-      path="${SRC%/*}/${path}"
+      path="${DIR}/${path}"
     fi
 
     if ! _sgl_is_read "${path}"; then
@@ -110,7 +112,7 @@ _sgl_ins_incl()
       _sgl_ins_var "${path}"
     fi
 
-    _sgl_ins_incl "${PRG}" ${INS} "${path}"
+    _sgl_ins_incl "${PRG}" ${INS} "${DIR}" "${path}"
 
     key="$(_sgl_esc_key "${line}")"
     val="$(_sgl_esc_cont "${path}")"

@@ -418,7 +418,7 @@ sgl_mk_dest()
     fi
 
     if [[ ${include} -eq 1 ]]; then
-      _sgl_ins_incl ${FN} ${insert} "${tmp}"
+      _sgl_ins_incl ${FN} ${insert} "${src%/*}" "${tmp}"
     fi
 
     # parse each dest TAG
