@@ -56,7 +56,7 @@ _sgl_ins_var()
   local opts=()
   while IFS= read -r key; do
     val="${vars[${key}]}"
-    key="^\([[:blank:]]*\)\([^#@].*\)\?@${_key}"
+    key="^\([[:blank:]]*\)\([^#@].*\)\?@${key}"
     opts[${#opts[@]}]='-e'
     opts[${#opts[@]}]="s/${key}/\1\2${val}/g"
   done <<< "$(_sgl_sort_keys "${keys[@]}")"
