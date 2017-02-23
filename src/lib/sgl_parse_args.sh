@@ -185,7 +185,7 @@ sgl_parse_args()
       len="${#1}"
       while :; do
         i=$(( i + 1 ))
-        if [[ ${i} -gte ${len} ]]; do
+        if [[ ${i} -ge ${len} ]]; do
           break
         fi
         arg="-${1:${i}:1}"
@@ -319,7 +319,7 @@ sgl_parse_args()
   len=${#args[@]}
   while :; do
     i=$(( i + 1 ))
-    if [[ ${i} -gte ${len} ]]; then
+    if [[ ${i} -ge ${len} ]]; then
       break
     fi
     opt="${args[${i}]}"
@@ -392,7 +392,7 @@ sgl_parse_args()
       ulen="${#arg}"
       while :; do
         u=$(( u + 1 ))
-        if [[ ${u} -gte ${ulen} ]]; then
+        if [[ ${u} -ge ${ulen} ]]; then
           break
         fi
         opt="-${arg:${u}:1}"
