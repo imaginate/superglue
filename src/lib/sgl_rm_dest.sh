@@ -108,7 +108,7 @@ sgl_rm_dest()
   _sgl_setup_defs
 
   if [[ ${#_SGL_OPTS[@]} -gt 0 ]]; then
-    for opt in "${_SGL_OPTS[@]}"; then
+    for opt in "${_SGL_OPTS[@]}"; do
       case "${opt}" in
         -D|--defines)
           _sgl_parse_defs "${FN}" "${opt}" "${_SGL_OPT_VALS[${i}]}"

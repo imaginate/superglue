@@ -169,7 +169,7 @@ sgl_mk_dest()
   _sgl_setup_defs
 
   if [[ ${#_SGL_OPTS[@]} -gt 0 ]]; then
-    for opt in "${_SGL_OPTS[@]}"; then
+    for opt in "${_SGL_OPTS[@]}"; do
       case "${opt}" in
         -B|--backup-ext)
           bkext="${_SGL_OPT_VALS[${i}]}"
