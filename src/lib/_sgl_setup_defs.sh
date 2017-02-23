@@ -23,7 +23,7 @@ _sgl_source esc_val
 ############################################################
 _sgl_setup_defs()
 {
-  declare -A _SGL_DEFS=( \
+  _SGL_DEFS=( \
     ['HOME']="$(_sgl_esc_val "${HOME}")" \
     ['EUID']="$(_sgl_esc_val "${EUID}")" \
     ['PWD']="$(_sgl_esc_val "${PWD}")"   \
