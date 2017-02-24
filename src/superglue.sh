@@ -163,6 +163,7 @@ readonly chown="$(_sgl_which chown)"
 readonly cp="$(_sgl_which cp)"
 readonly grep="$(_sgl_which grep)"
 readonly ln="$(_sgl_which ln)"
+readonly ls="$(_sgl_which ls)"
 readonly mkdir="$(_sgl_which mkdir)"
 readonly mv="$(_sgl_which mv)"
 readonly rm="$(_sgl_which rm)"
@@ -174,7 +175,7 @@ readonly sort="$(_sgl_which sort)"
 ################################################################################
 
 _sgl_chk_cmd ${bash} ${cat} ${chgrp} ${chmod} ${chown} ${cp} ${grep} ${ln} \
-  ${mkdir} ${mv} ${rm} ${sed} ${sort}
+  ${ls} ${mkdir} ${mv} ${rm} ${sed} ${sort}
 
 ################################################################################
 ## DEFINE COLORS
