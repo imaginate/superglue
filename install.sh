@@ -883,7 +883,7 @@ readonly SGLUE_HELP_DEST="${SGLUE_SHARE}/superglue/help"
 ############################################################
 sglue_mk()
 {
-  local src="${1}"
+  local src="${1%/}"
   local mode
   local path
 
@@ -893,7 +893,7 @@ sglue_mk()
 
   if [[ -d "${src}" ]]; then
     while IFS= read -r path; do
-      sglue_mk "${path}"
+      sglue_mk "${src}/${path##*/}"
     done <<< "$(${ls} -b -1 -- "${src}")"
   elif [[ -f "${src}" ]] && sglue_has_dest "${src}"; then
     sglue_step "${src##*/src/}"
@@ -1006,7 +1006,7 @@ sglue_mk_incl()
 ############################################################
 sglue_rm()
 {
-  local src="${1}"
+  local src="${1%/}"
   local path
 
   if [[ -z "${src}" ]] || [[ ! -a "${src}" ]] || [[ -h "${src}" ]]; then
@@ -1015,7 +1015,7 @@ sglue_rm()
 
   if [[ -d "${src}" ]]; then
     while IFS= read -r path; do
-      sglue_rm "${path}"
+      sglue_rm "${src}/${path##*/}"
     done <<< "$(${ls} -b -1 -- "${src}")"
   elif [[ -f "${src}" ]] && sglue_has_dest "${src}"; then
     sglue_step "${src##*/src/}"
