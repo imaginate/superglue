@@ -9,10 +9,11 @@
 #   0  PASS
 ################################################################################
 
-_sgl_source chk_attrs chk_exit chk_tags err get_paths get_quiet get_silent \
-  get_tag get_tags get_tmp get_verbose has_group has_tag has_user help \
-  ins_incl ins_var is_ctrl is_dir is_file is_flat is_group is_mode is_owner \
-  is_path is_read is_user parse_args parse_def parse_defs setup_defs version
+_sgl_source chk_attrs chk_exit chk_tags err get_mode get_owner get_paths \
+  get_quiet get_silent get_tag get_tags get_tmp get_verbose has_group has_tag \
+  has_user help ins_incl ins_var is_ctrl is_dir is_file is_flat is_group \
+  is_mode is_owner is_path is_read is_user parse_args parse_def parse_defs \
+  setup_defs version
 
 ############################################################
 # @public
@@ -386,6 +387,12 @@ sgl_mk_dest()
       if ! _sgl_is_mode "${mode}"; then
         _sgl_err VAL "invalid \`${FN}' SRC \`${src}' MODE \`${mode}'"
       fi
+    elif [[ -z "${MODE}" ]]; then
+      mode="$(_sgl_get_mode "${src}")"
+      if ! _sgl_is_mode "${mode}"; then
+        mode="\`_sgl_get_mode' MODE \`${mode}'"
+        _sgl_err SGL "invalid ${mode} for SRC \`${src}'"
+      fi
     fi
     if [[ -n "${MODE}" ]]; then
       mode="${MODE}"
@@ -402,6 +409,12 @@ sgl_mk_dest()
       fi
       if _sgl_has_group "${owner}" && ! _sgl_is_group "${owner#*:}"; then
         _sgl_err VAL "invalid \`${FN}' SRC \`${src}' GROUP \`${owner#*:}'"
+      fi
+    elif [[ -z "${OWNER}" ]]; then
+      owner="$(_sgl_get_owner "${src}")"
+      if ! _sgl_is_owner "${owner}"; then
+        owner="\`_sgl_get_owner' OWNER \`${owner}'"
+        _sgl_err SGL "invalid ${owner} for SRC \`${src}'"
       fi
     fi
     if [[ -n "${OWNER}" ]]; then
