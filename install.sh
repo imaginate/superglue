@@ -445,6 +445,43 @@ sglue_chk_file()
 }
 
 ############################################################
+# @func sglue_chk_exit
+# @use sglue_chk_exit CODE CMD ...ARG
+# @val ARG   Must be a valid argument passed to CMD.
+# @val CMD   Must be a valid executable command.
+# @val CODE  Must be the exit code from the CMD.
+# @return
+#   0  PASS
+############################################################
+sglue_chk_exit()
+{
+  local -r CODE="${1}"
+  local cmd
+  local arg
+
+  if [[ "${CODE}" == '0' ]]; then
+    return 0
+  fi
+  shift
+
+  if [[ ${#} -gt 0 ]]; then
+    for arg in "${@}"; do
+      if [[ -z "${arg}" ]]; then
+        arg='""'
+      elif [[ "${arg}" =~ [[:space:]] ]]; then
+        arg="\"${arg}\""
+      fi
+      if [[ -n "${cmd}" ]]; then
+        cmd="${cmd} ${arg}"
+      else
+        cmd="${arg}"
+      fi
+    done
+  fi
+  sglue_err CHLD "\`${cmd}' exited with CODE \`${CODE}'"
+}
+
+############################################################
 # Prints a row of dashes.
 #
 # @func sglue_dashes
@@ -702,6 +739,7 @@ chmod="$(sglue_which chmod)"
 chown="$(sglue_which chown)"
 cp="$(sglue_which cp)"
 grep="$(sglue_which grep)"
+ls="$(sglue_which ls)"
 mkdir="$(sglue_which mkdir)"
 rm="$(sglue_which rm)"
 sed="$(sglue_which sed)"
@@ -710,7 +748,7 @@ sed="$(sglue_which sed)"
 ## CHECK COMMANDS
 ################################################################################
 
-sglue_chk CMD ${cat} ${chmod} ${chown} ${cp} ${grep} ${mkdir} ${rm} ${sed}
+sglue_chk CMD ${cat} ${chmod} ${chown} ${cp} ${grep} ${ls} ${mkdir} ${rm} ${sed}
 
 ################################################################################
 ## CHANGE DIRECTORY
@@ -847,10 +885,14 @@ sglue_mk()
   local mode
   local path
 
+  if [[ -z "${src}" ]] || [[ ! -a "${src}" ]] || [[ -h "${src}" ]]; then
+    return 0
+  fi
+
   if [[ -d "${src}" ]]; then
-    for path in "${src}"/*; do
+    while IFS= read -r path; do
       sglue_mk "${path}"
-    done
+    done <<< "$(${ls} -b -1 -- "${src}")"
   elif [[ -f "${src}" ]] && sglue_has_dest "${src}"; then
     sglue_step "${src##*/src/}"
     mode="$(sglue_get_mode "${src}")"
@@ -876,7 +918,9 @@ sglue_mk_dest()
   local dest="${2}"
   local mode="${3}"
 
-  [[ -n "${mode}" ]] || mode='0644'
+  if [[ -z "${mode}" ]]; then
+    mode='0644'
+  fi
 
   if [[ ! "${dest}" =~ ^/[^/]+/.*[^/]$ ]] || [[ ! -d "${dest%/*}" ]]; then
     sglue_err VAL "invalid DEST \`${dest}' in SRC \`${src}'"
@@ -892,10 +936,16 @@ sglue_mk_dest()
     sglue_err VAL "DEST \`${dest}' already exists (use \`--force' to overwrite)"
   fi
 
-  ${cp} -T "${src}" "${dest}"
+  ${cp} -T -- "${src}" "${dest}"
+  sglue_chk_exit ${?} ${cp} -T -- "${src}" "${dest}"
+
   sglue_mk_incl "${src}" "${dest}"
-  ${chown} root:root "${dest}"
-  ${chmod} ${mode} "${dest}"
+
+  ${chown} -- 'root:root' "${dest}"
+  sglue_chk_exit ${?} ${chown} -- 'root:root' "${dest}"
+
+  ${chmod} -- "${mode}" "${dest}"
+  sglue_chk_exit ${?} ${chmod} -- "${mode}" "${dest}"
 }
 
 ############################################################
@@ -915,11 +965,15 @@ sglue_mk_incl()
   local content
   local subline
 
-  sglue_has_incl "${dest}" || return 0
+  if ! sglue_has_incl "${dest}"; then
+    return 0
+  fi
 
   while IFS= read -r line; do
     path="$(sglue_untag "${line}")"
-    [[ "${path}" =~ ^/ ]] || path="${src%/*}/${path}"
+    if [[ "${path:0:1}" != '/' ]]; then
+      path="${src%/*}/${path}"
+    fi
     if [[ ! -f "${path}" ]]; then
       sglue_err VAL "invalid INCL path \`${path}' in SRC \`${src}'"
     fi
@@ -927,9 +981,9 @@ sglue_mk_incl()
     content=''
     while IFS= read -r subline; do
       content="${content}${subline}\\n"
-    done <<< "$(${sed} -e '1,4 d' -e 's/[\/&]/\\&/g' "${path}")"
-    ${sed} -i -e "s/${line}/${content}/" "${dest}"
-  done <<< "$(${grep} "${SGLUE_TAG_INCL}" "${dest}" 2> ${NIL})"
+    done <<< "$(${sed} -e '1,4 d' -e 's/[\/&]/\\&/g' -- "${path}")"
+    ${sed} -i -e "s/${line}/${content}/" -- "${dest}"
+  done <<< "$(${grep} -e "${SGLUE_TAG_INCL}" -- "${dest}")"
 }
 
 ################################################################################
@@ -948,10 +1002,14 @@ sglue_rm()
   local src="${1}"
   local path
 
+  if [[ -z "${src}" ]] || [[ ! -a "${src}" ]] || [[ -h "${src}" ]]; then
+    return 0
+  fi
+
   if [[ -d "${src}" ]]; then
-    for path in "${src}"/*; do
+    while IFS= read -r path; do
       sglue_rm "${path}"
-    done
+    done <<< "$(${ls} -b -1 -- "${src}")"
   elif [[ -f "${src}" ]] && sglue_has_dest "${src}"; then
     sglue_step "${src##*/src/}"
     while IFS= read -r path; do
@@ -978,7 +1036,9 @@ sglue_rm_dest()
     sglue_err VAL "invalid DEST \`${dest}' in SRC \`${src}'"
   fi
 
-  [[ -f "${dest}" ]] && ${rm} "${dest}"
+  if [[ -f "${dest}" ]]; then
+    ${rm} -- "${dest}"
+  fi
 }
 
 ################################################################################
@@ -988,25 +1048,35 @@ sglue_rm_dest()
 if [[ "${SGLUE_ACTION}" == 'mk' ]]; then
 
   sglue_step directories
-  [[ -d "${SGLUE_LIB_DEST}"  ]] || ${mkdir} -m 0755 -p "${SGLUE_LIB_DEST}"
-  [[ -d "${SGLUE_HELP_DEST}" ]] || ${mkdir} -m 0755 -p "${SGLUE_HELP_DEST}"
+  if [[ ! -d "${SGLUE_LIB_DEST}" ]]; then
+    ${mkdir} -m 0755 -p -- "${SGLUE_LIB_DEST}"
+  fi
+  if [[ ! -d "${SGLUE_HELP_DEST}" ]]; then
+    ${mkdir} -m 0755 -p -- "${SGLUE_HELP_DEST}"
+  fi
 
   sglue_mk "${SGLUE_SRC_D}"
 
   sglue_step help files
-  ${rm} -rf "${SGLUE_HELP_DEST}"
-  ${cp} -rt "${SGLUE_HELP_DEST%/*}" "${SGLUE_HELP_D}"
+  ${rm} -r -f -- "${SGLUE_HELP_DEST}"
+  ${cp} -r -t "${SGLUE_HELP_DEST%/*}" -- "${SGLUE_HELP_D}"
 
 elif [[ "${SGLUE_ACTION}" == 'rm' ]]; then
 
   sglue_rm "${SGLUE_SRC_D}"
 
   sglue_step help files
-  [[ -d "${SGLUE_HELP_DEST}" ]] && ${rm} -rf "${SGLUE_HELP_DEST}"
+  if [[ -d "${SGLUE_HELP_DEST}" ]]; then
+    ${rm} -r -f -- "${SGLUE_HELP_DEST}"
+  fi
 
   sglue_step directories
-  [[ -d "${SGLUE_LIB_DEST}"     ]] && ${rm} -rf "${SGLUE_LIB_DEST}"
-  [[ -d "${SGLUE_HELP_DEST%/*}" ]] && ${rm} -rf "${SGLUE_HELP_DEST%/*}"
+  if [[ -d "${SGLUE_LIB_DEST}" ]]; then
+    ${rm} -r -f -- "${SGLUE_LIB_DEST}"
+  fi
+  if [[ -d "${SGLUE_HELP_DEST%/*}" ]]; then
+    ${rm} -r -f -- "${SGLUE_HELP_DEST%/*}"
+  fi
 
 fi
 
