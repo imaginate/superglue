@@ -30,7 +30,7 @@ _sgl_get_paths()
 
   while IFS= read -r path; do
     path="${DIR}/${path##*/}"
-    if _sgl_is_path "${path}"; then
+    if _sgl_is_path "${path}" && [[ ! -h "${path}" ]]; then
       printf '%s\n' "${path}"
     fi
   done <<< "$(${ls} -b -1 -A -- "${DIR}")"
