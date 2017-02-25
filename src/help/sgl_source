@@ -4,11 +4,11 @@
   Options:
     -A|--no-alias  Disable FUNC aliases without `sgl_' prefix (default).
     -a|--alias     Enable FUNC aliases without `sgl_' prefix.
-    -h|-?|--help  Print help info and exit.
-    -Q|--silent   Disable `stderr' and `stdout' outputs.
-    -q|--quiet    Disable `stdout' output.
-    -v|--version  Print version info and exit.
-    -|--          End the options.
+    -h|-?|--help   Print help info and exit.
+    -Q|--silent    Disable `stderr' and `stdout' outputs.
+    -q|--quiet     Disable `stdout' output.
+    -v|--version   Print version info and exit.
+    -|--           End the options.
 
   Values:
     FUNC  Must be one of the below `superglue' functions. The `sgl_' prefix
