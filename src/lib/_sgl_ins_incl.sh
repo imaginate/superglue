@@ -100,7 +100,7 @@ _sgl_ins_incl()
         _sgl_err VAL "invalid \`${PRG}' ${path} in SRC \`${SRC}'"
       fi
 
-      key="$(_sgl_esc_key "${path##*/}" | ${sed} -e 's/\\\*/[^/]*/g')"
+      key="$(_sgl_esc_key "${path##*/}" | ${sed} -e 's/\\\*/[^\/]*/g')"
       key="^\(.*/\)\?${key}\$"
       paths=()
       while IFS= read -r path; do
