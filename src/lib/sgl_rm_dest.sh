@@ -9,9 +9,9 @@
 #   0  PASS
 ################################################################################
 
-_sgl_source chk_exit chk_tag err get_quiet get_silent get_tags get_verbose \
-  has_tag help is_dir is_file is_path is_read parse_args parse_def parse_defs \
-  setup_defs version
+_sgl_source chk_exit chk_tag err get_paths get_quiet get_silent get_tags \
+  get_verbose has_tag help is_dir is_file is_path is_read parse_args parse_def \
+  parse_defs setup_defs version
 
 ############################################################
 # @public
@@ -190,15 +190,15 @@ sgl_rm_dest()
   i=0
   while [[ ${i} -lt ${#dirs[@]} ]]; do
     dir="${dirs[${i}]}"
-    for val in "${dir}"/*; do
-      if _sgl_is_dir "${val}"; then
+    while IFS= read -r file; do
+      if _sgl_is_dir "${file}"; then
         if [[ ${deep} -eq 1 ]]; then
-          dirs[${#dirs[@]}]="${val}"
+          dirs[${#dirs[@]}]="${file}"
         fi
-      elif _sgl_is_file "${val}"; then
-        files[${#files[@]}]="${val}"
+      elif _sgl_is_file "${file}"; then
+        files[${#files[@]}]="${file}"
       fi
-    done
+    done <<< "$(_sgl_get_paths "${dir}")"
     i=$(( i + 1 ))
   done
 
