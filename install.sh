@@ -741,6 +741,7 @@ cp="$(sglue_which cp)"
 grep="$(sglue_which grep)"
 ls="$(sglue_which ls)"
 mkdir="$(sglue_which mkdir)"
+mv="$(sglue_which mv)"
 rm="$(sglue_which rm)"
 sed="$(sglue_which sed)"
 
@@ -748,7 +749,8 @@ sed="$(sglue_which sed)"
 ## CHECK COMMANDS
 ################################################################################
 
-sglue_chk CMD ${cat} ${chmod} ${chown} ${cp} ${grep} ${ls} ${mkdir} ${rm} ${sed}
+sglue_chk CMD ${cat} ${chmod} ${chown} ${cp} ${grep} ${ls} ${mkdir} ${mv} \
+  ${rm} ${sed}
 
 ################################################################################
 ## CHANGE DIRECTORY
@@ -934,6 +936,11 @@ sglue_mk_dest()
     fi
   elif [[ ${SGLUE_FORCE} -ne 1 ]]; then
     sglue_err VAL "DEST \`${dest}' already exists (use \`--force' to overwrite)"
+  elif sglue_has_sgl "${src}" && ! sglue_has_sgl "${dest}"; then
+    if [[ ! -f "${dest}.bak" ]]; then
+      ${mv} -T -- "${dest}" "${dest}.bak"
+      sglue_chk_exit ${?} ${mv} -T -- "${dest}" "${dest}.bak"
+    fi
   fi
 
   ${cp} -T -- "${src}" "${dest}"
@@ -1036,8 +1043,23 @@ sglue_rm_dest()
     sglue_err VAL "invalid DEST \`${dest}' in SRC \`${src}'"
   fi
 
-  if [[ -f "${dest}" ]]; then
+  if sglue_has_sgl "${src}"; then
+    if [[ -f "${dest}" ]]; then
+      if sglue_has_sgl "${dest}"; then
+        ${rm} -- "${dest}"
+        sglue_chk_exit ${?} ${rm} -- "${dest}"
+        if [[ -f "${dest}.bak" ]]; then
+          ${mv} -T -- "${dest}.bak" "${dest}"
+          sglue_chk_exit ${?} ${mv} -T -- "${dest}.bak" "${dest}"
+        fi
+      fi
+    elif [[ -f "${dest}.bak" ]]; then
+      ${mv} -T -- "${dest}.bak" "${dest}"
+      sglue_chk_exit ${?} ${mv} -T -- "${dest}.bak" "${dest}"
+    fi
+  elif [[ -f "${dest}" ]]; then
     ${rm} -- "${dest}"
+    sglue_chk_exit ${?} ${rm} -- "${dest}"
   fi
 }
 
