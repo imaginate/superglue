@@ -34,5 +34,6 @@ _sgl_get_paths()
       printf '%s\n' "${path}"
     fi
   done <<< "$(${ls} -b -1 -A -- "${DIR}")"
+  return 0
 }
 readonly -f _sgl_get_paths
