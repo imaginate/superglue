@@ -45,7 +45,7 @@ _sgl_ins_incl()
   local path
   local -a paths
 
-  if ! _sgl_has_tag "${SRC}" SET; then
+  if ! _sgl_has_tag "${SRC}" INCL; then
     return 0
   fi
 
