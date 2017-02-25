@@ -9,10 +9,10 @@
 #   0  PASS
 ################################################################################
 
-_sgl_source chk_attrs chk_exit chk_tags err get_quiet get_silent get_tag \
-  get_tags get_tmp get_verbose has_group has_tag has_user help ins_incl \
-  ins_var is_ctrl is_dir is_file is_flat is_group is_mode is_owner is_path \
-  is_read is_user parse_args parse_def parse_defs setup_defs version
+_sgl_source chk_attrs chk_exit chk_tags err get_paths get_quiet get_silent \
+  get_tag get_tags get_tmp get_verbose has_group has_tag has_user help \
+  ins_incl ins_var is_ctrl is_dir is_file is_flat is_group is_mode is_owner \
+  is_path is_read is_user parse_args parse_def parse_defs setup_defs version
 
 ############################################################
 # @public
@@ -348,15 +348,15 @@ sgl_mk_dest()
   i=0
   while [[ ${i} -lt ${#dirs[@]} ]]; do
     dir="${dirs[${i}]}"
-    for val in "${dir}"/*; do
-      if _sgl_is_dir "${val}"; then
+    while IFS= read -r file; do
+      if _sgl_is_dir "${file}"; then
         if [[ ${deep} -eq 1 ]]; then
-          dirs[${#dirs[@]}]="${val}"
+          dirs[${#dirs[@]}]="${file}"
         fi
-      elif _sgl_is_file "${val}"; then
-        files[${#files[@]}]="${val}"
+      elif _sgl_is_file "${file}"; then
+        files[${#files[@]}]="${file}"
       fi
-    done
+    done <<< "$(_sgl_get_paths "${dir}")"
     i=$(( i + 1 ))
   done
 
