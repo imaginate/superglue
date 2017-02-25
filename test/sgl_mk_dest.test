@@ -10,9 +10,9 @@
 
 # Define src and dest file paths.
 local src="${DUMMY}/source.sgl.file"
-local incl="${DUMMY}/include.sgl.file"
+local incl="${DUMTMP}/include.sgl.file"
 local dest1="${DUMMY}/dest.sgl.file"
-local dest2="${DUMTMP}/dest.sgl.file"
+local dest2="${DUMTMP2}/dest.sgl.file"
 local correct="${DUMMY}/correct.sgl.file"
 
 # Make the test src file.
@@ -21,7 +21,7 @@ cat <<'EOF' > "${src}"
 # @version 0.1.0-test
 #
 # @dest "$BASE/dest.sgl.file"
-# @dest ${TMP}/dest.sgl.file
+# @dest ${TMP2}/dest.sgl.file
 # @mode 0755
 #
 # @var RESULT=success
@@ -29,7 +29,7 @@ cat <<'EOF' > "${src}"
 # @var USER='$USER'
 # @var SPACE = is ok 
 ##
-# @include ./include.sgl.file
+# @include ./tmp/*.sgl.file
 ##
 
 if [[ '/path/to/@RESULT' != '/path/to/success' ]]; then
@@ -72,7 +72,7 @@ cat <<EOF > "${correct}"
 # @version 0.1.0-test
 #
 # @dest "\$BASE/dest.sgl.file"
-# @dest \${TMP}/dest.sgl.file
+# @dest \${TMP2}/dest.sgl.file
 # @mode 0755
 #
 # @var RESULT=success
@@ -120,7 +120,7 @@ local line
 
 ######################################################################
 # @note-for-bash-newbies
-# @lines 133-140
+# @lines 133-141
 #
 # The `while' loop is used to catch and register any errors from
 # `sgl_mk_dest'. The following is an ordered sequence of events:
@@ -137,6 +137,7 @@ while IFS= read -r line; do
 done <<< "$(sgl mk_dest \
   --define "BASE=${DUMMY}" \
   --define "TMP=${DUMTMP}" \
+  --define "TMP2=${DUMTMP2}" \
   -- "${src}" 3>&2 2>&1 1>&3-)"
 
 ################################################################################
