@@ -9,8 +9,8 @@
 #   0  PASS
 ################################################################################
 
-_sgl_source chk_exit err esc_cont esc_key get_keys has_tag ins_var is_file \
-  is_read trim_tag
+_sgl_source chk_exit err esc_cont esc_key get_keys get_paths get_tmp has_tag \
+  ins_var is_dir is_file is_read match_patt trim_tag
 
 ############################################################
 # @private
@@ -43,6 +43,7 @@ _sgl_ins_incl()
   local line
   local name
   local path
+  local -a paths
 
   if ! _sgl_has_tag "${SRC}" SET; then
     return 0
@@ -93,32 +94,76 @@ _sgl_ins_incl()
       path="${DIR}/${path}"
     fi
 
-    if ! _sgl_is_read "${path}"; then
-      if ! _sgl_is_file "${path}"; then
-        path="FILE path \`${path}' at LINE \`${line}'"
+    if [[ "${path##*/}" =~ \* ]]; then
+      if ! _sgl_is_dir "${path%/*}"; then
+        path="parent directory for FILE path \`${path}' at LINE \`${line}'"
         _sgl_err VAL "invalid \`${PRG}' ${path} in SRC \`${SRC}'"
       fi
-      path="FILE path \`${path}' at LINE \`${line}'"
-      _sgl_err VAL "unreadable \`${PRG}' ${path} in SRC \`${SRC}'"
+
+      key="$(_sgl_esc_key "${path##*/}" | ${sed} -e 's/\\\*/[^/]*/g')"
+      key="^\(.*/\)\?${key}\$"
+      paths=()
+      while IFS= read -r path; do
+        if _sgl_is_file "${path}" && _sgl_match_patt "${key}" "${path}"; then
+          paths[${#paths[@]}]="${path}"
+          if ! _sgl_is_read "${path}"; then
+            path="FILE path \`${path}' at LINE \`${line}'"
+            _sgl_err VAL "unreadable \`${PRG}' ${path} in SRC \`${SRC}'"
+          fi
+        fi
+      done <<< "$(_sgl_get_paths "${path%/*}")"
+
+      key="$(_sgl_esc_key "${line}")"
+
+      if [[ ${#paths[@]} -gt 0 ]]; then
+        for path in "${paths[@]}"; do
+          # copy SRC to temporary file path
+          val="${path}"
+          path="$(_sgl_get_tmp incl)"
+          ${cp} -T -- "${val}" "${path}"
+          _sgl_chk_exit ${?} ${cp} -T -- "${val}" "${path}"
+
+          if [[ ${INS} -eq 1 ]]; then
+            _sgl_ins_var "${path}"
+          fi
+
+          _sgl_ins_incl "${PRG}" ${INS} "${DIR}" "${path}"
+
+          val="$(_sgl_esc_cont "${path}")\\n&"
+          ${sed} -i -e "s/${key}/${val}/" -- "${SRC}"
+          _sgl_chk_exit ${?} ${sed} -i -e "s/${key}/${val}/" -- "${SRC}"
+        done
+      fi
+
+      ${sed} -i -e "/${key}/ d" -- "${SRC}"
+      _sgl_chk_exit ${?} ${sed} -i -e "/${key}/ d" -- "${SRC}"
+    else
+      if ! _sgl_is_read "${path}"; then
+        if ! _sgl_is_file "${path}"; then
+          path="FILE path \`${path}' at LINE \`${line}'"
+          _sgl_err VAL "invalid \`${PRG}' ${path} in SRC \`${SRC}'"
+        fi
+        path="FILE path \`${path}' at LINE \`${line}'"
+        _sgl_err VAL "unreadable \`${PRG}' ${path} in SRC \`${SRC}'"
+      fi
+
+      # copy SRC to temporary file path
+      val="${path}"
+      path="$(_sgl_get_tmp incl)"
+      ${cp} -T -- "${val}" "${path}"
+      _sgl_chk_exit ${?} ${cp} -T -- "${val}" "${path}"
+
+      if [[ ${INS} -eq 1 ]]; then
+        _sgl_ins_var "${path}"
+      fi
+
+      _sgl_ins_incl "${PRG}" ${INS} "${DIR}" "${path}"
+
+      key="$(_sgl_esc_key "${line}")"
+      val="$(_sgl_esc_cont "${path}")"
+      ${sed} -i -e "s/${key}/${val}/" -- "${SRC}"
+      _sgl_chk_exit ${?} ${sed} -i -e "s/${key}/${val}/" -- "${SRC}"
     fi
-
-    # copy SRC to temporary file path
-    val="${path}"
-    path="$(_sgl_get_tmp incl)"
-    ${cp} -T -- "${val}" "${path}"
-    _sgl_chk_exit ${?} ${cp} -T -- "${val}" "${path}"
-
-    if [[ ${INS} -eq 1 ]]; then
-      _sgl_ins_var "${path}"
-    fi
-
-    _sgl_ins_incl "${PRG}" ${INS} "${DIR}" "${path}"
-
-    key="$(_sgl_esc_key "${line}")"
-    val="$(_sgl_esc_cont "${path}")"
-    ${sed} -i -e "s/${key}/${val}/" "${SRC}"
-    _sgl_chk_exit ${?} ${sed} -i -e "s/${key}/${val}/" "${SRC}"
-
   done <<< "$(${grep} -e "${PATT}" -- "${SRC}")"
 
   return 0
