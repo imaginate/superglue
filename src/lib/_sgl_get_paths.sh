@@ -9,6 +9,8 @@
 #   0  PASS
 ################################################################################
 
+_sgl_source is_dir is_path
+
 ############################################################
 # @private
 # @func _sgl_get_paths
@@ -19,6 +21,18 @@
 ############################################################
 _sgl_get_paths()
 {
-  ${ls} -b -1 -A -- "${1}"
+  local -r DIR="${1%/}"
+  local path
+
+  if ! _sgl_is_dir "${DIR}"; then
+    return 0
+  fi
+
+  while IFS= read -r path; do
+    path="${DIR}/${path##*/}"
+    if _sgl_is_path "${path}"; then
+      printf '%s\n' "${path}"
+    fi
+  done <<< "$(${ls} -b -1 -A -- "${DIR}")"
 }
 readonly -f _sgl_get_paths
