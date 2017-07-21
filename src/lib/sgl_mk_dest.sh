@@ -2,18 +2,18 @@
 # @mode 0644
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
-# @copyright 2017 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
+# @copyright 2016-2017 Adam A Smith <adam@imaginate.life>
 #
 # @use sgl_source mk_dest
 # @return
 #   0  PASS
-################################################################################
+##############################################################################
 
 _sgl_source chk_attrs chk_exit chk_tags err get_mode get_owner get_paths \
-  get_quiet get_silent get_tag get_tags get_tmp get_verbose has_group has_tag \
-  has_user help ins_incl ins_var is_ctrl is_dir is_file is_flat is_group \
-  is_mode is_owner is_path is_read is_user parse_args parse_def parse_defs \
-  setup_defs version
+  get_quiet get_silent get_tag get_tags get_tmp get_verbose \
+  has_group has_tag has_user help ins_incl ins_var is_ctrl is_dir is_file \
+  is_flat is_group is_mode is_owner is_path is_read is_user parse_args \
+  parse_def parse_defs setup_defs version
 
 ############################################################
 # @public
