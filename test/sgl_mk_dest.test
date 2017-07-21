@@ -10,7 +10,8 @@
 
 # Define src and dest file paths.
 local src="${DUMMY}/source.sgl.file"
-local incl="${DUMTMP}/include.sgl.file"
+local incl1="${DUMTMP1}/include.sgl.file"
+local incl2="${DUMTMP4}/include.sgl.file"
 local dest1="${DUMMY}/dest.sgl.file"
 local dest2="${DUMTMP2}/dest.sgl.file"
 local correct="${DUMMY}/correct.sgl.file"
@@ -29,7 +30,7 @@ cat <<'EOF' > "${src}"
 # @var USER='$USER'
 # @var SPACE = is ok 
 ##
-# @include ./tmp/*.sgl.file
+# @include ./tmp1/*.sgl.file
 ##
 
 if [[ '/path/to/@RESULT' != '/path/to/success' ]]; then
@@ -58,12 +59,18 @@ if [[ '@VERSION' != '0.1.0-test' ]]; then
 fi
 EOF
 
-# Make the test include file.
-cat <<'EOF' > "${incl}"
-#
-# INCLUDE
-#
-echo 'i am a macro'
+# Make the first test include file.
+cat <<'EOF' > "${incl1}"
+###
+# @include ./tmp4/*.sgl.file
+###
+EOF
+
+# Make the second test include file.
+cat <<'EOF' > "${incl2}"
+####
+# Simple include magic.
+####
 EOF
 
 # Make the correct result file.
@@ -80,10 +87,11 @@ cat <<EOF > "${correct}"
 # @var USER='\$USER'
 # @var SPACE = is ok 
 ##
-#
-# INCLUDE
-#
-echo 'i am a macro'
+###
+####
+# Simple include magic.
+####
+###
 ##
 
 if [[ '/path/to/success' != '/path/to/success' ]]; then
@@ -120,7 +128,7 @@ local line
 
 ######################################################################
 # @note-for-bash-newbies
-# @lines 133-141
+# @lines 141-152
 #
 # The `while' loop is used to catch and register any errors from
 # `sgl_mk_dest'. The following is an ordered sequence of events:
@@ -137,7 +145,10 @@ while IFS= read -r line; do
 done <<< "$(sgl mk_dest \
   --define "BASE=${DUMMY}" \
   --define "TMP=${DUMTMP}" \
+  --define "TMP1=${DUMTMP1}" \
   --define "TMP2=${DUMTMP2}" \
+  --define "TMP3=${DUMTMP3}" \
+  --define "TMP4=${DUMTMP4}" \
   -- "${src}" 3>&2 2>&1 1>&3-)"
 
 ##############################################################################
