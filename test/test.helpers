@@ -1,9 +1,10 @@
 # TEST HELPERS
 #
-# Helper functions that run the tests. See the below list for a quick reference
-# of all functions defined here (listed in declared order).
+# Helper functions that run the tests. See the below list for a quick
+# reference of all functions defined here (listed in declared order).
 #
 #   `is_pathname'
+#   `is_rel_dir'
 #   `clean_tree'
 #   `run_test'
 #   `run_tests'
@@ -11,8 +12,8 @@
 #   `throw'
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
-# @copyright 2017 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
-################################################################################
+# @copyright 2016-2017 Adam A Smith <adam@imaginate.life>
+##############################################################################
 
 ############################################################
 # @func is_pathname
@@ -86,6 +87,10 @@ declare -f -r clean_tree
 ############################################################
 # @func run_test
 # @use run_test SECTION
+# @val SECTION  Must be the name of a group of tests to run.
+#               Note that a readable file path matching
+#               `SECTION.test' must exist in the `../test/'
+#               directory.
 # @return
 #   0  PASS
 ############################################################
@@ -107,6 +112,14 @@ declare -f -r run_test
 ############################################################
 # @func run_tests
 # @use run_tests ...PATH|SECTION
+# @val PATH     Must be a readable file path with a file
+#               extension of `.test' located in the
+#               `../test/' directory to a group of unit
+#               tests intended to be ran.
+# @val SECTION  Must be the name of a group of tests to run.
+#               Note that a readable file path matching
+#               `SECTION.test' must exist in the `../test/'
+#               directory.
 # @return
 #   0  PASS
 ############################################################
