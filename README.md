@@ -1,4 +1,4 @@
-# Superglue [![build status](https://travis-ci.org/imaginate/superglue.svg?branch=master)](https://travis-ci.org/imaginate/superglue) [![version](https://img.shields.io/badge/version-0.1.0--beta-brightgreen.svg?style=flat)](http://superglue.tech)
+# Superglue [![build status](https://travis-ci.org/imaginate/superglue.svg?branch=master)](https://travis-ci.org/imaginate/superglue) [![version](https://img.shields.io/badge/version-0.1.0--beta.1-brightgreen.svg?style=flat)](http://superglue.tech)
 
 ### Bash on Steroids
 
