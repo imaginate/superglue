@@ -2,12 +2,12 @@
 # @mode 0644
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
-# @copyright 2017 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
+# @copyright 2016-2017 Adam A Smith <adam@imaginate.life>
 #
 # @use _sgl_source ins_incl
 # @return
 #   0  PASS
-################################################################################
+##############################################################################
 
 _sgl_source chk_exit err esc_cont esc_key get_keys get_paths get_tmp has_tag \
   ins_var is_dir is_file is_read match_patt trim_tag
@@ -38,6 +38,7 @@ _sgl_ins_incl()
   local -r DIR="${3}"
   local -r SRC="${4}"
   local -r PATT='^[[:blank:]]*#[[:blank:]]*@incl\(ude\)\?[[:blank:]]\+'
+  local dir
   local key
   local val
   local line
@@ -117,6 +118,9 @@ _sgl_ins_incl()
 
       if [[ ${#paths[@]} -gt 0 ]]; then
         for path in "${paths[@]}"; do
+          # make new DIR path
+          dir="${path%/*}"
+
           # copy SRC to temporary file path
           val="${path}"
           path="$(_sgl_get_tmp incl)"
@@ -127,7 +131,7 @@ _sgl_ins_incl()
             _sgl_ins_var "${path}"
           fi
 
-          _sgl_ins_incl "${PRG}" ${INS} "${DIR}" "${path}"
+          _sgl_ins_incl "${PRG}" ${INS} "${dir}" "${path}"
 
           val="$(_sgl_esc_cont "${path}")\\n&"
           ${sed} -i -e "s/${key}/${val}/" -- "${SRC}"
@@ -147,6 +151,9 @@ _sgl_ins_incl()
         _sgl_err VAL "unreadable \`${PRG}' ${path} in SRC \`${SRC}'"
       fi
 
+      # make new DIR path
+      dir="${path%/*}"
+
       # copy SRC to temporary file path
       val="${path}"
       path="$(_sgl_get_tmp incl)"
@@ -157,7 +164,7 @@ _sgl_ins_incl()
         _sgl_ins_var "${path}"
       fi
 
-      _sgl_ins_incl "${PRG}" ${INS} "${DIR}" "${path}"
+      _sgl_ins_incl "${PRG}" ${INS} "${dir}" "${path}"
 
       key="$(_sgl_esc_key "${line}")"
       val="$(_sgl_esc_cont "${path}")"
