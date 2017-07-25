@@ -268,11 +268,11 @@ unset -f _sglue_get_cmd
 ##############################################################################
 
 declare -r -x SGLUE_DUMMY="${SGLUE_TEST%/}/dummy.sgl.d"
-declare -r -x SGLUE_DUMTMP="${DUMMY}/tmp"
-declare -r -x SGLUE_DUMTMP1="${DUMMY}/tmp1"
-declare -r -x SGLUE_DUMTMP2="${DUMMY}/tmp2"
-declare -r -x SGLUE_DUMTMP3="${DUMMY}/tmp3"
-declare -r -x SGLUE_DUMTMP4="${DUMTMP1}/tmp4"
+declare -r -x SGLUE_DUMTMP="${SGLUE_DUMMY}/tmp"
+declare -r -x SGLUE_DUMTMP1="${SGLUE_DUMMY}/tmp1"
+declare -r -x SGLUE_DUMTMP2="${SGLUE_DUMMY}/tmp2"
+declare -r -x SGLUE_DUMTMP3="${SGLUE_DUMMY}/tmp3"
+declare -r -x SGLUE_DUMTMP4="${SGLUE_DUMTMP1}/tmp4"
 
 declare -a -r -x SGLUE_DUMMY_DIRS=( \
   "${SGLUE_DUMMY}"   \
