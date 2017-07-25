@@ -38,7 +38,9 @@ for opt in "${SGL_OPTS[@]}"; do
     -a|--ask)
       DEMO_ASK="${SGL_OPT_VALS[i]}"
       # If empty throw an error and exit the process.
-      [[ -n "${DEMO_ASK}" ]] || sgl_err VAL "invalid empty value for \`${opt}'"
+      if [[ -z "${DEMO_ASK}" ]]; then
+        sgl_err VAL "invalid empty value for \`${opt}'"
+      fi
       ;;
     -b|--bounce)
       DEMO_BOUNCE=1
@@ -79,7 +81,7 @@ local line
 
 ######################################################################
 # @note-for-bash-newbies
-# @lines 92-96
+# @lines 94-98
 #
 # The `while' loop is used to catch and register any errors from the
 # wrapped script. The following is an ordered sequence of events:
