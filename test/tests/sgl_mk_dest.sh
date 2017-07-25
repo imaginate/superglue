@@ -143,7 +143,7 @@ while IFS= read -r line; do
   if [[ -n "${line}" ]]; then
     sglue_throw "${line}"
   fi
-done <<< "$(superglue mk_dest \
+done <<< "$("${SGLUE_BIN%/}/superglue" mk_dest \
   --define "BASE=${SGLUE_DUMMY}" \
   --define "TMP=${SGLUE_DUMTMP}" \
   --define "TMP1=${SGLUE_DUMTMP1}" \
