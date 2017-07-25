@@ -52,7 +52,7 @@ sglue_clean_tree()
     if [[ -n "${path}" ]]; then
       sglue_clean_tree "${path}"
     fi
-  done <<< "$(sglue_get_paths -d -s -- "${DIR}")"
+  done <<< "$(sglue_get_paths -d -- "${DIR}")"
 
   while IFS= read -r path; do
     if [[ -n "${path}" ]]; then
@@ -88,6 +88,10 @@ declare -f -r -x sglue_clean_tree
 ############################################################
 sglue_get_paths()
 {
+  if [[ ${#} -lt 1 ]]; then
+    return 0
+  fi
+
   local -i d=0
   local -i f=0
   local -i H=0
@@ -96,11 +100,8 @@ sglue_get_paths()
   local -i x=0
   local opt
 
-  if [[ ${#} -lt 1 ]]; then
-    return 0
-  fi
-
-  for opt in "${@}"; do
+  while [[ ${#} -gt 0 ]]; do
+    opt="${1}"
     case "${opt}" in
       -d|--dir|--directory)
         d=1
@@ -172,14 +173,21 @@ sglue_get_paths()
     opts+=( '-x' )
   fi
 
+  opts+=( '--' )
+
   local path
 
   while IFS= read -r path; do
+    path="${path%/}"
+    if [[ -z "${path}" ]]; then
+      continue
+    fi
     path="${DIR}/${path##*/}"
-    if sglue_is_path "${opts[@]}" -- "${path}"; then
+    if sglue_is_path "${opts[@]}" "${path}"; then
       printf '%s\n' "${path}"
     fi
   done <<< "$("${SGLUE_LS}" -b -1 -A -- "${DIR}")"
+
   return 0
 }
 declare -f -r -x sglue_get_paths
@@ -245,19 +253,19 @@ declare -f -r -x sglue_int_err
 ############################################################
 sglue_is_dir()
 {
+  if [[ ${#} -lt 1 ]]; then
+    return 1
+  fi
+
   local -i H=0
   local -i h=0
   local -i r=0
   local -i s=0
   local -i x=0
-  local path
   local opt
 
-  if [[ ${#} -lt 1 ]]; then
-    return 1
-  fi
-
-  for opt in "${@}"; do
+  while [[ ${#} -gt 0 ]]; do
+    opt="${1}"
     case "${opt}" in
       -H|--no-sym-link)
         H=1
@@ -290,6 +298,8 @@ sglue_is_dir()
   if [[ ${#} -lt 1 ]]; then
     return 1
   fi
+
+  local path
 
   for path in "${@}"; do
     if ! sglue_is_name "${path}" || [[ ! -d "${path}" ]]; then
@@ -363,18 +373,18 @@ declare -f -r -x sglue_is_dir
 ############################################################
 sglue_is_file()
 {
-  local -i H=0
-  local -i h=0
-  local -i r=0
-  local -i x=0
-  local path
-  local opt
-
   if [[ ${#} -lt 1 ]]; then
     return 1
   fi
 
-  for opt in "${@}"; do
+  local -i H=0
+  local -i h=0
+  local -i r=0
+  local -i x=0
+  local opt
+
+  while [[ ${#} -gt 0 ]]; do
+    opt="${1}"
     case "${opt}" in
       -H|--no-sym-link)
         H=1
@@ -404,6 +414,8 @@ sglue_is_file()
   if [[ ${#} -lt 1 ]]; then
     return 1
   fi
+
+  local path
 
   for path in "${@}"; do
     if ! sglue_is_name "${path}" || [[ ! -f "${path}" ]]; then
@@ -501,6 +513,10 @@ declare -f -r -x sglue_is_name
 ############################################################
 sglue_is_path()
 {
+  if [[ ${#} -lt 1 ]]; then
+    return 1
+  fi
+
   local -i d=0
   local -i f=0
   local -i H=0
@@ -508,14 +524,10 @@ sglue_is_path()
   local -i r=0
   local -i s=0
   local -i x=0
-  local path
   local opt
 
-  if [[ ${#} -lt 1 ]]; then
-    return 1
-  fi
-
-  for opt in "${@}"; do
+  while [[ ${#} -gt 0 ]]; do
+    opt="${1}"
     case "${opt}" in
       -d|--dir|--directory)
         d=1
@@ -556,6 +568,8 @@ sglue_is_path()
   if [[ ${#} -lt 1 ]]; then
     return 1
   fi
+
+  local path
 
   for path in "${@}"; do
     if ! sglue_is_name "${path}" || [[ ! -a "${path}" ]]; then
@@ -768,7 +782,8 @@ sglue_rm()
 
   local opt
 
-  for opt in "${@}"; do
+  while [[ ${#} -gt 0 ]]; do
+    opt="${1}"
     case "${opt}" in
       --)
         shift
@@ -826,7 +841,8 @@ sglue_rm_dir()
   local -i r=0
   local opt
 
-  for opt in "${@}"; do
+  while [[ ${#} -gt 0 ]]; do
+    opt="${1}"
     case "${opt}" in
       -r|--recursive)
         r=1
@@ -863,7 +879,7 @@ sglue_rm_dir()
         if [[ -n "${child}" ]]; then
           sglue_rm_dir -r -- "${child}"
         fi
-      done <<< "$(sglue_get_paths -d -s -- "${path}")"
+      done <<< "$(sglue_get_paths -d -- "${path}")"
     fi
     sglue_rm -- "${path}"
   done
