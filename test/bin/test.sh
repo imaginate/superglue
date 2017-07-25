@@ -19,7 +19,7 @@
 ## CHANGE DIRECTORY
 ##############################################################################
 
-if [[ ! "${0}" =~ ^(\./)?run\.tests$ ]]; then
+if [[ "${0}" != 'test.sh' ]] && [[ "${0}" != './test.sh' ]]; then
   cd "${0%/*}"
 fi
 
@@ -47,9 +47,9 @@ sglue_mk_dir -m 0755 -p -- "${SGLUE_DUMMY_DIRS[@]}"
 sglue_header
 
 if [[ ${#} -gt 0 ]]; then
-  sglue_run_tests "${@}"
+  sglue_test "${@}"
 else
-  sglue_run_tests
+  sglue_test_all
 fi
 
 sglue_results
