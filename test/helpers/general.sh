@@ -682,8 +682,8 @@ sglue_mk_dir()
   for opt in "${@}"; do
     case "${opt}" in
       -m|--mode)
+        mode="${2}"
         shift
-        mode="${1}"
         ;;
       --mode=*)
         mode="${opt#*=}"
@@ -706,10 +706,10 @@ sglue_mk_dir()
     return 0
   fi
 
-  local -a opts=( -m "${mode}" )
+  local -a opts=( '-m' "${mode}" )
 
   if [[ ${p} -eq 1 ]]; then
-    opts+=( -p )
+    opts+=( '-p' )
   fi
 
   local path
