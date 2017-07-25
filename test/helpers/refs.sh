@@ -7,6 +7,8 @@
 #
 # Main
 # ----
+# - `SGLUE_NIL'
+# - `SGLUE_TEST'
 # - `SGLUE_TESTS'
 #
 # Colors
@@ -69,7 +71,9 @@
 ## MAIN
 ##############################################################################
 
-declare -r -x SGLUE_TESTS="$(pwd -P)/tests"
+declare -r -x SGLUE_NIL='/dev/null'
+declare -r -x SGLUE_TEST="$(pwd -P)"
+declare -r -x SGLUE_TESTS="${SGLUE_TEST%/}/tests"
 
 ##############################################################################
 ## COLORS
@@ -263,7 +267,7 @@ unset -f _sglue_get_cmd
 ## DUMMY
 ##############################################################################
 
-declare -r -x SGLUE_DUMMY="$(pwd -P)/dummy.sgl.d"
+declare -r -x SGLUE_DUMMY="${SGLUE_TEST%/}/dummy.sgl.d"
 declare -r -x SGLUE_DUMTMP="${DUMMY}/tmp"
 declare -r -x SGLUE_DUMTMP1="${DUMMY}/tmp1"
 declare -r -x SGLUE_DUMTMP2="${DUMMY}/tmp2"
