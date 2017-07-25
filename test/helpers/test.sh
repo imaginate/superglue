@@ -26,6 +26,8 @@
 ############################################################
 sglue_stop()
 {
+  sglue_out2 ' - '
+
   local -r TITLE="${SGLUE_RED}INTERNAL TEST ERROR${SGLUE_UNCOLOR}"
 
   if [[ ${#} -lt 1 ]]; then
