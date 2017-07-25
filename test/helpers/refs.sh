@@ -244,8 +244,9 @@ _sglue_get_cmd()
   return 0
 }
 
-_sglue_chk_cmds grep mkdir ls rm sed
+_sglue_chk_cmds cat grep mkdir ls rm sed
 
+declare -r -x SGLUE_CAT="$(_sglue_get_cmd cat)"
 declare -r -x SGLUE_GREP="$(_sglue_get_cmd grep)"
 declare -r -x SGLUE_MKDIR="$(_sglue_get_cmd mkdir)"
 declare -r -x SGLUE_LS="$(_sglue_get_cmd ls)"
