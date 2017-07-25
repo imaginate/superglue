@@ -242,7 +242,7 @@ sglue_blank_row()
 {
   local -i i=0
 
-  while [[ ${i} -lt ${ROW_LENGTH} ]]; do
+  while [[ ${i} -lt ${SGLUE_ROW_LENGTH} ]]; do
     sglue_out '-'
     i=$(( ${i} + 1 ))
   done
