@@ -8,6 +8,8 @@
 # Main
 # ----
 # - `SGLUE_NIL'
+# - `SGLUE_UID'
+# - `SGLUE_EUID'
 # - `SGLUE_TEST'
 # - `SGLUE_TESTS'
 #
@@ -72,6 +74,8 @@
 ##############################################################################
 
 declare -r -x SGLUE_NIL='/dev/null'
+declare -r -x SGLUE_UID=${UID}
+declare -r -x SGLUE_EUID=${EUID}
 declare -r -x SGLUE_TEST="$(pwd -P)"
 declare -r -x SGLUE_TESTS="${SGLUE_TEST%/}/tests"
 
