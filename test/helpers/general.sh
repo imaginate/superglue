@@ -62,7 +62,7 @@ sglue_clean_tree()
 
   return 0
 }
-declare -f -r sglue_clean_tree
+declare -f -r -x sglue_clean_tree
 
 ############################################################
 # @func sglue_get_paths
@@ -182,7 +182,7 @@ sglue_get_paths()
   done <<< "$("${SGLUE_LS}" -b -1 -A -- "${DIR}")"
   return 0
 }
-declare -f -r sglue_get_paths
+declare -f -r -x sglue_get_paths
 
 ############################################################
 # @func sglue_int_err
@@ -218,7 +218,7 @@ sglue_int_err()
 
   exit 9
 }
-declare -f -r sglue_int_err
+declare -f -r -x sglue_int_err
 
 ############################################################
 # @func sglue_is_dir
@@ -339,7 +339,7 @@ sglue_is_dir()
 
   return 0
 }
-declare -f -r sglue_is_dir
+declare -f -r -x sglue_is_dir
 
 ############################################################
 # @func sglue_is_file
@@ -445,7 +445,7 @@ sglue_is_file()
 
   return 0
 }
-declare -f -r sglue_is_file
+declare -f -r -x sglue_is_file
 
 ############################################################
 # @func sglue_is_name
@@ -470,7 +470,7 @@ sglue_is_name()
   fi
   return 1
 }
-declare -f -r sglue_is_name
+declare -f -r -x sglue_is_name
 
 ############################################################
 # @func sglue_is_path
@@ -621,7 +621,7 @@ sglue_is_path()
 
   return 0
 }
-declare -f -r sglue_is_path
+declare -f -r -x sglue_is_path
 
 ############################################################
 # @func sglue_is_rel_dir
@@ -649,7 +649,7 @@ sglue_is_rel_dir()
   fi
   return 1
 }
-declare -f -r sglue_is_rel_dir
+declare -f -r -x sglue_is_rel_dir
 
 ############################################################
 # @func sglue_mk_dir
@@ -730,7 +730,7 @@ sglue_mk_dir()
 
   return 0
 }
-declare -f -r sglue_mk_dir
+declare -f -r -x sglue_mk_dir
 
 ############################################################
 # @func sglue_rm
@@ -785,7 +785,7 @@ sglue_rm()
 
   return 0
 }
-declare -f -r sglue_rm
+declare -f -r -x sglue_rm
 
 ############################################################
 # @func sglue_rm_dir
@@ -854,5 +854,5 @@ sglue_rm_dir()
 
   return 0
 }
-declare -f -r sglue_rm_dir
+declare -f -r -x sglue_rm_dir
 

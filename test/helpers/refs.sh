@@ -69,15 +69,15 @@
 ## MAIN
 ##############################################################################
 
-declare -r SGLUE_TESTS="$(pwd -P)/tests"
+declare -r -x SGLUE_TESTS="$(pwd -P)/tests"
 
 ##############################################################################
 ## COLORS
 ##############################################################################
 
-declare -r SGLUE_UNCOLOR="$(printf '%b' '\033[0;0m')"
-declare -r SGLUE_RED="$(printf '%b' '\033[0;91m')"
-declare -r SGLUE_GREEN="$(printf '%b' '\033[0;32m')"
+declare -r -x SGLUE_UNCOLOR="$(printf '%b' '\033[0;0m')"
+declare -r -x SGLUE_RED="$(printf '%b' '\033[0;91m')"
+declare -r -x SGLUE_GREEN="$(printf '%b' '\033[0;32m')"
 
 ##############################################################################
 ## PATH
@@ -139,7 +139,7 @@ if [[ ${#_SGLUE_PATH[@]} -lt 1 ]]; then
   exit 9
 fi
 
-declare -a -r SGLUE_PATH=( "${_SGLUE_PATH[@]}" )
+declare -a -r -x SGLUE_PATH=( "${_SGLUE_PATH[@]}" )
 
 unset _SGLUE_PATH
 unset -f _sglue_mk_path
@@ -246,11 +246,11 @@ _sglue_get_cmd()
 
 _sglue_chk_cmds grep mkdir ls rm sed
 
-declare -r SGLUE_GREP="$(_sglue_get_cmd grep)"
-declare -r SGLUE_MKDIR="$(_sglue_get_cmd mkdir)"
-declare -r SGLUE_LS="$(_sglue_get_cmd ls)"
-declare -r SGLUE_RM="$(_sglue_get_cmd rm)"
-declare -r SGLUE_SED="$(_sglue_get_cmd sed)"
+declare -r -x SGLUE_GREP="$(_sglue_get_cmd grep)"
+declare -r -x SGLUE_MKDIR="$(_sglue_get_cmd mkdir)"
+declare -r -x SGLUE_LS="$(_sglue_get_cmd ls)"
+declare -r -x SGLUE_RM="$(_sglue_get_cmd rm)"
+declare -r -x SGLUE_SED="$(_sglue_get_cmd sed)"
 
 unset -f _sglue_chk_cmd
 unset -f _sglue_chk_cmds
@@ -261,14 +261,14 @@ unset -f _sglue_get_cmd
 ## DUMMY
 ##############################################################################
 
-declare -r SGLUE_DUMMY="$(pwd -P)/dummy.sgl.d"
-declare -r SGLUE_DUMTMP="${DUMMY}/tmp"
-declare -r SGLUE_DUMTMP1="${DUMMY}/tmp1"
-declare -r SGLUE_DUMTMP2="${DUMMY}/tmp2"
-declare -r SGLUE_DUMTMP3="${DUMMY}/tmp3"
-declare -r SGLUE_DUMTMP4="${DUMTMP1}/tmp4"
+declare -r -x SGLUE_DUMMY="$(pwd -P)/dummy.sgl.d"
+declare -r -x SGLUE_DUMTMP="${DUMMY}/tmp"
+declare -r -x SGLUE_DUMTMP1="${DUMMY}/tmp1"
+declare -r -x SGLUE_DUMTMP2="${DUMMY}/tmp2"
+declare -r -x SGLUE_DUMTMP3="${DUMMY}/tmp3"
+declare -r -x SGLUE_DUMTMP4="${DUMTMP1}/tmp4"
 
-declare -a -r SGLUE_DUMMY_DIRS=( \
+declare -a -r -x SGLUE_DUMMY_DIRS=( \
   "${SGLUE_DUMMY}"   \
   "${SGLUE_DUMTMP}"  \
   "${SGLUE_DUMTMP1}" \
@@ -280,37 +280,37 @@ declare -a -r SGLUE_DUMMY_DIRS=( \
 ## TITLES
 ##############################################################################
 
-declare -r SGLUE_HEADER='START SUPERGLUE TESTS'
-declare -r SGLUE_FOOTER='END SUPERGLUE TESTS'
+declare -r -x SGLUE_HEADER='START SUPERGLUE TESTS'
+declare -r -x SGLUE_FOOTER='END SUPERGLUE TESTS'
 
 ##############################################################################
 ## LENGTHS
 ##############################################################################
 
-declare -i -r SGLUE_ROW_LENGTH=36
-declare -i -r SGLUE_SECTION_WIDTH=-14
+declare -i -r -x SGLUE_ROW_LENGTH=36
+declare -i -r -x SGLUE_SECTION_WIDTH=-14
 
 ##############################################################################
 ## ERRORS
 ##############################################################################
 
-declare -a -x SGLUE_TEST_ERRORS
+declare -a -x SGLUE_TEST_ERRORS=()
 declare -i -x SGLUE_TESTS_FAILED=0
 
 ##############################################################################
 ## SUPERGLUE
 ##############################################################################
 
-declare -r SGLUE_BIN='/bin'
-declare -r SGLUE_LIB='/usr/lib/superglue'
-declare -r SGLUE_HELP='/usr/share/superglue/help'
+declare -r -x SGLUE_BIN='/bin'
+declare -r -x SGLUE_LIB='/usr/lib/superglue'
+declare -r -x SGLUE_HELP='/usr/share/superglue/help'
 
-declare -a -r SGLUE_CMDS=( \
+declare -a -r -x SGLUE_CMDS=( \
   sgl       \
   sglue     \
   superglue )
 
-declare -a -r SGLUE_FUNCS=( \
+declare -a -r -x SGLUE_FUNCS=( \
   sgl_chk_cmd    \
   sgl_chk_dir    \
   sgl_chk_exit   \
