@@ -1,4 +1,5 @@
-# Verify superglue script wrapper.
+# Superglue Wrapper Tests
+# =======================
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016-2017 Adam A Smith <adam@imaginate.life>
@@ -9,10 +10,10 @@
 ##############################################################################
 
 # Define test file paths.
-local cmd="${DUMMY}/fake.sgl.cmd"
+local cmd="${SGLUE_DUMMY}/fake.sgl.cmd"
 
 # Make the wrapped script.
-cat <<'EOF' > "${cmd}"
+"${SGLUE_CAT}" <<'EOF' > "${cmd}"
 #!/bin/superglue -C
 
 # Load only the needed functions.
@@ -71,7 +72,7 @@ sgl_chk_exit --exit --cmd='grep' ${?}
 
 exit 0
 EOF
-chmod 0755 "${cmd}"
+"${SGLUE_CHMOD}" 0755 "${cmd}"
 
 ##############################################################################
 ## RUN SCRIPT
@@ -81,7 +82,7 @@ local line
 
 ######################################################################
 # @note-for-bash-newbies
-# @lines 94-98
+# @lines 95-99
 #
 # The `while' loop is used to catch and register any errors from the
 # wrapped script. The following is an ordered sequence of events:
@@ -93,7 +94,7 @@ local line
 ######################################################################
 while IFS= read -r line; do
   if [[ -n "${line}" ]]; then
-    throw "${line}"
+    sglue_throw "${line}"
   fi
 done <<< "$("${cmd}" --ask='Something?' -ct 3>&2 2>&1 1>&3-)"
 
