@@ -881,7 +881,12 @@ sglue_rm_dir()
         fi
       done <<< "$(sglue_get_paths -d -- "${path}")"
     fi
-    sglue_rm -- "${path}"
+    if ! "${SGLUE_RMDIR}" -- "${path}" > "${SGLUE_NIL}"; then
+      sglue_int_err \
+        "a call to \`rmdir' made a non-zero exit" \
+        "    full-failed-cmd:" \
+        "        '${SGLUE_RMDIR}' -- '${path}'"
+    fi
   done
 
   return 0
