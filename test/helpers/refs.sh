@@ -5,6 +5,10 @@
 # page are listed by group in declared order below. Note that all global
 # references require the prefix `SGLUE_'.
 #
+# Main
+# ----
+# - `SGLUE_TESTS'
+#
 # Colors
 # ------
 # - `SGLUE_UNCOLOR'
@@ -60,6 +64,12 @@
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016-2017 Adam A Smith <adam@imaginate.life>
 ##############################################################################
+
+##############################################################################
+## MAIN
+##############################################################################
+
+declare -r SGLUE_TESTS="$(pwd -P)/tests"
 
 ##############################################################################
 ## COLORS
@@ -251,7 +261,7 @@ unset -f _sglue_get_cmd
 ## DUMMY
 ##############################################################################
 
-declare -r SGLUE_DUMMY="$(pwd -P)/../dummy.sgl.d"
+declare -r SGLUE_DUMMY="$(pwd -P)/dummy.sgl.d"
 declare -r SGLUE_DUMTMP="${DUMMY}/tmp"
 declare -r SGLUE_DUMTMP1="${DUMMY}/tmp1"
 declare -r SGLUE_DUMTMP2="${DUMMY}/tmp2"
