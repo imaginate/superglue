@@ -1,4 +1,5 @@
-# Verify `sgl_mk_dest'.
+# Superglue `sgl_mk_dest' Tests
+# =============================
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016-2017 Adam A Smith <adam@imaginate.life>
@@ -9,15 +10,15 @@
 ##############################################################################
 
 # Define src and dest file paths.
-local src="${DUMMY}/source.sgl.file"
-local incl1="${DUMTMP1}/include.sgl.file"
-local incl2="${DUMTMP4}/include.sgl.file"
-local dest1="${DUMMY}/dest.sgl.file"
-local dest2="${DUMTMP2}/dest.sgl.file"
-local correct="${DUMMY}/correct.sgl.file"
+local src="${SGLUE_DUMMY}/source.sgl.file"
+local incl1="${SGLUE_DUMTMP1}/include.sgl.file"
+local incl2="${SGLUE_DUMTMP4}/include.sgl.file"
+local dest1="${SGLUE_DUMMY}/dest.sgl.file"
+local dest2="${SGLUE_DUMTMP2}/dest.sgl.file"
+local correct="${SGLUE_DUMMY}/correct.sgl.file"
 
 # Make the test src file.
-cat <<'EOF' > "${src}"
+"${SGLUE_CAT}" <<'EOF' > "${src}"
 # SOURCE
 # @version 0.1.0-test
 #
@@ -60,21 +61,21 @@ fi
 EOF
 
 # Make the first test include file.
-cat <<'EOF' > "${incl1}"
+"${SGLUE_CAT}" <<'EOF' > "${incl1}"
 ###
 # @include ./tmp4/*.sgl.file
 ###
 EOF
 
 # Make the second test include file.
-cat <<'EOF' > "${incl2}"
+"${SGLUE_CAT}" <<'EOF' > "${incl2}"
 ####
 # Simple include magic.
 ####
 EOF
 
 # Make the correct result file.
-cat <<EOF > "${correct}"
+"${SGLUE_CAT}" <<EOF > "${correct}"
 # SOURCE
 # @version 0.1.0-test
 #
@@ -128,7 +129,7 @@ local line
 
 ######################################################################
 # @note-for-bash-newbies
-# @lines 141-152
+# @lines 142-153
 #
 # The `while' loop is used to catch and register any errors from
 # `sgl_mk_dest'. The following is an ordered sequence of events:
@@ -140,15 +141,15 @@ local line
 ######################################################################
 while IFS= read -r line; do
   if [[ -n "${line}" ]]; then
-    throw "${line}"
+    sglue_throw "${line}"
   fi
-done <<< "$(sgl mk_dest \
-  --define "BASE=${DUMMY}" \
-  --define "TMP=${DUMTMP}" \
-  --define "TMP1=${DUMTMP1}" \
-  --define "TMP2=${DUMTMP2}" \
-  --define "TMP3=${DUMTMP3}" \
-  --define "TMP4=${DUMTMP4}" \
+done <<< "$(superglue mk_dest \
+  --define "BASE=${SGLUE_DUMMY}" \
+  --define "TMP=${SGLUE_DUMTMP}" \
+  --define "TMP1=${SGLUE_DUMTMP1}" \
+  --define "TMP2=${SGLUE_DUMTMP2}" \
+  --define "TMP3=${SGLUE_DUMTMP3}" \
+  --define "TMP4=${SGLUE_DUMTMP4}" \
   -- "${src}" 3>&2 2>&1 1>&3-)"
 
 ##############################################################################
@@ -156,23 +157,26 @@ done <<< "$(sgl mk_dest \
 ##############################################################################
 
 local path
+local contents
+local -r CONTENTS="$("${SGLUE_CAT}" "${correct}")"
 
 for path in "${dest1}" "${dest2}"; do
 
   # Catch a missing dest file.
   if [[ ! -f "${path}" ]]; then
-    throw "missing dest file \`${path}'"
+    sglue_throw "missing dest file \`${path}'"
   fi
 
   # Catch a non-executable dest file.
   if [[ ! -x "${path}" ]]; then
-    throw "invalid file mode for dest file \`${path}'"
+    sglue_throw "invalid file mode for dest file \`${path}'"
   fi
 
   # Catch incorrect dest file content.
   if [[ -f "${path}" ]]; then
-    if [[ "$(cat "${correct}")" != "$(cat "${path}")" ]]; then
-      throw "invalid dest file \`${path}'"
+    contents="$("${SGLUE_CAT}" "${path}")"
+    if [[ "${contents}" != "${CONTENTS}" ]]; then
+      sglue_throw "invalid dest file \`${path}'"
     fi
   fi
 
