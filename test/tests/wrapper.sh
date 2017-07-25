@@ -19,8 +19,8 @@ local cmd="${SGLUE_DUMMY}/fake.sgl.cmd"
 # Load only the needed functions.
 sgl_source 'chk_*' err parse_args print
 
-# Verify the user is root or exit the process.
-sgl_chk_uid --exit --prg='Example' 1000
+# Verify the current effective user has a specific ID or exit the process.
+sgl_chk_uid --exit --prg='Example' ${EUID}
 
 # Parse the arguments easily.
 sgl_parse_args \
