@@ -679,11 +679,16 @@ sglue_mk_dir()
   local mode='0755'
   local opt
 
-  for opt in "${@}"; do
+  while [[ ${#} -gt 0 ]]; do
+    opt="${1}"
     case "${opt}" in
       -m|--mode)
-        mode="${2}"
-        shift
+        if [[ ${#} -gt 1 ]]; then
+          mode="${2}"
+          shift
+        else
+          mode=''
+        fi
         ;;
       --mode=*)
         mode="${opt#*=}"
@@ -706,25 +711,36 @@ sglue_mk_dir()
     return 0
   fi
 
-  local -a opts=( '-m' "${mode}" )
+  local -a mkdir_opts=()
 
-  if [[ ${p} -eq 1 ]]; then
-    opts+=( '-p' )
+  if [[ -n "${mode}" ]]; then
+    mkdir_opts+=( '-m' "${mode}" )
   fi
+  if [[ ${p} -eq 1 ]]; then
+    mkdir_opts+=( '-p' )
+  fi
+
+  mkdir_opts+=( '--' )
 
   local path
 
   for path in "${@}"; do
-    if sglue_is_name "${path}" \
-       && ! sglue_is_rel_dir "${path}" \
-       && ! sglue_is_dir -- "${path}"
+    if ! sglue_is_name "${path}" \
+       || sglue_is_rel_dir "${path}" \
+       || sglue_is_dir -- "${path}"
     then
-      if ! "${SGLUE_MKDIR}" "${opts[@]}" -- "${path}" > "${SGLUE_NIL}"; then
-        sglue_int_err \
-          "a call to \`mkdir' made a non-zero exit" \
-          "    full-failed-cmd:" \
-          "        '${SGLUE_MKDIR}' ${opts[@]} -- '${path}'"
-      fi
+      continue
+    fi
+    if sglue_is_path -- "${path}"; then
+      sglue_int_err \
+        "a non-directory path was passed to \`sglue_mk_dir'" \
+        "    invalid-path: \`${path}'"
+    fi
+    if ! "${SGLUE_MKDIR}" "${mkdir_opts[@]}" "${path}" > "${SGLUE_NIL}"; then
+      sglue_int_err \
+        "a call to \`mkdir' made a non-zero exit" \
+        "    full-failed-cmd:" \
+        "        '${SGLUE_MKDIR}' ${mkdir_opts[@]} '${path}'"
     fi
   done
 
