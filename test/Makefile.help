@@ -1,0 +1,21 @@
+# Superglue Test Makefile Help Info
+# =================================
+#
+# @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
+# @copyright 2016-2017 Adam A Smith <adam@imaginate.life>
+##############################################################################
+
+  make [TARGET]
+
+  Targets:
+    h|help  Print the help info and exit.
+    t|test  Run all of the tests and print the results.
+
+  Default Target:
+    test
+
+  Exit Codes:
+    0  PASS   All tests passed.
+    1  FAIL   One or more tests failed.
+    9  ERROR  An internal error occurred (i.e. **no** tests were ran).
+
