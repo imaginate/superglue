@@ -44,7 +44,7 @@ install-force:
 
 t: test
 test:
-	@./test/run.tests
+	@./test/bin/test.sh
 
 x: uninstall
 uninstall:
