@@ -87,7 +87,7 @@ sglue_test()
     name="${name%.sh}"
     path="${SGLUE_TESTS%/}/${name}.sh"
 
-    if ! sglue_is_dir -r -s -- "${path}"; then
+    if ! sglue_is_file -r -- "${path}"; then
       sglue_stop \
         "invalid \`PATH' or \`SECTION' passed to \`sglue_test'" \
         "    invalid-path: \`${path}'" \
