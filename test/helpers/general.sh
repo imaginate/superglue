@@ -13,6 +13,9 @@
 # - `sglue_is_name'
 # - `sglue_is_path'
 # - `sglue_is_rel_dir'
+# - `sglue_mk_dir'
+# - `sglue_rm'
+# - `sglue_rm_dir'
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016-2017 Adam A Smith <adam@imaginate.life>
@@ -40,8 +43,7 @@ sglue_clean_tree()
   if ! sglue_is_dir -r -s "${DIR}"; then
     sglue_int_err \
       "invalid \`DIR' argument passed to \`sglue_clean_tree'" \
-      "    invalid-dir-path:" \
-      "        \`${DIR}'"
+      "    invalid-dir-path: \`${DIR}'"
   fi
 
   local path
@@ -54,11 +56,7 @@ sglue_clean_tree()
 
   while IFS= read -r path; do
     if [[ -n "${path}" ]]; then
-      if ! "${SGLUE_RM}" -f -- "${path}" > "${SGLUE_NIL}"; then
-        sglue_int_err \
-          "a call to \`rm' made a non-zero exit" \
-          "    full-failed-cmd:" \
-          "        '${SGLUE_RM}' -f -- '${path}'"
+      sglue_rm -- "${path}"
     fi
   done <<< "$(sglue_get_paths -f -- "${DIR}")"
 
@@ -652,4 +650,209 @@ sglue_is_rel_dir()
   return 1
 }
 declare -f -r sglue_is_rel_dir
+
+############################################################
+# @func sglue_mk_dir
+# @use sglue_mk_dir [...OPTION] [...PATH]
+# @opt -m|--mode=MODE
+#   default = `0755'
+#   Set the file mode for each PATH.
+# @opt -p|--parents
+#   Make parent directories as needed instead of throwing
+#   an error.
+# @opt --
+#   End the options.
+# @val PATH
+#   Should be a valid file system path.
+# @return
+#   0  PASS
+# @exit-on-error
+#   9  INTERNAL_SUPERGLUE_TEST_ERROR
+############################################################
+sglue_mk_dir()
+{
+  if [[ ${#} -lt 1 ]]; then
+    return 0
+  fi
+
+  local -i p=0
+  local mode='0755'
+  local opt
+
+  for opt in "${@}"; do
+    case "${opt}" in
+      -m|--mode)
+        shift
+        mode="${1}"
+        ;;
+      --mode=*)
+        mode="${opt#*=}"
+        ;;
+      -p|--parents)
+        p=1
+        ;;
+      --)
+        shift
+        break
+        ;;
+      *)
+        break
+        ;;
+    esac
+    shift
+  done
+
+  if [[ ${#} -lt 1 ]]; then
+    return 0
+  fi
+
+  local -a opts=( -m "${mode}" )
+
+  if [[ ${p} -eq 1 ]]; then
+    opts+=( -p )
+  fi
+
+  local path
+
+  for path in "${@}"; do
+    if sglue_is_name "${path}" \
+       && ! sglue_is_rel_dir "${path}" \
+       && ! sglue_is_dir -- "${path}"
+    then
+      if ! "${SGLUE_MKDIR}" "${opts[@]}" -- "${path}" > "${SGLUE_NIL}"; then
+        sglue_int_err \
+          "a call to \`mkdir' made a non-zero exit" \
+          "    full-failed-cmd:" \
+          "        '${SGLUE_MKDIR}' ${opts[@]} -- '${path}'"
+      fi
+    fi
+  done
+
+  return 0
+}
+declare -f -r sglue_mk_dir
+
+############################################################
+# @func sglue_rm
+# @use sglue_rm [...OPTION] [...PATH]
+# @opt --
+#   End the options.
+# @val PATH
+#   Should be a valid file system path.
+# @return
+#   0  PASS
+# @exit-on-error
+#   9  INTERNAL_SUPERGLUE_TEST_ERROR
+############################################################
+sglue_rm()
+{
+  if [[ ${#} -lt 1 ]]; then
+    return 0
+  fi
+
+  local opt
+
+  for opt in "${@}"; do
+    case "${opt}" in
+      --)
+        shift
+        break
+        ;;
+      *)
+        break
+        ;;
+    esac
+    shift
+  done
+
+  if [[ ${#} -lt 1 ]]; then
+    return 0
+  fi
+
+  local path
+
+  for path in "${@}"; do
+    if ! sglue_is_path -- "${path}"; then
+      continue
+    fi
+    if ! "${SGLUE_RM}" -- "${path}" > "${SGLUE_NIL}"; then
+      sglue_int_err \
+        "a call to \`rm' made a non-zero exit" \
+        "    full-failed-cmd:" \
+        "        '${SGLUE_RM}' -- '${path}'"
+    fi
+  done
+
+  return 0
+}
+declare -f -r sglue_rm
+
+############################################################
+# @func sglue_rm_dir
+# @use sglue_rm_dir [...OPTION] [...PATH]
+# @opt -r|--recursive
+#   Recursively remove all sub-directories for each PATH.
+# @opt --
+#   End the options.
+# @val PATH
+#   Should be a valid file system path.
+# @return
+#   0  PASS
+# @exit-on-error
+#   9  INTERNAL_SUPERGLUE_TEST_ERROR
+############################################################
+sglue_rm_dir()
+{
+  if [[ ${#} -lt 1 ]]; then
+    return 0
+  fi
+
+  local -i r=0
+  local opt
+
+  for opt in "${@}"; do
+    case "${opt}" in
+      -r|--recursive)
+        r=1
+        ;;
+      --)
+        shift
+        break
+        ;;
+      *)
+        break
+        ;;
+    esac
+    shift
+  done
+
+  if [[ ${#} -lt 1 ]]; then
+    return 0
+  fi
+
+  local path
+  local child
+
+  for path in "${@}"; do
+    if ! sglue_is_path -- "${path}"; then
+      continue
+    fi
+    if ! sglue_is_dir -- "${path}"; then
+      sglue_int_err \
+        "a non-directory path was passed to \`sglue_rm_dir'" \
+        "    invalid-path: \`${path}'"
+    fi
+    if [[ ${r} -eq 1 ]]; then
+      while IFS= read -r child; do
+        if [[ -n "${child}" ]]; then
+          sglue_rm_dir -r -- "${child}"
+        fi
+      done <<< "$(sglue_get_paths -d -s -- "${path}")"
+    fi
+    sglue_rm -- "${path}"
+  done
+
+  return 0
+}
+declare -f -r sglue_rm_dir
 
