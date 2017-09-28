@@ -29,7 +29,8 @@ local correct="${SGLUE_DUMMY}/correct.sgl.file"
 # @var RESULT=success
 # @var HOME="$HOME"
 # @var USER='$USER'
-# @var SPACE = is ok 
+# @set ZERO = 0
+# @set SPACE = is ok 
 ##
 # @include ./tmp1/*.sgl.file
 ##
@@ -45,6 +46,11 @@ if [[ "@HOME" != "$HOME" ]]; then
 fi
 
 if [[ '@USER' != '$USER' ]]; then
+  echo 'var tag failed'
+  exit 1
+fi
+
+if [[ '@ZERO@ZERO6' != '006' ]]; then
   echo 'var tag failed'
   exit 1
 fi
@@ -86,7 +92,8 @@ EOF
 # @var RESULT=success
 # @var HOME="\$HOME"
 # @var USER='\$USER'
-# @var SPACE = is ok 
+# @set ZERO = 0
+# @set SPACE = is ok 
 ##
 ###
 ####
@@ -106,6 +113,11 @@ if [[ "$HOME" != "\$HOME" ]]; then
 fi
 
 if [[ '\$USER' != '\$USER' ]]; then
+  echo 'var tag failed'
+  exit 1
+fi
+
+if [[ '006' != '006' ]]; then
   echo 'var tag failed'
   exit 1
 fi
