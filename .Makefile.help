@@ -1,11 +1,18 @@
-# Superglue Makefile Help Info
+# Superglue Makefile Help Text
 # ============================
+#
+# The output for `make help'.
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016-2017 Adam A Smith <adam@imaginate.life>
 ##############################################################################
 
-  make [TARGET]
+  make [...VARIABLE=VALUE] [TARGET]
+
+  Variables:
+    BIN=DIRPATH    Override the default binary directory of `/bin'.
+    LIB=DIRPATH    Override the default library directory of `/usr/lib'.
+    SHARE=DIRPATH  Override the default share directory of `/usr/share'.
 
   Targets:
     b|build      The same as `install'.
