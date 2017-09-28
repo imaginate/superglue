@@ -1,5 +1,7 @@
-# Superglue Test Makefile Help Info
+# Superglue Test Makefile Help Text
 # =================================
+#
+# The output for `make help'.
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016-2017 Adam A Smith <adam@imaginate.life>

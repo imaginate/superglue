@@ -4,11 +4,13 @@
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
 # @copyright 2016-2017 Adam A Smith <adam@imaginate.life>
 #
-# @use make [TARGET]
+# @use make [...VARIABLE=VALUE] [TARGET]
+#
 # @val TARGET
 #   The default TARGET is `test'. See each TARGET below for more details.
 #   - `h|help'  Print the help info and exit.
 #   - `t|test'  Run all of the tests and print the results.
+#
 # @exit
 #   0  PASS   All tests passed.
 #   1  FAIL   One or more tests failed.
@@ -36,7 +38,7 @@ all: test
 
 h: help
 help:
-	@sed -e '/^[ \t]*#/ d' -- ./Makefile.help
+	@sed -e '/^[[:blank:]]*#/ d' -- ./.Makefile.help
 
 t: test
 test:
