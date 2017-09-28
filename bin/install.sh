@@ -768,7 +768,8 @@ fi
 ## DEFINE SRC PATHS
 ##############################################################################
 
-readonly SGLUE_REPO_D="$(pwd -P)"
+readonly SGLUE_REPO_BIN_D="$(pwd -P)"
+readonly SGLUE_REPO_D="${SGLUE_REPO_BIN_D%/bin}"
 readonly SGLUE_SRC_D="${SGLUE_REPO_D}/src"
 readonly SGLUE_HELP_D="${SGLUE_SRC_D}/help"
 
@@ -776,7 +777,8 @@ readonly SGLUE_HELP_D="${SGLUE_SRC_D}/help"
 ## CHECK SRC PATHS
 ##############################################################################
 
-sglue_chk DIR "${SGLUE_REPO_D}" "${SGLUE_SRC_D}" "${SGLUE_HELP_D}"
+sglue_chk DIR "${SGLUE_REPO_BIN_D}" "${SGLUE_REPO_D}" "${SGLUE_SRC_D}" \
+  "${SGLUE_HELP_D}"
 
 ##############################################################################
 ## PARSE OPTIONS
@@ -796,7 +798,7 @@ declare -i SGLUE_FORCE=0
 while [[ ${#} -gt 0 ]]; do
   case "${1}" in
     -\?|-h|--help)
-      ${sed} -e '/^[[:blank:]]*#/ d' -- "${SGLUE_REPO_D}/.install.help"
+      ${sed} -e '/^[[:blank:]]*#/ d' -- "${SGLUE_REPO_BIN_D}/.install.help"
       exit 0
       ;;
     -b|--bin)
@@ -1113,3 +1115,4 @@ fi
 sglue_result
 sglue_footer
 exit 0
+

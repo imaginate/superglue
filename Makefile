@@ -91,11 +91,11 @@ help:
 
 i: install
 install:
-	@./install.sh $(_ARGS)
+	@./bin/install.sh $(_ARGS)
 
 install-f: install-force
 install-force:
-	@./install.sh $(_ARGS) --force
+	@./bin/install.sh $(_ARGS) --force
 
 t: test
 test:
@@ -103,5 +103,5 @@ test:
 
 x: uninstall
 uninstall:
-	@./install.sh $(_ARGS) --uninstall
+	@./bin/install.sh $(_ARGS) --uninstall
 
