@@ -2,12 +2,12 @@
 # @mode 0644
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
-# @copyright 2017 Adam A Smith <adam@imaginate.life> (http://imaginate.life)
+# @copyright 2016-2017 Adam A Smith <adam@imaginate.life>
 #
 # @use _sgl_source ins_var
 # @return
 #   0  PASS
-################################################################################
+##############################################################################
 
 _sgl_source chk_exit esc_val get_tag get_tags has_tag sort_keys
 
@@ -52,17 +52,15 @@ _sgl_ins_var()
     return 0
   fi
 
-  # build the sed options
-  local opts=()
+  # build the sed script
+  local script='/^[[:blank:]]*[^#].*@[a-zA-Z_]/ {'
   while IFS= read -r key; do
-    val="${vars[${key}]}"
-    key="^\([[:blank:]]*\)\([^#@].*\)\?@${key}"
-    opts[${#opts[@]}]='-e'
-    opts[${#opts[@]}]="s/${key}/\1\2${val}/g"
+    script="${script}"' s/@'"${key}"'/'"${vars[${key}]}"'/g;'
   done <<< "$(_sgl_sort_keys "${keys[@]}")"
+  script="${script}"' }'
 
-  ${sed} -i "${opts[@]}" -- "${SRC}"
-  _sgl_chk_exit ${?} ${sed} -i "${opts[@]}" -- "${SRC}"
+  "${sed}" -i -e "${script}" -- "${SRC}"
+  _sgl_chk_exit ${?} "${sed}" -i -e "${script}" -- "${SRC}"
 
   return 0
 }
