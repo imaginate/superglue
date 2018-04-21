@@ -79,6 +79,7 @@ sglue_test()
     return 0
   fi
 
+  local __name__
   local name
   local path
 
@@ -96,8 +97,9 @@ sglue_test()
 
     sglue_clean_tree "${SGLUE_DUMMY}"
     SGLUE_TEST_ERRORS=()
+    __name__="${name}"
     . "${path}"
-    sglue_section "${name}"
+    sglue_section "${__name__}"
   done
 
   return 0
