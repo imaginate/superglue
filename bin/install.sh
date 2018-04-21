@@ -3,7 +3,7 @@
 # Install `superglue' files, executables, and scripts located in `./src'.
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
-# @copyright 2016-2017 Adam A Smith <adam@imaginate.life>
+# @copyright 2016-2018 Adam A Smith <adam@imaginate.life>
 #
 # @use ./install.sh [...OPTION]
 #

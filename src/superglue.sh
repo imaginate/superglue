@@ -12,7 +12,7 @@
 # @mode 0755
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
-# @copyright 2016-2017 Adam A Smith <adam@imaginate.life>
+# @copyright 2016-2018 Adam A Smith <adam@imaginate.life>
 #
 # @use sgl|sglue|superglue [...OPTION] FUNC [...FUNC_ARG]
 # @use sgl|sglue|superglue [...OPTION] SCRIPT [...SCRIPT_ARG]

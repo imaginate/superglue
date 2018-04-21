@@ -3,7 +3,7 @@
 # Run `superglue' unit tests.
 #
 # @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
-# @copyright 2016-2017 Adam A Smith <adam@imaginate.life>
+# @copyright 2016-2018 Adam A Smith <adam@imaginate.life>
 #
 # @use ./test.sh [...SECTION]
 # @val SECTION  If a SECTION is defined, it must be a readable file path to
