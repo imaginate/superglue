@@ -17,8 +17,8 @@
 # - `sglue_rm'
 # - `sglue_rm_dir'
 #
-# @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
-# @copyright 2016-2018 Adam A Smith <adam@imaginate.life>
+# @author Adam Smith <imagineadamsmith@gmail.com> (https://github.com/imaginate)
+# @copyright 2016-2022 Adam A Smith <imagineadamsmith@gmail.com>
 ##############################################################################
 
 ############################################################

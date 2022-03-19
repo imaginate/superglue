@@ -1,6 +1,6 @@
 ## [Superglue](http://superglue.tech) License
 
-**Copyright 2016-2018 Adam A Smith ([imaginate.life](http://imaginate.life))**
+**Copyright 2016-2022 Adam A Smith ([github.com/imaginate](https://github.com/imaginate))**
 
 Licensed under the **Apache License**, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

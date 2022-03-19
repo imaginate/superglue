@@ -1,8 +1,8 @@
 # @dest $LIB/superglue/sgl_chk_uid
 # @mode 0644
 #
-# @author Adam Smith <adam@imaginate.life> (http://imaginate.life)
-# @copyright 2016-2018 Adam A Smith <adam@imaginate.life>
+# @author Adam Smith <imagineadamsmith@gmail.com> (https://github.com/imaginate)
+# @copyright 2016-2022 Adam A Smith <imagineadamsmith@gmail.com>
 #
 # @use sgl_source chk_uid
 # @return
