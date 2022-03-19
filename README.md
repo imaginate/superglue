@@ -1,8 +1,20 @@
-# Superglue [![build status](https://travis-ci.org/imaginate/superglue.svg?branch=master)](https://travis-ci.org/imaginate/superglue) [![version](https://img.shields.io/badge/version-0.1.0--beta.1-brightgreen.svg?style=flat)](http://superglue.tech)
+# Superglue [![build status][build]][travis] [![version][version]][superglue]
 
 ### Bash on Steroids
 
-Superglue is a comprehensive bash library and wrapper designed for minimal kernel environments with GNU-style options for every function.
+Superglue is a powerful bash library designed for minimal kernel environments
+with POSIX and GNU style options for every function.
+
+It includes:
+- environment sanitization
+- a shell script preprocessor with macro expansion, environment configuration,
+  and document inclusion
+- a POSIX and GNU option style argument parser
+- conditional tests for the file system, environment, and program termination
+- improved file creation and deletion
+- improved `stdout` and `stderr` printing
+
+You can:
 - Write quick and clean scripts with helper functions and variables.
 - Enjoy automatic environment stabilization and dependency checks.
 - Discover documentation delight with thorough references and help guides.
@@ -10,94 +22,116 @@ Superglue is a comprehensive bash library and wrapper designed for minimal kerne
 - Understand clear and verbose error reports and avoid uncaught errors.
 - Master outputs with automatic switches and prettify your terminal with ease.
 - Trust in less while getting more by only relying on four dependencies:
-  - [Posix Bash v4](http://tiswww.case.edu/php/chet/bash/bashtop.html)
-  - [GNU Coreutils](https://www.gnu.org/software/coreutils/coreutils.html)
-  - [Posix Grep](https://www.gnu.org/software/grep/grep.html)
-  - [Posix Sed](https://www.gnu.org/software/sed/sed.html)
+    - [Posix Bash v4][bash]
+    - [GNU Coreutils][coreutils]
+    - [Posix Grep][grep]
+    - [Posix Sed][sed]
 
 
 ### Examples
+
 - **Interact Instantly**<br>
-  This example copies a source file to multiple destinations with [sgl_mk_dest](#sgl_mk_dest). Destinations and other values are defined with tags (e.g. `# @TAG VALUE`) from within the source file for maximum convenience and flexibility.
-  ```bash
-  # make an example source file
-  src="${HOME}/source.file"
-  cat <<'EOF' > "${src}"
-  # EXAMPLE SOURCE FILE
-  # ...
-  # @dest "${HOME}/destination.file"
-  # @dest $CUSTOM/destination.file
-  # @mode 0755
-  # @owner user:group
-  # ...
-  # @include ../a/quasi/macro
-  EOF
-  # make both destinations
-  sgl mk_dest --define='CUSTOM=/your/custom/path' -- "${src}"
-  ```
+    
+    This example copies a source file to multiple destinations with
+    [sgl_mk_dest](#sgl_mk_dest). Destinations and other values are defined
+    with tags (e.g. `# @TAG VALUE`) from within the source file for maximum
+    convenience and flexibility.
+    
+    ```bash
+    # make an example source file
+    src="${HOME}/source.file"
+    cat <<'EOF' > "${src}"
+    # EXAMPLE SOURCE FILE
+    # @version 0.1.0-beta.1
+    #
+    # @dest "${HOME}/destination.file"
+    # @dest $CUSTOM/destination.file
+    # @mode 0755
+    # @owner user:group
+    #
+    # @var MACRO='expansion'
+    # @var DEFINED="${CUSTOM}"
+    
+    if [ -f @DEFINED/custom.file ]; then
+      echo '@VERSION has @MACRO'
+    fi
+    
+    # @include ../path/to/included.file
+    EOF
+    # make both destinations
+    sgl mk_dest --define='CUSTOM=/your/custom/path' -- "${src}"
+    ```
 
 - **Wrap Warmly**<br>
-  This example shows how you can quickly create executable scripts that are reliable and clear.
-  ```bash
-  #!/bin/superglue -S
+    
+    This example shows how you can quickly create executable scripts that are
+    reliable and clear.
+    
+    ```bash
+    #!/bin/superglue -S
+    
+    # Verify that the effective user is the root or exit.
+    sgl_chk_uid --exit -- 0
+    
+    # Parse the arguments and exit if an invalid option is used.
+    sgl_parse_args --options \
+      '-a|--ask'    Y \
+      '-b|--bounce'   \
+      '-c|--coast'    \
+      '-t|--tell'   M \
+      '-?|--help'
+    
+    # Process the parsed options.
+    for opt in "${SGL_OPTS[@]}"; do
+      # ...
+    done
+    
+    # On test failure print a clear error message and exit.
+    test -n "${str}" || sgl_err VAL "invalid empty string"
+    
+    # If grep fails exit the process.
+    ${grep} 'a mighty pattern' random.txt > ${NIL}
+    sgl_chk_exit --exit --prg='Wrap Warmly' --cmd='grep' $?
+    
+    # Prettily print to stdout.
+    sgl_print -C blue -t 'Your Choice' -D ' - ' -- 'Maybe...'
+    sgl_print --title='VALUES' --delim=',' -- "${SGL_VALS[@]}"
+    sgl_print --color green 'EXAMPLE PASSED'
+    ```
 
-  # Verify that the effective user is the root or exit.
-  sgl_chk_uid --exit -- 0
-
-  # Parse the arguments and exit if an invalid option is used.
-  sgl_parse_args --options \
-    '-a|--ask'    Y \
-    '-b|--bounce'   \
-    '-c|--coast'    \
-    '-t|--tell'   M \
-    '-?|--help'
-
-  # Process the parsed options.
-  for opt in "${SGL_OPTS[@]}"; do
-    # ...
-  done
-
-  # On test failure print a clear error message and exit.
-  test -n "${str}" || sgl_err VAL "invalid empty string"
-
-  # If grep fails exit the process.
-  ${grep} 'a mighty pattern' random.txt > ${NIL}
-  sgl_chk_exit --exit --prg='Wrap Warmly' --cmd='grep' $?
-
-  # Prettily print to stdout.
-  sgl_print -C blue -t 'Your Choice' -D ' - ' -- 'Maybe...'
-  sgl_print --title='VALUES' --delim=',' -- "${SGL_VALS[@]}"
-  sgl_print --color green 'EXAMPLE PASSED'
-  ```
 
 ## Reference
+
 - [Install](#install)
 - [Command](#command)
-- [Variables](#varaibles)
-  - [main](#main)
-  - [options](#options)
-  - [colors](#colors)
+- [Variables](#variables)
+    - [base](#base-variables)
+    - [options](#option-variables)
+    - [colors](#color-variables)
 - [Functions](#functions)
-  - [sgl_chk_cmd](#sgl_chk_cmd)
-  - [sgl_chk_dir](#sgl_chk_dir)
-  - [sgl_chk_exit](#sgl_chk_exit)
-  - [sgl_chk_file](#sgl_chk_file)
-  - [sgl_chk_uid](#sgl_chk_uid)
-  - [sgl_color](#sgl_color)
-  - [sgl_cp](#sgl_cp)
-  - [sgl_err](#sgl_err)
-  - [sgl_mk_dest](#sgl_mk_dest)
-  - [sgl_parse_args](#sgl_parse_args)
-  - [sgl_print](#sgl_print)
-  - [sgl_rm_dest](#sgl_rm_dest)
-  - [sgl_set_color](#sgl_set_color)
-  - [sgl_source](#sgl_source)
+    - [sgl_chk_cmd](#sgl_chk_cmd)
+    - [sgl_chk_dir](#sgl_chk_dir)
+    - [sgl_chk_exit](#sgl_chk_exit)
+    - [sgl_chk_file](#sgl_chk_file)
+    - [sgl_chk_uid](#sgl_chk_uid)
+    - [sgl_color](#sgl_color)
+    - [sgl_cp](#sgl_cp)
+    - [sgl_err](#sgl_err)
+    - [sgl_mk_dest](#sgl_mk_dest)
+    - [sgl_parse_args](#sgl_parse_args)
+    - [sgl_print](#sgl_print)
+    - [sgl_rm_dest](#sgl_rm_dest)
+    - [sgl_set_color](#sgl_set_color)
+    - [sgl_source](#sgl_source)
+
 
 ## Install
+
 ```sh
 git clone https://github.com/imaginate/superglue.git
 make -C superglue && rm -rf superglue
 ```
+
 **NOTE**<br>
 The following Linux packages are on the to-do list.
 - [deb](https://wiki.debian.org/HowToPackageForDebian)
@@ -106,8 +140,13 @@ The following Linux packages are on the to-do list.
 - [apk](https://wiki.alpinelinux.org/wiki/Creating_an_Alpine_package)
 - [portage](https://wiki.gentoo.org/wiki/Portage)
 
+
 ## Command
-A bash superset that cleans the environment, defines helper references, sources helper functions, and optionally sources a user-defined ```SCRIPT```.
+
+A bash superset that cleans the environment, defines helper references,
+sources helper functions, and optionally sources a user-defined
+`SCRIPT`.
+
 ```text
 
   sgl|sglue|superglue [...OPTION] FUNC [...FUNC_ARG]
@@ -167,42 +206,60 @@ A bash superset that cleans the environment, defines helper references, sources 
 
 ```
 
+
 ## Variables
 
-### Main
-- `SGL_ARGS`  A _read-only_ zero-based indexed array of each [command](#command) passed `SCRIPT_ARG`.
-- `SGL_FUNC`  The _read-only_ name of the [command](#command) passed `FUNC`.
-- `SGL_OPTS`  See [sgl_parse_args](#sgl_parse_args).
-- `SGL_OPT_BOOL`  See [sgl_parse_args](#sgl_parse_args).
-- `SGL_OPT_VALS`  See [sgl_parse_args](#sgl_parse_args).
-- `SGL_SCRIPT`  The _read-only_ name of the [command](#command) passed `SCRIPT`.
-- `SGL_VALS`  See [sgl_parse_args](#sgl_parse_args).
-- `SGL_VERSION`  The _read-only_ `superglue` version.
 
-### Options
-All options are booleans (i.e. their value is `1` for `true` or `0` for `false`).
-- `SGL_ALIAS`
-- `SGL_COLOR_OFF`
-- `SGL_COLOR_ON`
-- `SGL_QUIET`
-- `SGL_QUIET_CHILD`
-- `SGL_QUIET_PARENT`
-- `SGL_SILENT`
-- `SGL_SILENT_CHILD`
-- `SGL_SILENT_PARENT`
-- `SGL_VERBOSE`
+### Base Variables
 
-### Colors
-All colors are evaluated [ANSI SGR escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code#graphics). Use [sgl_set_color](#sgl_set_color) to safely change these values.
-- `SGL_BLACK`  Default code is `30`.
-- `SGL_BLUE`  Default code is `94`.
-- `SGL_CYAN`  Default code is `36`.
-- `SGL_GREEN`  Default code is `32`.
-- `SGL_PURPLE`  Default code is `35`.
-- `SGL_RED`  Default code is `91`.
-- `SGL_UNCOLOR`  Default code is `0`.
-- `SGL_WHITE`  Default code is `97`.
-- `SGL_YELLOW`  Default code is `33`.
+| Variable       | Description
+|:---------------|:-----------------------------------------------------------
+| `SGL_ARGS    ` | A _read-only_ zero-based indexed array of each [command](#command) passed `SCRIPT_ARG`.
+| `SGL_FUNC    ` | The _read-only_ name of the [command](#command) passed `FUNC`.
+| `SGL_OPTS    ` | See [sgl_parse_args](#sgl_parse_args).
+| `SGL_OPT_BOOL` | See [sgl_parse_args](#sgl_parse_args).
+| `SGL_OPT_VALS` | See [sgl_parse_args](#sgl_parse_args).
+| `SGL_SCRIPT  ` | The _read-only_ name of the [command](#command) passed `SCRIPT`.
+| `SGL_VALS    ` | See [sgl_parse_args](#sgl_parse_args).
+| `SGL_VERSION ` | The _read-only_ `superglue` version.
+
+
+### Option Variables
+
+All options are booleans (i.e. their value is `1` for `true` or `0` for
+`false`).
+
+| Variable            | Description
+|:--------------------|:------------------------------------------------------
+| `SGL_ALIAS        ` | 
+| `SGL_COLOR_OFF    ` | 
+| `SGL_COLOR_ON     ` | 
+| `SGL_QUIET        ` | 
+| `SGL_QUIET_CHILD  ` | 
+| `SGL_QUIET_PARENT ` | 
+| `SGL_SILENT       ` | 
+| `SGL_SILENT_CHILD ` | 
+| `SGL_SILENT_PARENT` | 
+| `SGL_VERBOSE      ` | 
+
+
+### Color Variables
+
+All colors are evaluated [ANSI SGR escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code#graphics).
+Use [sgl_set_color](#sgl_set_color) to safely change these values.
+
+| Variable       | Description
+|:---------------|:-----------------------------------------------------------
+| `SGL_BLACK`    | Default code is `30`.
+| `SGL_BLUE`     | Default code is `94`.
+| `SGL_CYAN`     | Default code is `36`.
+| `SGL_GREEN`    | Default code is `32`.
+| `SGL_PURPLE`   | Default code is `35`.
+| `SGL_RED`      | Default code is `91`.
+| `SGL_UNCOLOR`  | Default code is `0`.
+| `SGL_WHITE`    | Default code is `97`.
+| `SGL_YELLOW`   | Default code is `33`.
+
 
 ## Functions
 
@@ -939,4 +996,15 @@ Note that ```sgl_source``` is automatically available within ```superglue```.
 
 ## Everything Else
 [Issue/Suggestion](https://github.com/imaginate/superglue/issues)<br>
-[Contribute](adam@imaginate.life)
+[Contribute](imagineadamsmith@gmail.com)
+
+
+[superglue]: http://github.com/imaginate/superglue
+[travis]: https://travis-ci.org/imaginate/superglue
+[build]: https://travis-ci.org/imaginate/superglue.svg?branch=master
+[version]: https://img.shields.io/badge/version-0.1.0--beta.1-brightgreen.svg?style=flat
+
+[bash]: http://tiswww.case.edu/php/chet/bash/bashtop.html
+[coreutils]: https://www.gnu.org/software/coreutils/coreutils.html
+[grep]: https://www.gnu.org/software/grep/grep.html
+[sed]: https://www.gnu.org/software/sed/sed.html
