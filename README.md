@@ -2,38 +2,43 @@
 
 ### Bash on Steroids
 
-Superglue is a powerful bash library designed for minimal kernel environments
-with POSIX and GNU style options for every function.
+Superglue is a powerful **bash library**, **preprocessor**, and **build tool**
+designed for any system supporting [POSIX Bash v4][bash],
+[GNU Coreutils][coreutils], [POSIX Grep][grep], and [POSIX Sed][sed].
 
 It includes:
-- environment sanitization
-- a shell script preprocessor with macro expansion, environment configuration,
-  and document inclusion
-- a POSIX and GNU option style argument parser
+- automatic shell environment sanitization whenever [`superglue`](#command) is
+  used (note that Superglue is shebang compatible `#!/bin/superglue [OPTION]`)
+- a shell script preprocessor and build tool with macro expansion, file level
+  environment configuration, and automatic file installation and removal via
+  the [`sgl_mk_dest`](#sgl_mk_dest) and [`sgl_rm_dest`](#sgl_rm_dest)
+  functions (see [examples](#examples))
+- a POSIX and GNU option style argument parser via the
+  [`sgl_parse_args`](#sgl_parse_args) function
 - conditional tests for the file system, environment, and program termination
-- improved file creation and deletion
-- improved `stdout` and `stderr` printing
+  via the [`sgl_chk_`](#reference) functions
+- improved file creation and deletion via the [`sgl_cp`](#sgl_cp),
+  [`sgl_mk_dest`](#sgl_mk_dest), and [`sgl_rm_dest`](#sgl_rm_dest) functions
+- improved `stdout` and `stderr` printing via the [`sgl_color`](#sgl_color),
+  [`sgl_print`](#sgl_print), and [`sgl_err`](#sgl_err) functions
+- improved error handling via the [`sgl_err`](#sgl_err) function
 
 You can:
-- Write quick and clean scripts with helper functions and variables.
+- Write quick and clean scripts with our helper functions and variables.
 - Enjoy automatic environment stabilization and dependency checks.
+- Easily install or delete multiple scripts and configuration files.
 - Discover documentation delight with thorough references and help guides.
 - Embrace instant interactive love with automatic executable functions.
 - Understand clear and verbose error reports and avoid uncaught errors.
 - Master outputs with automatic switches and prettify your terminal with ease.
-- Trust in less while getting more by only relying on four dependencies:
-    - [Posix Bash v4][bash]
-    - [GNU Coreutils][coreutils]
-    - [Posix Grep][grep]
-    - [Posix Sed][sed]
 
 
 ### Examples
 
-- **Interact Instantly**<br>
+- **Build Beautifully**<br>
     
     This example copies a source file to multiple destinations with
-    [sgl_mk_dest](#sgl_mk_dest). Destinations and other values are defined
+    [`sgl_mk_dest`](#sgl_mk_dest). Destinations and other values are defined
     with tags (e.g. `# @TAG VALUE`) from within the source file for maximum
     convenience and flexibility.
     
@@ -94,7 +99,7 @@ You can:
     sgl_chk_exit --exit --prg='Wrap Warmly' --cmd='grep' $?
     
     # Prettily print to stdout.
-    sgl_print -C blue -t 'Your Choice' -D ' - ' -- 'Maybe...'
+    sgl_print -C blue -t 'Your Choice' -D ' - ' -- 'groovy'
     sgl_print --title='VALUES' --delim=',' -- "${SGL_VALS[@]}"
     sgl_print --color green 'EXAMPLE PASSED'
     ```
