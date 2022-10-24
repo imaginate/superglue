@@ -19,5 +19,6 @@ jobs:
           rm -rf superglue
           git clone https://github.com/imaginate/superglue.git
           cd superglue
+          make install
       - name: Run Tests
         run: make test
