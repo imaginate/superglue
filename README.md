@@ -1,9 +1,9 @@
-# Superglue [![build status][build]][travis] [![version][version]][superglue]
+# Superglue [![tests passing][testbadge]][testsgl] [![version][version]][superglue]
 
 ### Bash on Steroids
 
 Superglue is a powerful **bash library**, **preprocessor**, and **build tool**
-designed for any system supporting [POSIX Bash v4][bash],
+designed for any system supporting [POSIX Bash v4 or v5][bash],
 [GNU Coreutils][coreutils], [POSIX Grep][grep], and [POSIX Sed][sed].
 
 It includes:
@@ -1005,9 +1005,9 @@ Note that ```sgl_source``` is automatically available within ```superglue```.
 
 
 [superglue]: http://github.com/imaginate/superglue
-[travis]: https://travis-ci.org/imaginate/superglue
-[build]: https://travis-ci.org/imaginate/superglue.svg?branch=master
-[version]: https://img.shields.io/badge/version-0.1.0--beta.1-brightgreen.svg?style=flat
+[testsgl]: https://github.com/imaginate/superglue/tree/master/test
+[testbadge]: https://github.com/imaginate/superglue/actions/workflows/test.yml/badge.svg
+[version]: https://img.shields.io/badge/version-0.1.0--beta.2-brightgreen.svg?style=flat
 
 [bash]: http://tiswww.case.edu/php/chet/bash/bashtop.html
 [coreutils]: https://www.gnu.org/software/coreutils/coreutils.html
