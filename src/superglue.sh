@@ -1,7 +1,7 @@
 #!/bin/bash --posix
 #
 # @superglue
-# @version 0.1.0-beta.1
+# @version 0.1.0-beta.2
 #
 # A bash superset that cleans the environment, defines helper references,
 # sources helper functions, and sources a user-defined SCRIPT.
@@ -115,8 +115,10 @@ _sgl_clean_builtin
 ## CHECK BASH VERSION
 ##############################################################################
 
-if [[ -z "${BASH_VERSINFO}" ]] || [[ "${BASH_VERSINFO[0]}" != '4' ]]; then
-  _sgl_err DPND "bash version 4 required"
+if [[ -z "${BASH_VERSINFO}" ]] \
+  || [[ ! "${BASH_VERSINFO[0]}" =~ ^[45]$ ]]
+then
+  _sgl_err DPND "bash version 4 or 5 required"
 fi
 
 ##############################################################################
