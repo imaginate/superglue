@@ -203,8 +203,10 @@ echo2()
 ## CHECK BASH VERSION
 ##############################################################################
 
-if [[ -z "${BASH_VERSINFO}" ]] || [[ "${BASH_VERSINFO[0]}" != '4' ]]; then
-  echo2 "$(mkred DEPEND-ERROR) bash version 4 required"
+if [[ -z "${BASH_VERSINFO}" ]] \
+  || [[ ! "${BASH_VERSINFO[0]}" =~ ^[45]$ ]]
+then
+  echo2 "$(mkred DEPEND-ERROR) bash version 4 or 5 required"
   exit 5
 fi
 
